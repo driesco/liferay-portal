@@ -109,6 +109,8 @@ public class PasswordPolicyPersistenceTest {
 
 		PasswordPolicy newPasswordPolicy = _persistence.create(pk);
 
+		newPasswordPolicy.setUuid(ServiceTestUtil.randomString());
+
 		newPasswordPolicy.setCompanyId(ServiceTestUtil.nextLong());
 
 		newPasswordPolicy.setUserId(ServiceTestUtil.nextLong());
@@ -177,6 +179,8 @@ public class PasswordPolicyPersistenceTest {
 
 		PasswordPolicy existingPasswordPolicy = _persistence.findByPrimaryKey(newPasswordPolicy.getPrimaryKey());
 
+		Assert.assertEquals(existingPasswordPolicy.getUuid(),
+			newPasswordPolicy.getUuid());
 		Assert.assertEquals(existingPasswordPolicy.getPasswordPolicyId(),
 			newPasswordPolicy.getPasswordPolicyId());
 		Assert.assertEquals(existingPasswordPolicy.getCompanyId(),
@@ -390,6 +394,8 @@ public class PasswordPolicyPersistenceTest {
 		long pk = ServiceTestUtil.nextLong();
 
 		PasswordPolicy passwordPolicy = _persistence.create(pk);
+
+		passwordPolicy.setUuid(ServiceTestUtil.randomString());
 
 		passwordPolicy.setCompanyId(ServiceTestUtil.nextLong());
 

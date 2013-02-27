@@ -503,6 +503,7 @@
 		<field name="satClose" type="int" />
 	</model>
 	<model name="com.liferay.portal.model.PasswordPolicy">
+		<field name="uuid" type="String" />
 		<field name="passwordPolicyId" type="long" />
 		<field name="companyId" type="long" />
 		<field name="userId" type="long" />
