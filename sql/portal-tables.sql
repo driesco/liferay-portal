@@ -1348,6 +1348,7 @@ create table OrgLabor (
 );
 
 create table PasswordPolicy (
+	uuid_ VARCHAR(75) null,
 	passwordPolicyId LONG not null primary key,
 	companyId LONG,
 	userId LONG,

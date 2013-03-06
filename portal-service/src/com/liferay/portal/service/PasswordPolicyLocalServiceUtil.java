@@ -329,11 +329,24 @@ public class PasswordPolicyLocalServiceUtil {
 		return getService().getPasswordPolicy(companyId, organizationIds);
 	}
 
+	public static com.liferay.portal.model.PasswordPolicy getPasswordPolicy(
+		java.lang.String uuid)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getPasswordPolicy(uuid);
+	}
+
 	public static com.liferay.portal.model.PasswordPolicy getPasswordPolicyByUserId(
 		long userId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getPasswordPolicyByUserId(userId);
+	}
+
+	public static com.liferay.portal.model.PasswordPolicy getPasswordPolicyByUuid(
+		java.lang.String uuid)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getPasswordPolicyByUuid(uuid);
 	}
 
 	public static java.util.List<com.liferay.portal.model.PasswordPolicy> search(

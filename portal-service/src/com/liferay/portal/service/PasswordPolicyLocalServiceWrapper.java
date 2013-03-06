@@ -324,11 +324,24 @@ public class PasswordPolicyLocalServiceWrapper
 			organizationIds);
 	}
 
+	public com.liferay.portal.model.PasswordPolicy getPasswordPolicy(
+		java.lang.String uuid)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _passwordPolicyLocalService.getPasswordPolicy(uuid);
+	}
+
 	public com.liferay.portal.model.PasswordPolicy getPasswordPolicyByUserId(
 		long userId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _passwordPolicyLocalService.getPasswordPolicyByUserId(userId);
+	}
+
+	public com.liferay.portal.model.PasswordPolicy getPasswordPolicyByUuid(
+		java.lang.String uuid)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _passwordPolicyLocalService.getPasswordPolicyByUuid(uuid);
 	}
 
 	public java.util.List<com.liferay.portal.model.PasswordPolicy> search(
