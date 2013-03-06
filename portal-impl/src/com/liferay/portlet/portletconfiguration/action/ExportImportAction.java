@@ -35,6 +35,8 @@ import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.lar.portalDataContext.PortalExporter;
+import com.liferay.portal.lar.portalDataContext.PortalImporter;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.security.auth.PrincipalException;
@@ -257,6 +259,9 @@ public class ExportImportAction extends EditConfigurationAction {
 				}
 			}
 
+			PortalExporter portalExporter = new PortalExporter();
+			portalExporter.exportPortalInfoAsFile(10152);
+
 			file = LayoutServiceUtil.exportPortletInfoAsFile(
 				plid, groupId, portlet.getPortletId(),
 				actionRequest.getParameterMap(), startDate, endDate);
@@ -288,6 +293,12 @@ public class ExportImportAction extends EditConfigurationAction {
 			ActionRequest actionRequest, ActionResponse actionResponse,
 			Portlet portlet)
 		throws Exception {
+
+		String path = "C:\\Users\\liferay\\Downloads\\test.zip";
+		File fileImport = new File(path);
+
+		PortalImporter portalImporter = new PortalImporter();
+		portalImporter.importPortalInfo(fileImport, 10152);
 
 		try {
 			UploadPortletRequest uploadPortletRequest =
