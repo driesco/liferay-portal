@@ -15,6 +15,7 @@
 package com.liferay.portal.service.impl;
 
 import com.liferay.portal.DuplicatePasswordPolicyException;
+import com.liferay.portal.NoSuchPasswordPolicyException;
 import com.liferay.portal.PasswordPolicyNameException;
 import com.liferay.portal.RequiredPasswordPolicyException;
 import com.liferay.portal.kernel.cache.ThreadLocalCachable;
@@ -265,6 +266,13 @@ public class PasswordPolicyLocalServiceImpl
 		return getDefaultPasswordPolicy(companyId);
 	}
 
+	public PasswordPolicy getPasswordPolicy(String uuid)
+		throws SystemException {
+
+		return passwordPolicyPersistence.fetchByUuid_First(
+			uuid, null);
+	}
+
 	@ThreadLocalCachable
 	public PasswordPolicy getPasswordPolicyByUserId(long userId)
 		throws PortalException, SystemException {
@@ -302,6 +310,20 @@ public class PasswordPolicyLocalServiceImpl
 			}
 
 			return getPasswordPolicy(user.getCompanyId(), organizationIds);
+		}
+	}
+
+	public PasswordPolicy getPasswordPolicyByUuid(String uuid)
+		throws PortalException, SystemException {
+
+		List<PasswordPolicy> passwordPolicies =
+			passwordPolicyPersistence.findByUuid(uuid);
+
+		if (passwordPolicies.isEmpty()) {
+			throw new NoSuchPasswordPolicyException();
+		}
+		else {
+			return passwordPolicies.get(0);
 		}
 	}
 
