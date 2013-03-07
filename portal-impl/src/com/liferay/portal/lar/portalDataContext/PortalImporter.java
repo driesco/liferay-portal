@@ -7,7 +7,7 @@ import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.zip.ZipReader;
 import com.liferay.portal.kernel.zip.ZipReaderFactoryUtil;
-import com.liferay.portal.lar.passwordPolicies.PasswordPoliciesPortalDataHandlerImplNew;
+import com.liferay.portal.lar.passwordPolicies.PasswordPolicyPortalDataHandlerImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,7 +58,7 @@ public class PortalImporter {
 		throws Exception {
 
 		PortalDataHandler portalDataHandler =
-			new PasswordPoliciesPortalDataHandlerImplNew();
+			new PasswordPolicyPortalDataHandlerImpl();
 
 		portalDataHandler.readDataPermissions(portalDataContext, rootElement);
 
