@@ -162,65 +162,70 @@ public class PasswordPolicyPortalDataHandlerImpl
 			PasswordPolicyLocalServiceUtil.getPasswordPolicy(
 				passwordPolicy.getUuid());
 
-		if (existingPasswordPolicy == null) {
-			importedPasswordPolicy =
-				PasswordPolicyLocalServiceUtil.addPasswordPolicy(
-					passwordPolicy.getUserId(),
-					passwordPolicy.getDefaultPolicy(), passwordPolicy.getName(),
-					passwordPolicy.getDescription(),
-					passwordPolicy.getChangeable(),
-					passwordPolicy.getChangeRequired(),
-					passwordPolicy.getMinAge(),passwordPolicy.getCheckSyntax(),
-					passwordPolicy.getAllowDictionaryWords(),
-					passwordPolicy.getMinAlphanumeric(),
-					passwordPolicy.getMinLength(),
-					passwordPolicy.getMinLowerCase(),
-					passwordPolicy.getMinNumbers(),
-					passwordPolicy.getMinSymbols(),
-					passwordPolicy.getMinUpperCase(), passwordPolicy.getRegex(),
-					passwordPolicy.getHistory(),
-					passwordPolicy.getHistoryCount(),
-					passwordPolicy.getExpireable(), passwordPolicy.getMaxAge(),
-					passwordPolicy.getWarningTime(),
-					passwordPolicy.getGraceLimit(), passwordPolicy.getLockout(),
-					passwordPolicy.getMaxFailure(),
-					passwordPolicy.getLockoutDuration(),
-					passwordPolicy.getResetFailureCount(),
-					passwordPolicy.getResetTicketMaxAge());
+		PasswordPolicy defaultPasswordPolicy =
+			PasswordPolicyLocalServiceUtil.getDefaultPasswordPolicy(
+				portalDataContext.getCompanyId());
 
-			importedPasswordPolicy.setUuid(passwordPolicy.getUuid());
+		if (!passwordPolicy.equals(defaultPasswordPolicy)) {
+			if (existingPasswordPolicy == null) {
+				importedPasswordPolicy =
+					PasswordPolicyLocalServiceUtil.addPasswordPolicy(
+						passwordPolicy.getUserId(),
+						passwordPolicy.getDefaultPolicy(), passwordPolicy.getName(),
+						passwordPolicy.getDescription(),
+						passwordPolicy.getChangeable(),
+						passwordPolicy.getChangeRequired(),
+						passwordPolicy.getMinAge(),passwordPolicy.getCheckSyntax(),
+						passwordPolicy.getAllowDictionaryWords(),
+						passwordPolicy.getMinAlphanumeric(),
+						passwordPolicy.getMinLength(),
+						passwordPolicy.getMinLowerCase(),
+						passwordPolicy.getMinNumbers(),
+						passwordPolicy.getMinSymbols(),
+						passwordPolicy.getMinUpperCase(), passwordPolicy.getRegex(),
+						passwordPolicy.getHistory(),
+						passwordPolicy.getHistoryCount(),
+						passwordPolicy.getExpireable(), passwordPolicy.getMaxAge(),
+						passwordPolicy.getWarningTime(),
+						passwordPolicy.getGraceLimit(), passwordPolicy.getLockout(),
+						passwordPolicy.getMaxFailure(),
+						passwordPolicy.getLockoutDuration(),
+						passwordPolicy.getResetFailureCount(),
+						passwordPolicy.getResetTicketMaxAge());
 
-			PasswordPolicyLocalServiceUtil.updatePasswordPolicy(
-				importedPasswordPolicy);
-		}
-		else {
-			importedPasswordPolicy =
+				importedPasswordPolicy.setUuid(passwordPolicy.getUuid());
+
 				PasswordPolicyLocalServiceUtil.updatePasswordPolicy(
-					existingPasswordPolicy.getPasswordPolicyId(),
-					passwordPolicy.getName(), passwordPolicy.getDescription(),
-					passwordPolicy.getChangeable(),
-					passwordPolicy.getChangeRequired(),
-					passwordPolicy.getMinAge(), passwordPolicy.getCheckSyntax(),
-					passwordPolicy.getAllowDictionaryWords(),
-					passwordPolicy.getMinAlphanumeric(),
-					passwordPolicy.getMinLength(),
-					passwordPolicy.getMinLowerCase(),
-					passwordPolicy.getMinNumbers(),
-					passwordPolicy.getMinSymbols(),
-					passwordPolicy.getMinUpperCase(), passwordPolicy.getRegex(),
-					passwordPolicy.getHistory(),
-					passwordPolicy.getHistoryCount(),
-					passwordPolicy.getExpireable(),
-					passwordPolicy.getMaxAge(), passwordPolicy.getWarningTime(),
-					passwordPolicy.getGraceLimit(), passwordPolicy.getLockout(),
-					passwordPolicy.getMaxFailure(),
-					passwordPolicy.getLockoutDuration(),
-					passwordPolicy.getResetFailureCount(),
-					passwordPolicy.getResetTicketMaxAge());
+					importedPasswordPolicy);
+			}
+			else {
+				importedPasswordPolicy =
+					PasswordPolicyLocalServiceUtil.updatePasswordPolicy(
+						existingPasswordPolicy.getPasswordPolicyId(),
+						passwordPolicy.getName(), passwordPolicy.getDescription(),
+						passwordPolicy.getChangeable(),
+						passwordPolicy.getChangeRequired(),
+						passwordPolicy.getMinAge(), passwordPolicy.getCheckSyntax(),
+						passwordPolicy.getAllowDictionaryWords(),
+						passwordPolicy.getMinAlphanumeric(),
+						passwordPolicy.getMinLength(),
+						passwordPolicy.getMinLowerCase(),
+						passwordPolicy.getMinNumbers(),
+						passwordPolicy.getMinSymbols(),
+						passwordPolicy.getMinUpperCase(), passwordPolicy.getRegex(),
+						passwordPolicy.getHistory(),
+						passwordPolicy.getHistoryCount(),
+						passwordPolicy.getExpireable(),
+						passwordPolicy.getMaxAge(), passwordPolicy.getWarningTime(),
+						passwordPolicy.getGraceLimit(), passwordPolicy.getLockout(),
+						passwordPolicy.getMaxFailure(),
+						passwordPolicy.getLockoutDuration(),
+						passwordPolicy.getResetFailureCount(),
+						passwordPolicy.getResetTicketMaxAge());
+			}
+			portalDataContext.importClassedModel(
+				passwordPolicy, importedPasswordPolicy, _NAMESPACE);
 		}
-
-		portalDataContext.importClassedModel(
-			passwordPolicy, importedPasswordPolicy, _NAMESPACE);
 	}
 
 	private static final String _NAMESPACE = "passwordPolicies";
