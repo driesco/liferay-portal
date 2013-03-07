@@ -6,7 +6,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.kernel.zip.ZipWriterFactoryUtil;
-import com.liferay.portal.lar.passwordPolicies.PasswordPolicyPortalDataHandlerImpl;
+import com.liferay.portal.lar.customFields.ExpandoPortalDataHandlerImpl;
 
 import java.io.File;
 
@@ -42,7 +42,7 @@ public class PortalExporter {
 		throws Exception {
 
 		PortalDataHandler portalDataHandler =
-			new PasswordPolicyPortalDataHandlerImpl();
+			new ExpandoPortalDataHandlerImpl();
 
 		String data = null;
 

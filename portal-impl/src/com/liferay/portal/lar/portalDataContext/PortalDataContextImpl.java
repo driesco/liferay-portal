@@ -240,7 +240,7 @@ public class PortalDataContextImpl implements PortalDataContext {
 	}
 
 	public void importPermissions(
-		String resourceName, long resourcePK, long newResourcePK)
+			String resourceName, long resourcePK, long newResourcePK)
 		throws PortalException, SystemException {
 
 		List<KeyValuePair> permissions = _permissionsMap.get(

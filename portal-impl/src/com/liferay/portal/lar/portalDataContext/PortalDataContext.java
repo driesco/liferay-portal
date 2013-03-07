@@ -50,6 +50,13 @@ public interface PortalDataContext {
 			String namespace)
 		throws PortalException, SystemException;
 
+	public void importPermissions(Class<?> clazz, long classPK, long newClassPK)
+		throws PortalException, SystemException;
+
+	public void importPermissions(
+		String resourceObj, long resourcePK, long newResourcePK)
+		throws PortalException, SystemException;
+
 	public String toXML(Object object);
 
 }
