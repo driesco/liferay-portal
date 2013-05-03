@@ -240,11 +240,8 @@ public class EditArticleAction extends PortletAction {
 					actionRequest,
 					"portlet.journal.update_translation_redirect");
 			}
-
-			if (!cmd.equals(Constants.DELETE_TRANSLATION) &&
-				!cmd.equals(Constants.TRANSLATE) &&
-				(article != null) &&
-				(workflowAction == WorkflowConstants.ACTION_SAVE_DRAFT)) {
+			else if ((article != null) &&
+					 (workflowAction == WorkflowConstants.ACTION_SAVE_DRAFT)) {
 
 				redirect = getSaveAndContinueRedirect(
 					portletConfig, actionRequest, article, redirect);
@@ -449,7 +446,7 @@ public class EditArticleAction extends PortletAction {
 			for (int i = 0; i < values.size(); i++) {
 				String content = (String)values.get(i);
 
-				if (content.equals("update-image")) {
+				if (content.equals("update")) {
 					continue;
 				}
 
