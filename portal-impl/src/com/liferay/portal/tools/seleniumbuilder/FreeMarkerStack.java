@@ -12,16 +12,35 @@
  * details.
  */
 
-package com.liferay.portlet.layoutsadmin.lar;
+package com.liferay.portal.tools.seleniumbuilder;
 
-import com.liferay.portal.kernel.lar.BasePortletDataHandler;
+import com.liferay.portal.kernel.util.StringPool;
+
+import java.util.Stack;
 
 /**
- * @author Daniela Zapata Riesco
+ * @author Michael Hashimoto
  */
-public class LayoutSetPrototypePortletDataHandler
-	extends BasePortletDataHandler {
+public class FreeMarkerStack {
 
-	public static final String NAMESPACE = "layout_set_prototypes";
+	public boolean empty() {
+		return _stack.empty();
+	}
+
+	public String peek() {
+		return _stack.peek();
+	}
+
+	public String pop() {
+		return _stack.pop();
+	}
+
+	public String push(String string) {
+		_stack.push(string);
+
+		return StringPool.BLANK;
+	}
+
+	private Stack<String> _stack = new Stack<String>();
 
 }
