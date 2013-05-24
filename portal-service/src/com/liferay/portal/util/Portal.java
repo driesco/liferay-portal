@@ -975,6 +975,10 @@ public interface Portal {
 			PortletResponse portletResponse, ThemeDisplay themeDisplay)
 		throws SystemException;
 
+	public PortletURL getSiteAdministrationURL(
+		PortletResponse portletResponse, ThemeDisplay themeDisplay,
+		String portletName);
+
 	public long[] getSiteAndCompanyGroupIds(long groupId)
 		throws PortalException, SystemException;
 

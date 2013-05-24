@@ -403,7 +403,10 @@ public class ServicePreAction extends Action {
 						PortletCategoryKeys.SITES;
 				}
 
-				if (Validator.isNotNull(portletControlPanelEntryCategory)) {
+				if (!controlPanelCategory.equals(
+						PortletCategoryKeys.CURRENT_SITE) &&
+					Validator.isNotNull(portletControlPanelEntryCategory)) {
+
 					controlPanelCategory = portletControlPanelEntryCategory;
 				}
 			}
@@ -1596,13 +1599,46 @@ public class ServicePreAction extends Action {
 					layoutSet.getGroupId(), layoutSet.isPrivateLayout(),
 					LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
 
-				if (layouts.size() > 0) {
+				Group group = null;
+
+				if (!layouts.isEmpty()) {
 					layout = layouts.get(0);
+
+					group = layout.getGroup();
+				}
+
+				if ((layout != null) && layout.isPrivateLayout()) {
+					layouts = LayoutLocalServiceUtil.getLayouts(
+						group.getGroupId(), false,
+						LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
+
+					if (!layouts.isEmpty()) {
+						layout = layouts.get(0);
+					}
+					else {
+						group = null;
+						layout = null;
+					}
+				}
+
+				if ((group != null) && group.isStagingGroup()) {
+					Group liveGroup = group.getLiveGroup();
+
+					layouts = LayoutLocalServiceUtil.getLayouts(
+						liveGroup.getGroupId(), false,
+						LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
+
+					if (!layouts.isEmpty()) {
+						layout = layouts.get(0);
+					}
+					else {
+						layout = null;
+					}
 				}
 			}
 		}
 
-		if ((layout == null) || layout.isPrivateLayout()) {
+		if (layout == null) {
 
 			// Check the Guest site
 

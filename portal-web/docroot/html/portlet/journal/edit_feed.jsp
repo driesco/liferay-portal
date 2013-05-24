@@ -353,9 +353,9 @@ if (feed != null) {
 			{
 				classNameId: '<%= PortalUtil.getClassNameId(DDMStructure.class) %>',
 				classPK: <%= (ddmStructure != null) ? ddmStructure.getPrimaryKey(): 0 %>,
-				ddmResource: '<%= ddmResource %>',
 				dialog: {
-					destroyOnHide: true
+					destroyOnHide: true,
+					zIndex: (++Liferay.zIndex.WINDOW)
 				},
 				eventName: '<portlet:namespace />selectStructure',
 				groupId: <%= groupId %>,
@@ -364,8 +364,8 @@ if (feed != null) {
 				Portlet portlet = PortletLocalServiceUtil.getPortletById(portletDisplay.getId());
 				%>
 
+				refererPortletName: '<%= PortletKeys.JOURNAL %>',
 				refererWebDAVToken: '<%= portlet.getWebDAVStorageToken() %>',
-
 				storageType: '<%= PropsValues.JOURNAL_ARTICLE_STORAGE_TYPE %>',
 				structureName: 'structure',
 				structureType: 'com.liferay.portlet.journal.model.JournalArticle',

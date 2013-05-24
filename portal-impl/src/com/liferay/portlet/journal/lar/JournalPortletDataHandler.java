@@ -86,13 +86,16 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 	public static final String NAMESPACE = "journal";
 
 	public JournalPortletDataHandler() {
-		setAlwaysExportable(true);
 		setDataLocalized(true);
 		setExportControls(
-			new PortletDataHandlerBoolean(NAMESPACE, "web-content"),
+			new PortletDataHandlerBoolean(
+				NAMESPACE, "web-content", true, false, null,
+				JournalArticle.class.getName()),
 			new PortletDataHandlerBoolean(
 				NAMESPACE, "structures-and-templates"),
-			new PortletDataHandlerBoolean(NAMESPACE, "feeds"),
+			new PortletDataHandlerBoolean(
+				NAMESPACE, "feeds", true, false, null,
+				JournalFeed.class.getName()),
 			new PortletDataHandlerBoolean(NAMESPACE, "embedded-assets"),
 			new PortletDataHandlerBoolean(
 				NAMESPACE, "version-history",
@@ -247,28 +250,28 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 			}
 		}
 
-		if (portletDataContext.getBooleanParameter(NAMESPACE, "web-content")) {
-			Element foldersElement =
-				portletDataContext.getImportDataGroupElement(
-					JournalFolder.class);
+		if (!portletDataContext.getBooleanParameter(NAMESPACE, "web-content")) {
+			return portletPreferences;
+		}
 
-			List<Element> folderElements = foldersElement.elements();
+		Element foldersElement = portletDataContext.getImportDataGroupElement(
+			JournalFolder.class);
 
-			for (Element folderElement : folderElements) {
-				StagedModelDataHandlerUtil.importStagedModel(
-					portletDataContext, folderElement);
-			}
+		List<Element> folderElements = foldersElement.elements();
 
-			Element articlesElement =
-				portletDataContext.getImportDataGroupElement(
-					JournalArticle.class);
+		for (Element folderElement : folderElements) {
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, folderElement);
+		}
 
-			List<Element> articleElements = articlesElement.elements();
+		Element articlesElement = portletDataContext.getImportDataGroupElement(
+			JournalArticle.class);
 
-			for (Element articleElement : articleElements) {
-				StagedModelDataHandlerUtil.importStagedModel(
-					portletDataContext, articleElement);
-			}
+		List<Element> articleElements = articlesElement.elements();
+
+		for (Element articleElement : articleElements) {
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, articleElement);
 		}
 
 		return portletPreferences;

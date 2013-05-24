@@ -14,6 +14,7 @@
 
 package com.liferay.portal.lar;
 
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.ExportImportThreadLocal;
@@ -76,11 +77,14 @@ import com.liferay.util.ContentUtil;
 
 import java.io.File;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletContext;
 
@@ -103,7 +107,7 @@ public class LayoutExporter {
 	public static final String SAME_GROUP_FRIENDLY_URL =
 		"/[$SAME_GROUP_FRIENDLY_URL$]";
 
-	public static List<Portlet> getAlwaysExportablePortlets(long companyId)
+	public static List<Portlet> getDataSiteLevelPortlets(long companyId)
 		throws Exception {
 
 		List<Portlet> portlets = PortletLocalServiceUtil.getPortlets(companyId);
@@ -123,13 +127,62 @@ public class LayoutExporter {
 				portlet.getPortletDataHandlerInstance();
 
 			if ((portletDataHandler == null) ||
-				!portletDataHandler.isAlwaysExportable()) {
+				!portletDataHandler.isDataSiteLevel()) {
 
 				itr.remove();
 			}
 		}
 
 		return portlets;
+	}
+
+	public static List<Portlet> getPortletDataHandlerPortlets(
+			List<Layout> layouts)
+		throws SystemException {
+
+		List<Portlet> portlets = new ArrayList<Portlet>();
+		Set<String> rootPortletIds = new HashSet<String>();
+
+		for (Layout curLayout : layouts) {
+			if (!curLayout.isTypePortlet()) {
+				continue;
+			}
+
+			LayoutTypePortlet curLayoutTypePortlet =
+				(LayoutTypePortlet)curLayout.getLayoutType();
+
+			for (String portletId : curLayoutTypePortlet.getPortletIds()) {
+				Portlet portlet = PortletLocalServiceUtil.getPortletById(
+					curLayout.getCompanyId(), portletId);
+
+				if (portlet == null) {
+					continue;
+				}
+
+				PortletDataHandler portletDataHandler =
+					portlet.getPortletDataHandlerInstance();
+
+				if ((portletDataHandler == null) ||
+					rootPortletIds.contains(portlet.getRootPortletId())) {
+
+					continue;
+				}
+
+				rootPortletIds.add(portlet.getRootPortletId());
+
+				portlets.add(portlet);
+			}
+		}
+
+		return portlets;
+	}
+
+	public static List<Portlet> getPortletDataHandlerPortlets(
+			long groupId, boolean privateLayout)
+		throws SystemException {
+
+		return getPortletDataHandlerPortlets(
+			LayoutLocalServiceUtil.getLayouts(groupId, privateLayout));
 	}
 
 	public static void updateLastPublishDate(
@@ -305,6 +358,8 @@ public class LayoutExporter {
 		}
 
 		headerElement.addAttribute(
+			"company-id", String.valueOf(portletDataContext.getCompanyId()));
+		headerElement.addAttribute(
 			"company-group-id",
 			String.valueOf(portletDataContext.getCompanyGroupId()));
 		headerElement.addAttribute("group-id", String.valueOf(groupId));
@@ -384,7 +439,7 @@ public class LayoutExporter {
 				groupId, privateLayout, layoutIds);
 		}
 
-		List<Portlet> portlets = getAlwaysExportablePortlets(companyId);
+		List<Portlet> portlets = getDataSiteLevelPortlets(companyId);
 
 		long plid = LayoutConstants.DEFAULT_PLID;
 
@@ -609,93 +664,94 @@ public class LayoutExporter {
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, layout);
 
-		if (layout.isSupportsEmbeddedPortlets()) {
+		if (!layout.isSupportsEmbeddedPortlets()) {
 
 			// Only portlet type layouts support page scoping
 
-			if (layout.isTypePortlet()) {
-				for (Portlet portlet : portlets) {
-					if (portlet.isScopeable() && layout.hasScopeGroup()) {
-						String key = PortletPermissionUtil.getPrimaryKey(
-							layout.getPlid(), portlet.getPortletId());
+			return;
+		}
 
-						Group scopeGroup = layout.getScopeGroup();
+		if (layout.isTypePortlet()) {
+			for (Portlet portlet : portlets) {
+				if (portlet.isScopeable() && layout.hasScopeGroup()) {
+					String key = PortletPermissionUtil.getPrimaryKey(
+						layout.getPlid(), portlet.getPortletId());
 
-						portletIds.put(
-							key,
-							new Object[] {
-								portlet.getPortletId(), layout.getPlid(),
-								scopeGroup.getGroupId(), StringPool.BLANK,
-								layout.getUuid()
-							});
+					Group scopeGroup = layout.getScopeGroup();
+
+					portletIds.put(
+						key,
+						new Object[] {
+							portlet.getPortletId(), layout.getPlid(),
+							scopeGroup.getGroupId(), StringPool.BLANK,
+							layout.getUuid()
+						});
+				}
+			}
+		}
+
+		LayoutTypePortlet layoutTypePortlet =
+			(LayoutTypePortlet)layout.getLayoutType();
+
+		// The getAllPortlets method returns all effective portlets for any
+		// layout type, including embedded portlets, or in the case of panel
+		// type layout, selected portlets
+
+		for (Portlet portlet : layoutTypePortlet.getAllPortlets()) {
+			String portletId = portlet.getPortletId();
+
+			javax.portlet.PortletPreferences jxPreferences =
+				PortletPreferencesFactoryUtil.getLayoutPortletSetup(
+					layout, portletId);
+
+			String scopeType = GetterUtil.getString(
+				jxPreferences.getValue("lfrScopeType", null));
+			String scopeLayoutUuid = GetterUtil.getString(
+				jxPreferences.getValue("lfrScopeLayoutUuid", null));
+
+			long scopeGroupId = portletDataContext.getScopeGroupId();
+
+			if (Validator.isNotNull(scopeType)) {
+				Group scopeGroup = null;
+
+				if (scopeType.equals("company")) {
+					scopeGroup = GroupLocalServiceUtil.getCompanyGroup(
+						layout.getCompanyId());
+				}
+				else if (scopeType.equals("layout")) {
+					Layout scopeLayout = null;
+
+					scopeLayout =
+						LayoutLocalServiceUtil.fetchLayoutByUuidAndGroupId(
+							scopeLayoutUuid, portletDataContext.getGroupId(),
+							portletDataContext.isPrivateLayout());
+
+					if (scopeLayout == null) {
+						continue;
 					}
+
+					scopeGroup = scopeLayout.getScopeGroup();
+				}
+				else {
+					throw new IllegalArgumentException(
+						"Scope type " + scopeType + " is invalid");
+				}
+
+				if (scopeGroup != null) {
+					scopeGroupId = scopeGroup.getGroupId();
 				}
 			}
 
-			LayoutTypePortlet layoutTypePortlet =
-				(LayoutTypePortlet)layout.getLayoutType();
+			String key = PortletPermissionUtil.getPrimaryKey(
+				layout.getPlid(), portletId);
 
-			// The getAllPortlets method returns all effective portlets for any
-			// layout type, including embedded portlets, or in the case of panel
-			// type layout, selected portlets
-
-			for (Portlet portlet : layoutTypePortlet.getAllPortlets()) {
-				String portletId = portlet.getPortletId();
-
-				javax.portlet.PortletPreferences jxPreferences =
-					PortletPreferencesFactoryUtil.getLayoutPortletSetup(
-						layout, portletId);
-
-				String scopeType = GetterUtil.getString(
-					jxPreferences.getValue("lfrScopeType", null));
-				String scopeLayoutUuid = GetterUtil.getString(
-					jxPreferences.getValue("lfrScopeLayoutUuid", null));
-
-				long scopeGroupId = portletDataContext.getScopeGroupId();
-
-				if (Validator.isNotNull(scopeType)) {
-					Group scopeGroup = null;
-
-					if (scopeType.equals("company")) {
-						scopeGroup = GroupLocalServiceUtil.getCompanyGroup(
-							layout.getCompanyId());
-					}
-					else if (scopeType.equals("layout")) {
-						Layout scopeLayout = null;
-
-						scopeLayout =
-							LayoutLocalServiceUtil.fetchLayoutByUuidAndGroupId(
-								scopeLayoutUuid,
-								portletDataContext.getGroupId(),
-								portletDataContext.isPrivateLayout());
-
-						if (scopeLayout == null) {
-							continue;
-						}
-
-						scopeGroup = scopeLayout.getScopeGroup();
-					}
-					else {
-						throw new IllegalArgumentException(
-							"Scope type " + scopeType + " is invalid");
-					}
-
-					if (scopeGroup != null) {
-						scopeGroupId = scopeGroup.getGroupId();
-					}
+			portletIds.put(
+				key,
+				new Object[] {
+					portletId, layout.getPlid(), scopeGroupId, scopeType,
+					scopeLayoutUuid
 				}
-
-				String key = PortletPermissionUtil.getPrimaryKey(
-					layout.getPlid(), portletId);
-
-				portletIds.put(
-					key,
-					new Object[] {
-						portletId, layout.getPlid(), scopeGroupId, scopeType,
-						scopeLayoutUuid
-					}
-				);
-			}
+			);
 		}
 	}
 

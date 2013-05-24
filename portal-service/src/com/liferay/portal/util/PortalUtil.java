@@ -1231,6 +1231,14 @@ public class PortalUtil {
 			portletResponse, themeDisplay);
 	}
 
+	public static PortletURL getSiteAdministrationURL(
+		PortletResponse portletResponse, ThemeDisplay themeDisplay,
+		String portletName) {
+
+		return getPortal().getSiteAdministrationURL(
+			portletResponse, themeDisplay, portletName);
+	}
+
 	public static long[] getSiteAndCompanyGroupIds(long groupId)
 		throws PortalException, SystemException {
 

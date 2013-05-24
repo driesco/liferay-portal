@@ -862,43 +862,43 @@ public class ServiceBuilder {
 		int dimensions = type.getDimensions();
 		String name = type.getValue();
 
-		if (dimensions > 0) {
-			StringBundler sb = new StringBundler();
-
-			for (int i = 0; i < dimensions; i++) {
-				sb.append("[");
-			}
-
-			if (name.equals("boolean")) {
-				return sb.append("Z").toString();
-			}
-			else if (name.equals("byte")) {
-				return sb.append("B").toString();
-			}
-			else if (name.equals("char")) {
-				return sb.append("C").toString();
-			}
-			else if (name.equals("double")) {
-				return sb.append("D").toString();
-			}
-			else if (name.equals("float")) {
-				return sb.append("F").toString();
-			}
-			else if (name.equals("int")) {
-				return sb.append("I").toString();
-			}
-			else if (name.equals("long")) {
-				return sb.append("J").toString();
-			}
-			else if (name.equals("short")) {
-				return sb.append("S").toString();
-			}
-			else {
-				return sb.append("L").append(name).append(";").toString();
-			}
+		if (dimensions == 0) {
+			return name;
 		}
 
-		return name;
+		StringBundler sb = new StringBundler();
+
+		for (int i = 0; i < dimensions; i++) {
+			sb.append("[");
+		}
+
+		if (name.equals("boolean")) {
+			return sb.append("Z").toString();
+		}
+		else if (name.equals("byte")) {
+			return sb.append("B").toString();
+		}
+		else if (name.equals("char")) {
+			return sb.append("C").toString();
+		}
+		else if (name.equals("double")) {
+			return sb.append("D").toString();
+		}
+		else if (name.equals("float")) {
+			return sb.append("F").toString();
+		}
+		else if (name.equals("int")) {
+			return sb.append("I").toString();
+		}
+		else if (name.equals("long")) {
+			return sb.append("J").toString();
+		}
+		else if (name.equals("short")) {
+			return sb.append("S").toString();
+		}
+		else {
+			return sb.append("L").append(name).append(";").toString();
+		}
 	}
 
 	public String getCreateMappingTableSQL(EntityMapping entityMapping)
@@ -1888,13 +1888,23 @@ public class ServiceBuilder {
 	}
 
 	private void _createExtendedModel(Entity entity) throws Exception {
-		JavaClass javaClass = _getJavaClass(
+		JavaClass modelImplJavaClass = _getJavaClass(
 			_outputPath + "/model/impl/" + entity.getName() + "Impl.java");
+
+		List<JavaMethod> methods = ListUtil.fromArray(
+			_getMethods(modelImplJavaClass));
+
+		JavaClass modelJavaClass = _getJavaClass(
+			_serviceOutputPath + "/model/" + entity.getName() + "Model.java");
+
+		for (JavaMethod method : _getMethods(modelJavaClass)) {
+			methods.remove(method);
+		}
 
 		Map<String, Object> context = _getContext();
 
 		context.put("entity", entity);
-		context.put("methods", _getMethods(javaClass));
+		context.put("methods", methods.toArray(new Object[methods.size()]));
 
 		// Content
 

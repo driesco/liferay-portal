@@ -596,7 +596,8 @@ public class ThemeDisplay
 	}
 
 	/**
-	 * @deprecated As of 6.2.0, replaced by {@link #isShowSiteAdministrationIcon()}
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #isShowSiteAdministrationIcon()}
 	 */
 	public PortletURL getURLSiteMapSettings() {
 		return _urlSiteMapSettings;
@@ -712,7 +713,8 @@ public class ThemeDisplay
 	}
 
 	/**
-	 * @deprecated As of 6.2.0, replaced by {@link #isShowSiteAdministrationIcon()}
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #isShowSiteAdministrationIcon()}
 	 */
 	public boolean isShowManageSiteMembershipsIcon() {
 		return _showManageSiteMembershipsIcon;
@@ -747,21 +749,24 @@ public class ThemeDisplay
 	}
 
 	/**
-	 * @deprecated As of 6.2.0, replaced by {@link #isShowSiteAdministrationIcon()}
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #isShowSiteAdministrationIcon()}
 	 */
 	public boolean isShowSiteContentIcon() {
 		return isShowSiteAdministrationIcon();
 	}
 
 	/**
-	 * @deprecated As of 6.2.0, replaced by {@link #isShowSiteAdministrationIcon()}
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #isShowSiteAdministrationIcon()}
 	 */
 	public boolean isShowSiteMapSettingsIcon() {
 		return _showSiteMapSettingsIcon;
 	}
 
 	/**
-	 * @deprecated As of 6.2.0, replaced by {@link #isShowSiteAdministrationIcon()}
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #isShowSiteAdministrationIcon()}
 	 */
 	public boolean isShowSiteSettingsIcon() {
 		return _showSiteSettingsIcon;
@@ -815,6 +820,7 @@ public class ThemeDisplay
 		return _widget;
 	}
 
+	@Override
 	public ThemeDisplay merge(ThemeDisplay themeDisplay) {
 		if ((themeDisplay == null) || (themeDisplay == this)) {
 			return this;
@@ -990,55 +996,56 @@ public class ThemeDisplay
 		_theme = theme;
 		_colorScheme = colorScheme;
 
-		if ((theme != null) && (colorScheme != null)) {
-			String themeStaticResourcePath = theme.getStaticResourcePath();
-
-			String cdnBaseURL = getCDNBaseURL();
-
-			setPathColorSchemeImages(
-				cdnBaseURL + themeStaticResourcePath +
-					colorScheme.getColorSchemeImagesPath());
-
-			String dynamicResourcesHost = getCDNDynamicResourcesHost();
-
-			if (Validator.isNull(dynamicResourcesHost)) {
-				String portalURL = getPortalURL();
-
-				if (getServerName() != null) {
-					try {
-						portalURL = PortalUtil.getPortalURL(getLayout(), this);
-					}
-					catch (Exception e) {
-						_log.error(e, e);
-					}
-				}
-
-				dynamicResourcesHost = portalURL;
-			}
-
-			setPathThemeCss(
-				dynamicResourcesHost + themeStaticResourcePath +
-					theme.getCssPath());
-
-			setPathThemeImages(
-				cdnBaseURL + themeStaticResourcePath + theme.getImagesPath());
-			setPathThemeJavaScript(
-				cdnBaseURL + themeStaticResourcePath +
-					theme.getJavaScriptPath());
-
-			String rootPath = theme.getRootPath();
-
-			if (rootPath.equals(StringPool.SLASH)) {
-				setPathThemeRoot(themeStaticResourcePath);
-			}
-			else {
-				setPathThemeRoot(themeStaticResourcePath + rootPath);
-			}
-
-			setPathThemeTemplates(
-				cdnBaseURL + themeStaticResourcePath +
-					theme.getTemplatesPath());
+		if ((theme == null) || (colorScheme == null)) {
+			return;
 		}
+
+		String themeStaticResourcePath = theme.getStaticResourcePath();
+
+		String cdnBaseURL = getCDNBaseURL();
+
+		setPathColorSchemeImages(
+			cdnBaseURL + themeStaticResourcePath +
+				colorScheme.getColorSchemeImagesPath());
+
+		String dynamicResourcesHost = getCDNDynamicResourcesHost();
+
+		if (Validator.isNull(dynamicResourcesHost)) {
+			String portalURL = getPortalURL();
+
+			if (getServerName() != null) {
+				try {
+					portalURL = PortalUtil.getPortalURL(getLayout(), this);
+				}
+				catch (Exception e) {
+					_log.error(e, e);
+				}
+			}
+
+			dynamicResourcesHost = portalURL;
+		}
+
+		setPathThemeCss(
+			dynamicResourcesHost + themeStaticResourcePath +
+				theme.getCssPath());
+
+		setPathThemeImages(
+			cdnBaseURL + themeStaticResourcePath + theme.getImagesPath());
+		setPathThemeJavaScript(
+			cdnBaseURL + themeStaticResourcePath +
+				theme.getJavaScriptPath());
+
+		String rootPath = theme.getRootPath();
+
+		if (rootPath.equals(StringPool.SLASH)) {
+			setPathThemeRoot(themeStaticResourcePath);
+		}
+		else {
+			setPathThemeRoot(themeStaticResourcePath + rootPath);
+		}
+
+		setPathThemeTemplates(
+			cdnBaseURL + themeStaticResourcePath + theme.getTemplatesPath());
 	}
 
 	public void setMDRRuleGroupInstance(
@@ -1408,7 +1415,8 @@ public class ThemeDisplay
 	}
 
 	/**
-	 * @deprecated As of 6.2.0, replaced by {@link #setURLSiteAdministration(String)}
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #setURLSiteAdministration(String)}
 	 */
 	public void setURLSiteContent(String urlSiteContent) {
 		setURLSiteAdministration(urlSiteContent);

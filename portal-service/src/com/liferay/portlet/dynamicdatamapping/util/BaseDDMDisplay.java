@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
@@ -41,8 +42,19 @@ import javax.portlet.PortletURL;
 /**
  * @author Eduardo Garcia
  */
-public class BaseDDMDisplay implements DDMDisplay {
+public abstract class BaseDDMDisplay implements DDMDisplay {
 
+	@Override
+	public String getAddStructureActionId() {
+		return ActionKeys.ADD_STRUCTURE;
+	}
+
+	@Override
+	public String getAddTemplateActionId() {
+		return ActionKeys.ADD_TEMPLATE;
+	}
+
+	@Override
 	public String getEditTemplateBackURL(
 			LiferayPortletRequest liferayPortletRequest,
 			LiferayPortletResponse liferayPortletResponse, long classNameId,
@@ -60,6 +72,7 @@ public class BaseDDMDisplay implements DDMDisplay {
 		return backURL;
 	}
 
+	@Override
 	public String getEditTemplateTitle(
 		DDMStructure structure, DDMTemplate template, Locale locale) {
 
@@ -86,6 +99,7 @@ public class BaseDDMDisplay implements DDMDisplay {
 		return getDefaultEditTemplateTitle(locale);
 	}
 
+	@Override
 	public String getEditTemplateTitle(long classNameId, Locale locale) {
 		if (classNameId > 0) {
 			TemplateHandler templateHandler =
@@ -100,18 +114,31 @@ public class BaseDDMDisplay implements DDMDisplay {
 		return getDefaultEditTemplateTitle(locale);
 	}
 
-	public String getPortletId() {
-		return PortletKeys.DYNAMIC_DATA_MAPPING;
+	@Override
+	public String getResourceName(long classNameId) {
+		if (classNameId > 0) {
+			TemplateHandler templateHandler =
+				TemplateHandlerRegistryUtil.getTemplateHandler(classNameId);
+
+			if (templateHandler != null) {
+				return templateHandler.getResourceName();
+			}
+		}
+
+		return getResourceName();
 	}
 
+	@Override
 	public Set<String> getTemplateLanguageTypes() {
 		return _templateLanguageTypes;
 	}
 
+	@Override
 	public String getTemplateType(DDMTemplate template, Locale locale) {
 		return LanguageUtil.get(locale, template.getType());
 	}
 
+	@Override
 	public String getViewTemplatesBackURL(
 			LiferayPortletRequest liferayPortletRequest,
 			LiferayPortletResponse liferayPortletResponse, long classPK)
@@ -126,10 +153,12 @@ public class BaseDDMDisplay implements DDMDisplay {
 		return portletURL.toString();
 	}
 
+	@Override
 	public Set<String> getViewTemplatesExcludedColumnNames() {
 		return _viewTemplateExcludedColumnNames;
 	}
 
+	@Override
 	public String getViewTemplatesTitle(
 		DDMStructure structure, boolean controlPanel, Locale locale) {
 
@@ -142,10 +171,12 @@ public class BaseDDMDisplay implements DDMDisplay {
 		return getDefaultViewTemplateTitle(locale);
 	}
 
+	@Override
 	public String getViewTemplatesTitle(DDMStructure structure, Locale locale) {
 		return getViewTemplatesTitle(structure, false, locale);
 	}
 
+	@Override
 	public boolean isShowStructureSelector() {
 		return false;
 	}

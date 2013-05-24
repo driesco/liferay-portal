@@ -52,6 +52,7 @@ import java.util.Map;
  */
 public class LayoutLocalServiceHelper implements IdentifiableBean {
 
+	@Override
 	public String getBeanIdentifier() {
 		return _beanIdentifier;
 	}
@@ -63,29 +64,31 @@ public class LayoutLocalServiceHelper implements IdentifiableBean {
 
 		friendlyURL = getFriendlyURL(friendlyURL);
 
-		if (Validator.isNull(friendlyURL)) {
-			friendlyURL = StringPool.SLASH + getFriendlyURL(name);
+		if (Validator.isNotNull(friendlyURL)) {
+			return friendlyURL;
+		}
 
-			String originalFriendlyURL = friendlyURL;
+		friendlyURL = StringPool.SLASH + getFriendlyURL(name);
 
-			for (int i = 1;; i++) {
-				try {
-					validateFriendlyURL(
-						groupId, privateLayout, layoutId, friendlyURL);
+		String originalFriendlyURL = friendlyURL;
+
+		for (int i = 1;; i++) {
+			try {
+				validateFriendlyURL(
+					groupId, privateLayout, layoutId, friendlyURL);
+
+				break;
+			}
+			catch (LayoutFriendlyURLException lfurle) {
+				int type = lfurle.getType();
+
+				if (type == LayoutFriendlyURLException.DUPLICATE) {
+					friendlyURL = originalFriendlyURL + i;
+				}
+				else {
+					friendlyURL = StringPool.SLASH + layoutId;
 
 					break;
-				}
-				catch (LayoutFriendlyURLException lfurle) {
-					int type = lfurle.getType();
-
-					if (type == LayoutFriendlyURLException.DUPLICATE) {
-						friendlyURL = originalFriendlyURL + i;
-					}
-					else {
-						friendlyURL = StringPool.SLASH + layoutId;
-
-						break;
-					}
 				}
 			}
 		}
@@ -198,6 +201,7 @@ public class LayoutLocalServiceHelper implements IdentifiableBean {
 		return false;
 	}
 
+	@Override
 	public void setBeanIdentifier(String beanIdentifier) {
 		_beanIdentifier = beanIdentifier;
 	}
@@ -352,63 +356,64 @@ public class LayoutLocalServiceHelper implements IdentifiableBean {
 		Layout layout = layoutPersistence.findByG_P_L(
 			groupId, privateLayout, layoutId);
 
-		if (parentLayoutId != layout.getParentLayoutId()) {
+		if (parentLayoutId == layout.getParentLayoutId()) {
+			return;
+		}
 
-			// Layouts can always be moved to the root level
+		// Layouts can always be moved to the root level
 
-			if (parentLayoutId == LayoutConstants.DEFAULT_PARENT_LAYOUT_ID) {
-				return;
-			}
+		if (parentLayoutId == LayoutConstants.DEFAULT_PARENT_LAYOUT_ID) {
+			return;
+		}
 
-			// Layout cannot become a child of a layout that is not parentable
+		// Layout cannot become a child of a layout that is not parentable
 
-			Layout parentLayout = layoutPersistence.findByG_P_L(
-				groupId, privateLayout, parentLayoutId);
+		Layout parentLayout = layoutPersistence.findByG_P_L(
+			groupId, privateLayout, parentLayoutId);
 
-			if (!PortalUtil.isLayoutParentable(parentLayout)) {
-				throw new LayoutParentLayoutIdException(
-					LayoutParentLayoutIdException.NOT_PARENTABLE);
-			}
+		if (!PortalUtil.isLayoutParentable(parentLayout)) {
+			throw new LayoutParentLayoutIdException(
+				LayoutParentLayoutIdException.NOT_PARENTABLE);
+		}
 
-			// Layout cannot become a child of a layout that is not sortable
-			// because it is linked to a layout set prototype
+		// Layout cannot become a child of a layout that is not sortable because
+		// it is linked to a layout set prototype
 
-			if (!SitesUtil.isLayoutSortable(parentLayout)) {
-				throw new LayoutParentLayoutIdException(
-					LayoutParentLayoutIdException.NOT_SORTABLE);
-			}
+		if (!SitesUtil.isLayoutSortable(parentLayout)) {
+			throw new LayoutParentLayoutIdException(
+				LayoutParentLayoutIdException.NOT_SORTABLE);
+		}
 
-			// Layout cannot become descendant of itself
+		// Layout cannot become descendant of itself
 
-			if (PortalUtil.isLayoutDescendant(layout, parentLayoutId)) {
-				throw new LayoutParentLayoutIdException(
-					LayoutParentLayoutIdException.SELF_DESCENDANT);
-			}
+		if (PortalUtil.isLayoutDescendant(layout, parentLayoutId)) {
+			throw new LayoutParentLayoutIdException(
+				LayoutParentLayoutIdException.SELF_DESCENDANT);
+		}
 
-			// If layout is moved, the new first layout must be valid
+		// If layout is moved, the new first layout must be valid
 
-			if (layout.getParentLayoutId() ==
-					LayoutConstants.DEFAULT_PARENT_LAYOUT_ID) {
+		if (layout.getParentLayoutId() ==
+				LayoutConstants.DEFAULT_PARENT_LAYOUT_ID) {
 
-				List<Layout> layouts = layoutPersistence.findByG_P_P(
-					groupId, privateLayout,
-					LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, 0, 2);
+			List<Layout> layouts = layoutPersistence.findByG_P_P(
+				groupId, privateLayout,
+				LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, 0, 2);
 
-				// You can only reach this point if there are more than two
-				// layouts at the root level because of the descendant check
+			// You can only reach this point if there are more than two layouts
+			// at the root level because of the descendant check
 
-				long firstLayoutId = layouts.get(0).getLayoutId();
+			long firstLayoutId = layouts.get(0).getLayoutId();
 
-				if (firstLayoutId == layoutId) {
-					Layout secondLayout = layouts.get(1);
+			if (firstLayoutId == layoutId) {
+				Layout secondLayout = layouts.get(1);
 
-					try {
-						validateFirstLayout(secondLayout.getType());
-					}
-					catch (LayoutTypeException lte) {
-						throw new LayoutParentLayoutIdException(
-							LayoutParentLayoutIdException.FIRST_LAYOUT_TYPE);
-					}
+				try {
+					validateFirstLayout(secondLayout.getType());
+				}
+				catch (LayoutTypeException lte) {
+					throw new LayoutParentLayoutIdException(
+						LayoutParentLayoutIdException.FIRST_LAYOUT_TYPE);
 				}
 			}
 		}

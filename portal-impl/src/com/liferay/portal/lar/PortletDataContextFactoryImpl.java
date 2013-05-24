@@ -37,6 +37,7 @@ import java.util.Map;
 public class PortletDataContextFactoryImpl
 	implements PortletDataContextFactory {
 
+	@Override
 	public PortletDataContext createExportPortletDataContext(
 			long companyId, long groupId, Map<String, String[]> parameterMap,
 			Date startDate, Date endDate, ZipWriter zipWriter)
@@ -55,6 +56,7 @@ public class PortletDataContextFactoryImpl
 		return portletDataContext;
 	}
 
+	@Override
 	public PortletDataContext createImportPortletDataContext(
 		long companyId, long groupId, Map<String, String[]> parameterMap,
 		UserIdStrategy userIdStrategy, ZipReader zipReader) {
@@ -76,6 +78,7 @@ public class PortletDataContextFactoryImpl
 		return portletDataContext;
 	}
 
+	@Override
 	public PortletDataContext createPreparePortletDataContext(
 			ThemeDisplay themeDisplay, Date startDate, Date endDate)
 		throws PortletDataException {
@@ -86,6 +89,8 @@ public class PortletDataContextFactoryImpl
 			themeDisplay.getCompanyId(), themeDisplay.getScopeGroupId());
 
 		portletDataContext.setCompanyId(themeDisplay.getCompanyId());
+		portletDataContext.setEndDate(endDate);
+		portletDataContext.setStartDate(startDate);
 
 		return portletDataContext;
 	}
