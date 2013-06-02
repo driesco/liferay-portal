@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PrimitiveLongList;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
@@ -97,6 +98,7 @@ import javax.servlet.http.HttpSession;
  */
 public class AssetPublisherImpl implements AssetPublisher {
 
+	@Override
 	public void addAndStoreSelection(
 			PortletRequest portletRequest, String className, long classPK,
 			int assetEntryOrder)
@@ -137,12 +139,14 @@ public class AssetPublisherImpl implements AssetPublisher {
 		portletPreferences.store();
 	}
 
+	@Override
 	public void addRecentFolderId(
 		PortletRequest portletRequest, String className, long classPK) {
 
 		_getRecentFolderIds(portletRequest).put(className, classPK);
 	}
 
+	@Override
 	public void addSelection(
 			PortletRequest portletRequest,
 			PortletPreferences portletPreferences, String portletId)
@@ -162,6 +166,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 			assetEntryOrder, assetEntryType);
 	}
 
+	@Override
 	public void addSelection(
 			ThemeDisplay themeDisplay, PortletPreferences portletPreferences,
 			String portletId, long assetEntryId, int assetEntryOrder,
@@ -202,6 +207,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		notifySubscribers(portletPreferences, plid, portletId, assetEntries);
 	}
 
+	@Override
 	public void addUserAttributes(
 			User user, String[] customUserAttributeNames,
 			AssetEntryQuery assetEntryQuery)
@@ -246,6 +252,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		assetEntryQuery.setAllCategoryIds(allCategoryIdsList.getArray());
 	}
 
+	@Override
 	public void checkAssetEntries() throws Exception {
 		ActionableDynamicQuery actionableDynamicQuery =
 			new PortletPreferencesActionableDynamicQuery() {
@@ -277,6 +284,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		actionableDynamicQuery.performActions();
 	}
 
+	@Override
 	public List<AssetEntry> getAssetEntries(
 			PortletPreferences preferences, Layout layout, long scopeGroupId,
 			int max, boolean checkPermission)
@@ -357,6 +365,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		}
 	}
 
+	@Override
 	public AssetEntryQuery getAssetEntryQuery(
 			PortletPreferences portletPreferences, long[] scopeGroupIds)
 		throws PortalException, SystemException {
@@ -459,6 +468,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		return assetEntryQuery;
 	}
 
+	@Override
 	public String[] getAssetTagNames(
 			PortletPreferences portletPreferences, long scopeGroupId)
 		throws Exception {
@@ -493,6 +503,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		return allAssetTagNames;
 	}
 
+	@Override
 	public String getClassName(AssetRendererFactory assetRendererFactory) {
 		Class<?> clazz = assetRendererFactory.getClass();
 
@@ -503,6 +514,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		return className.substring(pos + 1);
 	}
 
+	@Override
 	public long[] getClassNameIds(
 		PortletPreferences portletPreferences, long[] availableClassNameIds) {
 
@@ -532,6 +544,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		}
 	}
 
+	@Override
 	public Long[] getClassTypeIds(
 		PortletPreferences portletPreferences, String className,
 		Long[] availableClassTypeIds) {
@@ -564,6 +577,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		}
 	}
 
+	@Override
 	public Map<Locale, String> getEmailAssetEntryAddedBodyMap(
 		PortletPreferences preferences) {
 
@@ -587,6 +601,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		return map;
 	}
 
+	@Override
 	public boolean getEmailAssetEntryAddedEnabled(
 		PortletPreferences preferences) {
 
@@ -601,6 +616,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		}
 	}
 
+	@Override
 	public Map<Locale, String> getEmailAssetEntryAddedSubjectMap(
 		PortletPreferences preferences) {
 
@@ -625,6 +641,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		return map;
 	}
 
+	@Override
 	public String getEmailFromAddress(
 			PortletPreferences preferences, long companyId)
 		throws SystemException {
@@ -634,6 +651,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 			PropsValues.ASSET_PUBLISHER_EMAIL_FROM_ADDRESS);
 	}
 
+	@Override
 	public String getEmailFromName(
 			PortletPreferences preferences, long companyId)
 		throws SystemException {
@@ -643,6 +661,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 			PropsValues.ASSET_PUBLISHER_EMAIL_FROM_NAME);
 	}
 
+	@Override
 	public long getGroupIdFromScopeId(
 			String scopeId, long siteGroupId, boolean privateLayout)
 		throws PortalException, SystemException {
@@ -715,6 +734,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		}
 	}
 
+	@Override
 	public long[] getGroupIds(
 		PortletPreferences portletPreferences, long scopeGroupId,
 		Layout layout) {
@@ -741,6 +761,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		return groupIds;
 	}
 
+	@Override
 	public long getRecentFolderId(
 		PortletRequest portletRequest, String className) {
 
@@ -754,6 +775,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		}
 	}
 
+	@Override
 	public String getScopeId(Group group, long scopeGroupId)
 		throws PortalException, SystemException {
 
@@ -787,6 +809,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		return key;
 	}
 
+	@Override
 	public boolean isScopeIdSelectable(
 			PermissionChecker permissionChecker, String scopeId,
 			long companyGroupId, Layout layout)
@@ -809,10 +832,20 @@ public class AssetPublisherImpl implements AssetPublisher {
 				return false;
 			}
 
-			if (!SitesUtil.isContentSharingWithChildrenEnabled(siteGroup)) {
-				return GroupPermissionUtil.contains(
-					permissionChecker, groupId, ActionKeys.UPDATE);
+			if (SitesUtil.isContentSharingWithChildrenEnabled(siteGroup)) {
+				return true;
 			}
+
+			if (!PrefsPropsUtil.getBoolean(
+					layout.getCompanyId(),
+					PropsKeys.
+					SITES_CONTENT_SHARING_THROUGH_ADMINISTRATORS_ENABLED)) {
+
+				return false;
+			}
+
+			return GroupPermissionUtil.contains(
+				permissionChecker, groupId, ActionKeys.UPDATE);
 		}
 		else if (groupId != companyGroupId) {
 			return GroupPermissionUtil.contains(
@@ -822,6 +855,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		return true;
 	}
 
+	@Override
 	public boolean isSubscribed(
 			long companyId, long userId, long plid, String portletId)
 		throws PortalException, SystemException {
@@ -832,6 +866,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 			_getPortletPreferencesId(plid, portletId));
 	}
 
+	@Override
 	public void notifySubscribers(
 			PortletPreferences preferences, long plid, String portletId,
 			List<AssetEntry> assetEntries)
@@ -878,6 +913,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		subscriptionSender.flushNotificationsAsync();
 	}
 
+	@Override
 	public void removeAndStoreSelection(
 			List<String> assetEntryUuids, PortletPreferences portletPreferences)
 		throws Exception {
@@ -914,6 +950,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		portletPreferences.store();
 	}
 
+	@Override
 	public void removeRecentFolderId(
 		PortletRequest portletRequest, String className, long classPK) {
 
@@ -922,6 +959,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 		}
 	}
 
+	@Override
 	public void subscribe(
 			PermissionChecker permissionChecker, long groupId, long plid,
 			String portletId)
@@ -936,6 +974,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 			_getPortletPreferencesId(plid, portletId));
 	}
 
+	@Override
 	public void unsubscribe(
 			PermissionChecker permissionChecker, long plid, String portletId)
 		throws PortalException, SystemException {
@@ -1083,6 +1122,7 @@ public class AssetPublisherImpl implements AssetPublisher {
 	private Accessor<AssetEntry, String> _titleAccessor =
 		new Accessor<AssetEntry, String>() {
 
+			@Override
 			public String get(AssetEntry assetEntry) {
 				return assetEntry.getTitle(LocaleUtil.getDefault());
 			}

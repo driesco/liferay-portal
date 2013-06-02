@@ -14,8 +14,11 @@
 
 package com.liferay.portal.kernel.lar;
 
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+
+import java.util.Locale;
 
 /**
  * @author Raymond Augé
@@ -42,13 +45,30 @@ public class PortletDataHandlerControl {
 	public PortletDataHandlerControl(
 		String namespace, String controlName, boolean disabled) {
 
+		this(namespace, controlName, disabled, null);
+	}
+
+	public PortletDataHandlerControl(
+		String namespace, String controlName, boolean disabled,
+		String className) {
+
 		_namespace = namespace;
 		_controlName = controlName;
 		_disabled = disabled;
+		_className = className;
+	}
+
+	public String getClassName() {
+		return _className;
 	}
 
 	public String getControlName() {
 		return _controlName;
+	}
+
+	public String getHelpMessage(Locale locale, String action) {
+		return LanguageUtil.get(
+			locale, action + "-" + _controlName + "-help", StringPool.BLANK);
 	}
 
 	public String getNamespace() {
@@ -67,6 +87,7 @@ public class PortletDataHandlerControl {
 		_namespace = namespace;
 	}
 
+	private String _className;
 	private String _controlName;
 	private boolean _disabled;
 	private String _namespace;

@@ -59,7 +59,7 @@ if (Validator.isNotNull(historyKey)) {
 }
 %>
 
-<div class="taglib-form-navigator">
+<div class="taglib-form-navigator" id="<portlet:namespace />tabsBoundingBox">
 	<aui:input name="modifiedSections" type="hidden" />
 
 	<div class="taglib-form-navigator row-fluid" id="<portlet:namespace />tabs">
@@ -176,6 +176,7 @@ if (Validator.isNotNull(historyKey)) {
 
 	var tabview = new A.TabView(
 		{
+			boundingBox: '#<portlet:namespace />tabsBoundingBox',
 			srcNode: '#<portlet:namespace />tabs',
 			type: 'list'
 		}
@@ -193,6 +194,10 @@ if (Validator.isNotNull(historyKey)) {
 		if (tab && (tabIndex > -1)) {
 			tabview.selectChild(tabIndex);
 		}
+
+		updateRedirectForSectionId(sectionId);
+
+		Liferay.fire('formNavigator:reveal' + sectionId);
 	};
 
 	function updateSectionStatus() {
@@ -238,25 +243,34 @@ if (Validator.isNotNull(historyKey)) {
 
 			var sectionId = boundingBox.getData('sectionId');
 
-			Liferay.fire('formNavigator:reveal' + sectionId);
-
 			history.addValue('<portlet:namespace />tab', sectionId);
-
-			updateRedirectForSectionId(sectionId);
 		}
 	);
 
 	A.on(
 		'history:change',
 		function(event) {
-			if (event.src === A.HistoryHash.SRC_HASH) {
-				var state = event.changed.<portlet:namespace />tab;
+			var state = event.newVal;
 
-				if (state) {
-					selectTabBySectionId(state.newVal);
+			var changed = event.changed.<portlet:namespace />tab;
+
+			var removed = event.removed.<portlet:namespace />tab;
+
+			if (event.src === A.HistoryHash.SRC_HASH || event.src === A.HistoryBase.SRC_ADD) {
+				if (changed) {
+					selectTabBySectionId(changed.newVal);
 				}
-				else if (event.removed.<portlet:namespace />tab) {
+				else if (removed) {
 					tabview.selectChild(0);
+				}
+				else if (state) {
+					var sectionId = state.<portlet:namespace />tab;
+
+					if (!sectionId) {
+						sectionId = '<portlet:namespace />' + state.tab;
+					}
+
+					selectTabBySectionId(sectionId);
 				}
 			}
 		}
@@ -268,11 +282,23 @@ if (Validator.isNotNull(historyKey)) {
 		formNode.delegate('change', updateSectionStatus, 'input, select, textarea');
 	}
 
-	var currentLocationHash = A.HistoryHash.getHash();
+	var currentUrl = new A.Url(location.href);
 
-	var locationSectionId = currentLocationHash.substring(currentLocationHash.indexOf('=') + 1);
+	var currentAnchor = currentUrl.getAnchor();
 
-	selectTabBySectionId(locationSectionId);
+	if (!currentAnchor) {
+		currentAnchor = currentUrl.getParameter('<portlet:namespace />historyKey');
+	}
+
+	if (currentAnchor) {
+		var locationSectionId = currentAnchor.substring(currentAnchor.indexOf('=') + 1);
+
+		if (locationSectionId.indexOf('<portlet:namespace />') === -1) {
+			locationSectionId = '<portlet:namespace />' + locationSectionId;
+		}
+
+		selectTabBySectionId(locationSectionId);
+	}
 </aui:script>
 
 <%!

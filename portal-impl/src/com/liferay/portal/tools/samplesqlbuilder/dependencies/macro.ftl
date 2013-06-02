@@ -143,6 +143,10 @@
 	<@insertResourcePermissions
 		_entry = _layout
 	/>
+
+	<#local layoutFriendlyURL = dataFactory.newLayoutFriendlyURL(_layout)>
+
+	insert into LayoutFriendlyURL values ('${layoutFriendlyURL.uuid}', ${layoutFriendlyURL.layoutFriendlyURLId}, ${layoutFriendlyURL.groupId}, ${layoutFriendlyURL.companyId}, ${layoutFriendlyURL.userId}, '${layoutFriendlyURL.userName}', '${dataFactory.getDateString(layoutFriendlyURL.createDate)}', '${dataFactory.getDateString(layoutFriendlyURL.modifiedDate)}', ${layoutFriendlyURL.plid}, ${layoutFriendlyURL.privateLayout?string}, '${layoutFriendlyURL.friendlyURL}', '${layoutFriendlyURL.languageId}');
 </#macro>
 
 <#macro insertMBDiscussion
@@ -217,7 +221,7 @@
 >
 	<#local socialActivity = dataFactory.newSocialActivity(_entry)>
 
-	insert into SocialActivity values (${socialActivity.activityId}, ${socialActivity.groupId}, ${socialActivity.companyId}, ${socialActivity.userId}, ${socialActivity.createDate}, ${socialActivity.activitySetId}, ${socialActivity.mirrorActivityId}, ${socialActivity.classNameId}, ${socialActivity.classPK}, ${socialActivity.type}, '${socialActivity.extraData}', ${socialActivity.receiverUserId});
+	insert into SocialActivity values (${socialActivity.activityId}, ${socialActivity.groupId}, ${socialActivity.companyId}, ${socialActivity.userId}, ${socialActivity.createDate}, ${socialActivity.activitySetId}, ${socialActivity.mirrorActivityId}, ${socialActivity.classNameId}, ${socialActivity.classPK}, ${socialActivity.parentClassNameId}, ${socialActivity.parentClassPK}, ${socialActivity.type}, '${socialActivity.extraData}', ${socialActivity.receiverUserId});
 </#macro>
 
 <#macro insertSubscription

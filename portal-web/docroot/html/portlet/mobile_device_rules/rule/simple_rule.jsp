@@ -1,4 +1,3 @@
-
 <%--
 /**
  * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
@@ -39,7 +38,7 @@ if (rule != null) {
 }
 %>
 
-<aui:select multiple="<%= true %>" name="os">
+<aui:select helpMessage='<%= PluginPackageUtil.isInstalled("wurfl-web") ? StringPool.BLANK : "os-help" %>' multiple="<%= true %>" name="os">
 	<aui:option label="any-os" selected="<%= operatingSystems.isEmpty() %>" value="" />
 
 	<%
@@ -56,8 +55,8 @@ if (rule != null) {
 
 </aui:select>
 
-<aui:select name="tablet">
+<aui:select label="device-type" name="tablet">
 	<aui:option label="any" selected="<%= tablet == 0 %>" value="" />
-	<aui:option label="<%= true %>" selected="<%= tablet == 1 %>" />
-	<aui:option label="<%= false %>" selected="<%= tablet == 2 %>" />
+	<aui:option label="tablets" selected="<%= tablet == 1 %>" value="<%= true %>" />
+	<aui:option label="other-devices" selected="<%= tablet == 2 %>" value="<%= false %>" />
 </aui:select>

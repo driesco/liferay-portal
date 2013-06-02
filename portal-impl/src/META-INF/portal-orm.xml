@@ -372,6 +372,14 @@
 			</basic>
 			<basic name="groupId" />
 			<basic name="companyId" />
+			<basic name="userId" />
+			<basic name="userName" />
+			<basic name="createDate">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<basic name="modifiedDate">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
 			<basic name="plid" />
 			<basic name="privateLayout" />
 			<basic name="friendlyURL" />
@@ -379,6 +387,7 @@
 			<transient name="modelAttributes" />
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
+			<transient name="userUuid" />
 		</attributes>
 	</mapped-superclass>
 	<mapped-superclass class="com.liferay.portal.model.impl.LayoutPrototypeModelImpl">
@@ -1306,6 +1315,7 @@
 			</basic>
 			<basic name="timestamp" />
 			<basic name="deliverBy" />
+			<basic name="delivered" />
 			<basic name="payload" />
 			<basic name="archived" />
 			<transient name="modelAttributes" />
@@ -2046,9 +2056,14 @@
 			<basic name="modifiedDate">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
+			<basic name="fileEntryTypeKey" />
 			<basic name="name" />
 			<basic name="description" />
+			<transient name="descriptionCurrentLanguageId" />
+			<transient name="descriptionMap" />
 			<transient name="modelAttributes" />
+			<transient name="nameCurrentLanguageId" />
+			<transient name="nameMap" />
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
 			<transient name="userUuid" />
@@ -3514,6 +3529,8 @@
 			<basic name="mirrorActivityId" />
 			<basic name="classNameId" />
 			<basic name="classPK" />
+			<basic name="parentClassNameId" />
+			<basic name="parentClassPK" />
 			<basic name="type">
 				<column name="TYPE_" />
 			</basic>

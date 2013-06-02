@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.upload.UploadRequest;
@@ -39,14 +40,19 @@ import com.liferay.portal.kernel.util.UnicodeFormatter;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CompanyConstants;
+import com.liferay.portal.model.Layout;
+import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryMetadata;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryMetadataModel;
 import com.liferay.portlet.documentlibrary.model.DLFileVersion;
+import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
 import com.liferay.portlet.documentlibrary.store.Store;
+import com.liferay.portlet.documentlibrary.util.DLUtil;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecord;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecordModel;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecordVersion;
@@ -108,24 +114,80 @@ public class DDMImpl implements DDM {
 
 	public static final String TYPE_SELECT = "select";
 
+	@Override
+	public DDMDisplay getDDMDisplay(ServiceContext serviceContext) {
+		String refererPortletName = (String)serviceContext.getAttribute(
+			"refererPortletName");
+
+		if (refererPortletName == null) {
+			refererPortletName = serviceContext.getPortletId();
+		}
+
+		return DDMDisplayRegistryUtil.getDDMDisplay(refererPortletName);
+	}
+
+	@Override
 	public Serializable getDisplayFieldValue(
-			Serializable fieldValue, String type, Locale locale)
+			ThemeDisplay themeDisplay, Serializable fieldValue, String type)
 		throws Exception {
 
 		if (fieldValue instanceof Date) {
 			Date valueDate = (Date)fieldValue;
 
-			DateFormat dateFormat = DateFormatFactoryUtil.getDate(locale);
+			DateFormat dateFormat = DateFormatFactoryUtil.getDate(
+				themeDisplay.getLocale());
 
 			fieldValue = dateFormat.format(valueDate);
 		}
 		else if (type.equals(DDMImpl.TYPE_CHECKBOX)) {
-			if ((Boolean)fieldValue) {
-				fieldValue = LanguageUtil.get(locale, "yes");
+			Boolean valueBoolean = (Boolean)fieldValue;
+
+			if (valueBoolean) {
+				fieldValue = LanguageUtil.get(themeDisplay.getLocale(), "yes");
 			}
 			else {
-				fieldValue = LanguageUtil.get(locale, "no");
+				fieldValue = LanguageUtil.get(themeDisplay.getLocale(), "no");
 			}
+		}
+		else if (type.equals(DDMImpl.TYPE_DDM_DOCUMENTLIBRARY)) {
+			if (Validator.isNull(fieldValue)) {
+				return StringPool.BLANK;
+			}
+
+			String valueString = String.valueOf(fieldValue);
+
+			JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+				valueString);
+
+			String uuid = jsonObject.getString("uuid");
+			long groupId = jsonObject.getLong("groupId");
+
+			FileEntry fileEntry =
+				DLAppLocalServiceUtil.getFileEntryByUuidAndGroupId(
+					uuid, groupId);
+
+			fieldValue = DLUtil.getPreviewURL(
+				fileEntry, fileEntry.getFileVersion(), null, StringPool.BLANK,
+				false, true);
+		}
+		else if (type.equals(DDMImpl.TYPE_DDM_LINK_TO_PAGE)) {
+			if (Validator.isNull(fieldValue)) {
+				return StringPool.BLANK;
+			}
+
+			String valueString = String.valueOf(fieldValue);
+
+			JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+				valueString);
+
+			long groupId = jsonObject.getLong("groupId");
+			boolean privateLayout = jsonObject.getBoolean("privateLayout");
+			long layoutId = jsonObject.getLong("layoutId");
+
+			Layout layout = LayoutLocalServiceUtil.getLayout(
+				groupId, privateLayout, layoutId);
+
+			fieldValue = PortalUtil.getLayoutFriendlyURL(layout, themeDisplay);
 		}
 		else if (type.equals(DDMImpl.TYPE_RADIO) ||
 				 type.equals(DDMImpl.TYPE_SELECT)) {
@@ -142,6 +204,7 @@ public class DDMImpl implements DDM {
 		return fieldValue;
 	}
 
+	@Override
 	public Fields getFields(
 			long ddmStructureId, long ddmTemplateId,
 			ServiceContext serviceContext)
@@ -151,6 +214,7 @@ public class DDMImpl implements DDM {
 			ddmStructureId, ddmTemplateId, StringPool.BLANK, serviceContext);
 	}
 
+	@Override
 	public Fields getFields(
 			long ddmStructureId, long ddmTemplateId, String fieldNamespace,
 			ServiceContext serviceContext)
@@ -180,12 +244,14 @@ public class DDMImpl implements DDM {
 		return fields;
 	}
 
+	@Override
 	public Fields getFields(long ddmStructureId, ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
 		return getFields(ddmStructureId, 0, serviceContext);
 	}
 
+	@Override
 	public Fields getFields(
 			long ddmStructureId, String fieldNamespace,
 			ServiceContext serviceContext)
@@ -194,6 +260,7 @@ public class DDMImpl implements DDM {
 		return getFields(ddmStructureId, 0, fieldNamespace, serviceContext);
 	}
 
+	@Override
 	public String[] getFieldsDisplayValues(Field fieldsDisplayField)
 		throws Exception {
 
@@ -217,6 +284,7 @@ public class DDMImpl implements DDM {
 			new String[fieldsDisplayValues.size()]);
 	}
 
+	@Override
 	public String getFileUploadPath(BaseModel<?> baseModel) {
 		StringBundler sb = new StringBundler(7);
 
@@ -260,6 +328,7 @@ public class DDMImpl implements DDM {
 		return sb.toString();
 	}
 
+	@Override
 	public Serializable getIndexedFieldValue(
 			Serializable fieldValue, String type)
 		throws Exception {
@@ -287,6 +356,7 @@ public class DDMImpl implements DDM {
 		return fieldValue;
 	}
 
+	@Override
 	public OrderByComparator getStructureOrderByComparator(
 		String orderByCol, String orderByType) {
 
@@ -308,6 +378,7 @@ public class DDMImpl implements DDM {
 		return orderByComparator;
 	}
 
+	@Override
 	public OrderByComparator getTemplateOrderByComparator(
 		String orderByCol, String orderByType) {
 
@@ -329,6 +400,7 @@ public class DDMImpl implements DDM {
 		return orderByComparator;
 	}
 
+	@Override
 	public Fields mergeFields(Fields newFields, Fields existingFields) {
 		Iterator<Field> itr = newFields.iterator(true);
 
@@ -353,6 +425,7 @@ public class DDMImpl implements DDM {
 		return existingFields;
 	}
 
+	@Override
 	public void sendFieldFile(
 			HttpServletRequest request, HttpServletResponse response,
 			Field field, int valueIndex)
@@ -384,6 +457,7 @@ public class DDMImpl implements DDM {
 			request, response, fileName, is, contentLength, contentType);
 	}
 
+	@Override
 	public void uploadFieldFile(
 			long structureId, long storageId, BaseModel<?> baseModel,
 			String fieldName, ServiceContext serviceContext)
@@ -394,6 +468,7 @@ public class DDMImpl implements DDM {
 			serviceContext);
 	}
 
+	@Override
 	public void uploadFieldFile(
 			long structureId, long storageId, BaseModel<?> baseModel,
 			String fieldName, String fieldNamespace,

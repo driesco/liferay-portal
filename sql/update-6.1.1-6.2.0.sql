@@ -302,6 +302,8 @@ insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active
 
 alter table DDMStructure add parentStructureId LONG;
 
+drop index IX_490E7A1E on DDMStructure;
+
 alter table DDMTemplate add cacheable BOOLEAN;
 alter table DDMTemplate add smallImage BOOLEAN;
 alter table DDMTemplate add smallImageId LONG;
@@ -389,6 +391,10 @@ create table LayoutFriendlyURL (
 	layoutFriendlyURLId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,
+	userId LONG,
+	userName VARCHAR(75) null,
+	createDate DATE null,
+	modifiedDate DATE null,
 	plid LONG,
 	privateLayout BOOLEAN,
 	friendlyURL VARCHAR(255) null,
@@ -498,6 +504,8 @@ alter table Role_ add modifiedDate DATE null;
 drop table Roles_Permissions;
 
 alter table SocialActivity add activitySetId LONG;
+alter table SocialActivity add parentClassNameId LONG;
+alter table SocialActivity add parentClassPK LONG;
 
 alter table SocialActivityCounter add active_ BOOLEAN;
 
@@ -550,6 +558,8 @@ alter table UserGroup add userId LONG;
 alter table UserGroup add userName VARCHAR(75) null;
 alter table UserGroup add createDate DATE null;
 alter table UserGroup add modifiedDate DATE null;
+
+alter table UserNotificationEvent add delivered BOOLEAN;
 
 drop table Users_Permissions;
 

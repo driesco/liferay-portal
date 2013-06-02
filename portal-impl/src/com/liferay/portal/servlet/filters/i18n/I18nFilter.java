@@ -17,6 +17,7 @@ package com.liferay.portal.servlet.filters.i18n;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -78,6 +79,12 @@ public class I18nFilter extends BasePortalFilter {
 
 	protected String getRedirect(HttpServletRequest request) throws Exception {
 		if (PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 0) {
+			return null;
+		}
+
+		String method = request.getMethod();
+
+		if (method.equals(HttpMethods.POST)) {
 			return null;
 		}
 
@@ -149,19 +156,8 @@ public class I18nFilter extends BasePortalFilter {
 			return null;
 		}
 
-		String i18nPathLanguageId = i18nLanguageId;
-
-		if (!LanguageUtil.isDuplicateLanguageCode(locale.getLanguage())) {
-			i18nPathLanguageId = locale.getLanguage();
-		}
-		else {
-			Locale priorityLocale = LanguageUtil.getLocale(
-				locale.getLanguage());
-
-			if (locale.equals(priorityLocale)) {
-				i18nPathLanguageId = locale.getLanguage();
-			}
-		}
+		String i18nPathLanguageId = PortalUtil.getI18nPathLanguageId(
+			locale, i18nLanguageId);
 
 		String i18nPath = StringPool.SLASH.concat(i18nPathLanguageId);
 

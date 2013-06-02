@@ -36,7 +36,7 @@ if ((group != null) && !group.isRoot()) {
 }
 %>
 
-<c:if test="<%= group != null %>">
+<c:if test="<%= (group != null) && !layout.isTypeControlPanel() %>">
 	<portlet:renderURL var="headerBackURL">
 		<portlet:param name="struts_action" value="/sites_admin/view" />
 		<portlet:param name="groupId" value="<%= String.valueOf(parentGroupId) %>" />
@@ -84,7 +84,7 @@ if ((group != null) && !group.isRoot()) {
 				searchContainer.setEmptyResultsMessage(null);
 			}
 
-			searchContainer.setRowChecker(new RowChecker(renderResponse));
+			searchContainer.setRowChecker(new SiteChecker(renderResponse));
 
 			GroupSearchTerms searchTerms = (GroupSearchTerms)searchContainer.getSearchTerms();
 

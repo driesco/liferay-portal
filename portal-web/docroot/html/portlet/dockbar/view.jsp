@@ -36,6 +36,8 @@ String toggleControlsState = GetterUtil.getString(SessionClicks.get(request, "li
 		<c:if test="<%= group.isControlPanel() %>">
 
 			<%
+			String controlPanelCategory = themeDisplay.getControlPanelCategory();
+
 			String refererGroupDescriptiveName = null;
 			String backURL = null;
 
@@ -84,7 +86,44 @@ String toggleControlsState = GetterUtil.getString(SessionClicks.get(request, "li
 			}
 			%>
 
-			<aui:nav-item anchorCssClass="back-link" href="<%= backURL %>" iconClass="icon-arrow-left" id="backLink" label='<%= LanguageUtil.format(pageContext, "back-to-x", HtmlUtil.escape(refererGroupDescriptiveName), false) %>' />
+			<c:if test="<%= controlPanelCategory.equals(PortletCategoryKeys.CURRENT_SITE) || !controlPanelCategory.equals(PortletCategoryKeys.MY) %>">
+				<aui:nav-item anchorCssClass="back-link" href="<%= backURL %>" iconClass="icon-arrow-left" id="backLink" label="<%= StringPool.NBSP %>" title='<%= LanguageUtil.format(pageContext, "back-to-x", HtmlUtil.escape(refererGroupDescriptiveName), false) %>' />
+			</c:if>
+
+			<c:if test="<%= !controlPanelCategory.equals(PortletCategoryKeys.MY) && !controlPanelCategory.equals(PortletCategoryKeys.CURRENT_SITE) %>">
+				<aui:nav-item href="<%= themeDisplay.getURLControlPanel() %>" iconClass="icon-list" selected="<%= Validator.isNull(controlPanelCategory) %>" />
+
+				<%
+				String[] categories = PortletCategoryKeys.ALL;
+
+				for (String curCategory : categories) {
+					String urlControlPanelCategory = HttpUtil.setParameter(themeDisplay.getURLControlPanel(), "controlPanelCategory", curCategory);
+
+					String iconClass = StringPool.BLANK;
+
+					if (curCategory.equals(PortletCategoryKeys.APPS)) {
+						iconClass = "icon-th";
+					}
+					else if (curCategory.equals(PortletCategoryKeys.CONFIGURATION)) {
+						iconClass = "icon-cog";
+					}
+					else if (curCategory.equals(PortletCategoryKeys.SITES)) {
+						iconClass = "icon-globe";
+					}
+					else if (curCategory.equals(PortletCategoryKeys.USERS)) {
+						iconClass = "icon-user";
+					}
+				%>
+
+					<c:if test="<%= _hasPortlets(curCategory, themeDisplay) %>">
+						<aui:nav-item href="<%= urlControlPanelCategory %>" iconClass="<%= iconClass %>" label='<%= "category." + curCategory %>' selected="<%= controlPanelCategory.equals(curCategory) %>" />
+					</c:if>
+
+				<%
+				}
+				%>
+
+			</c:if>
 		</c:if>
 
 		<c:if test="<%= !group.isControlPanel() && (!group.hasStagingGroup() || group.isStagingGroup()) && (GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.ADD_LAYOUT) || hasLayoutUpdatePermission || (layoutTypePortlet.isCustomizable() && layoutTypePortlet.isCustomizedView() && hasLayoutCustomizePermission)) %>">
@@ -104,8 +143,8 @@ String toggleControlsState = GetterUtil.getString(SessionClicks.get(request, "li
 			</aui:nav-item>
 		</c:if>
 
-		<c:if test="<%= !group.isControlPanel() && (themeDisplay.isShowLayoutTemplatesIcon() || themeDisplay.isShowSiteAdministrationIcon() || themeDisplay.isShowPageSettingsIcon()) %>">
-			<aui:nav-item anchorCssClass="manage-content-link" dropdown="<%= true %>" iconClass="icon-cog" id="manageContent" label="manage">
+		<c:if test="<%= !group.isControlPanel() && (themeDisplay.isShowLayoutTemplatesIcon() || themeDisplay.isShowPageSettingsIcon()) %>">
+			<aui:nav-item anchorCssClass="manage-content-link" dropdown="<%= true %>" iconClass="icon-edit" id="manageContent" label="edit">
 
 				<%
 				String useDialogFullDialog = StringPool.BLANK;
@@ -116,19 +155,15 @@ String toggleControlsState = GetterUtil.getString(SessionClicks.get(request, "li
 				%>
 
 				<c:if test="<%= themeDisplay.isShowPageSettingsIcon() %>">
-					<aui:nav-item cssClass='<%= "first manage-page" + useDialogFullDialog %>' href='<%= themeDisplay.getURLPageSettings().toString() + "#details" %>' label="page" title="manage-page" />
+					<aui:nav-item cssClass='<%= "first manage-page" + useDialogFullDialog %>' href='<%= themeDisplay.getURLPageSettings().toString() + "#tab=details" %>' label="page" title="manage-page" />
 				</c:if>
 
 				<c:if test="<%= themeDisplay.isShowLayoutTemplatesIcon() %>">
-					<aui:nav-item cssClass='<%= "page-layout" + useDialogFullDialog %>' href='<%= themeDisplay.getURLPageSettings().toString() + "#layout" %>' label="page-layout" title="manage-page" />
+					<aui:nav-item cssClass='<%= "page-layout" + useDialogFullDialog %>' href='<%= themeDisplay.getURLPageSettings().toString() + "#tab=layout" %>' label="page-layout" title="manage-page" />
 				</c:if>
 
 				<c:if test="<%= themeDisplay.isShowPageCustomizationIcon() && !themeDisplay.isStateMaximized() %>">
 					<aui:nav-item anchorCssClass='<%= themeDisplay.isFreeformLayout() ? "disabled" : StringPool.BLANK %>' anchorId="manageCustomization" cssClass="manage-page-customization" href='<%= themeDisplay.isFreeformLayout() ? null : "javascript:;" %>' label='<%= group.isLayoutPrototype() ? "page-modifications" : "page-customizations" %>' title='<%= themeDisplay.isFreeformLayout() ? "it-is-not-possible-to-specify-customization-settings-for-freeform-layouts" : null %>' />
-				</c:if>
-
-				<c:if test="<%= themeDisplay.isShowSiteAdministrationIcon() %>">
-					<aui:nav-item cssClass="settings" href="<%= themeDisplay.getURLSiteAdministration() %>" label="site" title="manage-site" />
 				</c:if>
 			</aui:nav-item>
 
@@ -155,25 +190,24 @@ String toggleControlsState = GetterUtil.getString(SessionClicks.get(request, "li
 	</aui:nav>
 
 	<aui:nav cssClass="pull-right">
+		<c:if test="<%= (themeDisplay.isShowControlPanelIcon() || themeDisplay.isShowSiteAdministrationIcon()) && (!layout.getGroup().isControlPanel() || Validator.equals(themeDisplay.getControlPanelCategory(), PortletCategoryKeys.CURRENT_SITE)) %>">
+			<aui:nav-item cssClass="admin-links" dropdown="<%= true %>" id="adminLinks" label="admin">
+				<c:if test="<%= themeDisplay.isShowSiteAdministrationIcon() %>">
+					<aui:nav-item href="<%= themeDisplay.getURLSiteAdministration() %>" iconClass="icon-cog" label="site-administration" />
+				</c:if>
+
+				<c:if test="<%= themeDisplay.isShowControlPanelIcon() %>">
+					<aui:nav-item href="<%= themeDisplay.getURLControlPanel() %>" iconClass="icon-wrench" label="control-panel" />
+				</c:if>
+			</aui:nav-item>
+
+			<aui:nav-item cssClass="divider-vertical"></aui:nav-item>
+		</c:if>
+
 		<c:if test="<%= user.hasMySites() %>">
-			<li class="dropdown my-sites" id="mySites">
-				<a class="dropdown-toggle" href="javascript:;">
-					<liferay-ui:message key="go-to" />
-
-					<b class="caret"></b>
-				</a>
-
+			<aui:nav-item cssClass="my-sites" dropdown="<%= true %>" id="mySites" label="my-sites" wrapDropDownMenu="<%= false %>">
 				<liferay-ui:my-sites cssClass="dropdown-menu my-sites-menu" />
-
-				<aui:script use="aui-base">
-					A.one('#mySites').on(
-						'click',
-						function(event) {
-							event.currentTarget.toggleClass('open');
-						}
-					);
-				</aui:script>
-			</li>
+			</aui:nav-item>
 		</c:if>
 
 		<aui:nav-item cssClass="divider-vertical"></aui:nav-item>
@@ -281,7 +315,7 @@ List<LayoutPrototype> layoutPrototypes = LayoutPrototypeServiceUtil.search(compa
 
 <c:if test="<%= !layoutPrototypes.isEmpty() %>">
 	<div class="html-template" id="layoutPrototypeTemplate">
-		<ul>
+		<ul class="unstyled">
 
 			<%
 			for (LayoutPrototype layoutPrototype : layoutPrototypes) {
@@ -438,3 +472,15 @@ List<LayoutPrototype> layoutPrototypes = LayoutPrototypeServiceUtil.search(compa
 		customizableColumns.get('parentNode').addClass('customizable');
 	}
 </aui:script>
+
+<%!
+private boolean _hasPortlets(String category, ThemeDisplay themeDisplay) throws SystemException {
+	List<Portlet> portlets = PortalUtil.getControlPanelPortlets(category, themeDisplay);
+
+	if (portlets.isEmpty()) {
+		return false;
+	}
+
+	return true;
+}
+%>

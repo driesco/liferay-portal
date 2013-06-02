@@ -15,95 +15,50 @@
 --%>
 
 <div>
-	<c:if test="<%= !controlPanelCategory.equals(PortletCategoryKeys.MY) %>">
-		<aui:nav-bar cssClass="control-panel-bar-main">
-			<aui:nav>
-				<aui:nav-item href="<%= themeDisplay.getURLControlPanel() %>" iconClass="icon-tasks" label="<%= StringPool.NBSP %>" selected="<%= Validator.isNull(controlPanelCategory) %>" />
-
-				<%
-				String[] categories = PortletCategoryKeys.ALL;
-
-				for (String curCategory : categories) {
-					String urlControlPanelCategory = HttpUtil.setParameter(themeDisplay.getURLControlPanel(), "controlPanelCategory", curCategory);
-
-					String iconClass = StringPool.BLANK;
-
-					if (curCategory.equals(PortletCategoryKeys.CONFIGURATION)) {
-						iconClass = "icon-cog";
-					}
-					else if (curCategory.equals(PortletCategoryKeys.MARKETPLACE)) {
-						iconClass = "icon-gift";
-					}
-					else if (curCategory.equals(PortletCategoryKeys.SERVER)) {
-						iconClass = "icon-hdd";
-					}
-					else if (curCategory.equals(PortletCategoryKeys.SITES)) {
-						iconClass = "icon-globe";
-					}
-					else if (curCategory.equals(PortletCategoryKeys.USERS)) {
-						iconClass = "icon-user";
-					}
-				%>
-
-					<c:if test="<%= _hasPortlets(curCategory, themeDisplay) %>">
-						<aui:nav-item href="<%= urlControlPanelCategory %>" iconClass="<%= iconClass %>" label='<%= "category." + curCategory %>' selected="<%= controlPanelCategory.equals(curCategory) %>" />
-					</c:if>
-
-				<%
-				}
-				%>
-
-			</aui:nav>
-		</aui:nav-bar>
-	</c:if>
 
 	<%
 	if (portlets.size() > 1) {
 	%>
 
-		<aui:nav-bar cssClass="control-panel-bar-secondary">
-			<aui:nav>
+		<aui:nav cssClass="control-panel-bar-secondary nav-pills">
 
-				<%
-				for (Portlet curPortlet : portlets) {
-					String curPortletId = curPortlet.getPortletId();
+			<%
+			for (Portlet curPortlet : portlets) {
+				String curPortletId = curPortlet.getPortletId();
 
-					String urlControlPanelSitesPortlet = HttpUtil.setParameter(themeDisplay.getURLControlPanel(), "p_p_id", curPortletId);
+				String urlControlPanelSitesPortlet = HttpUtil.setParameter(themeDisplay.getURLControlPanel(), "p_p_id", curPortletId);
 
-					urlControlPanelSitesPortlet = HttpUtil.setParameter(urlControlPanelSitesPortlet, "controlPanelCategory", controlPanelCategory);
+				urlControlPanelSitesPortlet = HttpUtil.setParameter(urlControlPanelSitesPortlet, "controlPanelCategory", controlPanelCategory);
 
-					boolean selected = curPortletId.equals(ppid);
+				boolean selected = curPortletId.equals(ppid);
 
-					String portletControlPanelEntryCategory = curPortlet.getControlPanelEntryCategory();
+				String portletControlPanelEntryCategory = portlet.getControlPanelEntryCategory();
 
-					if (curPortletId.equals(PortletKeys.SITES_ADMIN) && portletControlPanelEntryCategory.startsWith("site.")) {
+				if (portletControlPanelEntryCategory.startsWith(PortletCategoryKeys.SITE_ADMINISTRATION)) {
+					Group siteGroup = themeDisplay.getSiteGroup();
+
+					if (siteGroup.isLayoutPrototype() && curPortletId.equals(PortletKeys.LAYOUT_PROTOTYPE)) {
 						selected = true;
 					}
-				%>
-
-					<aui:nav-item href="<%= urlControlPanelSitesPortlet %>" label="<%= PortalUtil.getPortletTitle(curPortlet, application, locale) %>" selected="<%= selected %>" />
-
-				<%
+					else if (siteGroup.isLayoutSetPrototype() && curPortletId.equals(PortletKeys.LAYOUT_SET_PROTOTYPE)) {
+						selected = true;
+					}
+					else if (curPortletId.equals(PortletKeys.SITES_ADMIN)) {
+						selected = true;
+					}
 				}
-				%>
+			%>
 
-			</aui:nav>
-		</aui:nav-bar>
+				<aui:nav-item href="<%= urlControlPanelSitesPortlet %>" label="<%= PortalUtil.getPortletTitle(curPortlet, application, locale) %>" selected="<%= selected %>" />
+
+			<%
+			}
+			%>
+
+		</aui:nav>
 
 	<%
 	}
 	%>
 
 </div>
-
-<%!
-private boolean _hasPortlets(String category, ThemeDisplay themeDisplay) throws SystemException {
-	List<Portlet> portlets = PortalUtil.getControlPanelPortlets(category, themeDisplay);
-
-	if (portlets.isEmpty()) {
-		return false;
-	}
-
-	return true;
-}
-%>

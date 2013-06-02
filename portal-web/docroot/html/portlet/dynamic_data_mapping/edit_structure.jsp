@@ -93,8 +93,8 @@ if (Validator.isNotNull(script)) {
 		localizeTitle = false;
 		title = structure.getName(locale);
 	}
-	else if (Validator.isNotNull(scopeStructureName)) {
-		title = LanguageUtil.format(pageContext, "new-x", scopeStructureName);
+	else {
+		title = LanguageUtil.format(pageContext, "new-x", ddmDisplay.getStructureName(locale));
 	}
 	%>
 
@@ -160,7 +160,7 @@ if (Validator.isNotNull(script)) {
 
 				<aui:input name="description" />
 
-				<aui:field-wrapper label='<%= LanguageUtil.format(pageContext, "parent-x", scopeStructureName) %>'>
+				<aui:field-wrapper label='<%= LanguageUtil.format(pageContext, "parent-x", ddmDisplay.getStructureName(locale)) %>'>
 					<aui:input name="parentStructureId" type="hidden" value="<%= parentStructureId %>" />
 
 					<c:choose>
@@ -213,20 +213,16 @@ if (Validator.isNotNull(script)) {
 	function <portlet:namespace />openParentStructureSelector() {
 		Liferay.Util.openDDMPortlet(
 			{
-				availableFields: 'Liferay.FormBuilder.AVAILABLE_FIELDS.WCM_STRUCTURE',
 				classPK: <%= (structure != null) ? structure.getPrimaryKey() : 0 %>,
-				ddmResource: '<%= ddmResource %>',
 				dialog: {
-					destroyOnHide: true
+					destroyOnHide: true,
+					zIndex: Liferay.zIndex.WINDOW + 2
 				},
 				eventName: '<portlet:namespace />selectParentStructure',
 				showGlobalScope: true,
 				showManageTemplates: false,
-				storageType: '<%= scopeStorageType %>',
-				structureName: '<%= scopeStructureName %>',
-				structureType: '<%= scopeStructureType %>',
 				struts_action: '/dynamic_data_mapping/select_structure',
-				title: '<%= scopeTitle %>'
+				title: '<%= HtmlUtil.escapeJS(scopeTitle) %>'
 			},
 			function(event){
 				document.<portlet:namespace />fm.<portlet:namespace />parentStructureId.value = event.ddmstructureid;

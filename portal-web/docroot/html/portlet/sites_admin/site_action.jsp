@@ -76,7 +76,7 @@ if (row == null) {
 		<c:if test="<%= childSitesCount > 0 %>">
 			<liferay-portlet:renderURL var="viewSubsitesURL">
 				<portlet:param name="struts_action" value="/sites_admin/view" />
-				<portlet:param name="backURL" value="/<%= currentURL %>" />
+				<portlet:param name="backURL" value="<%= StringPool.SLASH + currentURL %>" />
 				<portlet:param name="groupId" value="<%= String.valueOf(group.getGroupId()) %>" />
 				<portlet:param name="sitesListView" value="<%= SiteConstants.LIST_VIEW_TREE %>" />
 			</liferay-portlet:renderURL>
@@ -195,7 +195,7 @@ if (row == null) {
 		</c:choose>
 	</c:if>
 
-	<c:if test="<%= !group.isCompany() && GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.DELETE) %>">
+	<c:if test="<%= !group.isCompany() && GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.DELETE) && !PortalUtil.isSystemGroup(group.getName()) %>">
 		<portlet:actionURL var="deleteURL">
 			<portlet:param name="struts_action" value="/sites_admin/edit_site" />
 			<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.DELETE %>" />
@@ -206,7 +206,7 @@ if (row == null) {
 		<liferay-ui:icon-delete url="<%= deleteURL %>" />
 	</c:if>
 
-	<c:if test="<%= !group.isCompany() && (PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_COMMUNITY) || GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.MANAGE_SUBGROUPS)) %>">
+	<c:if test="<%= !group.isCompany() && (PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_COMMUNITY) || GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.ADD_COMMUNITY)) %>">
 
 		<%
 		List<LayoutSetPrototype> layoutSetPrototypes = LayoutSetPrototypeServiceUtil.search(company.getCompanyId(), Boolean.TRUE, null);

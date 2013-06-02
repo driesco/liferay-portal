@@ -46,6 +46,7 @@ import com.liferay.portal.model.Image;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutBranch;
 import com.liferay.portal.model.LayoutConstants;
+import com.liferay.portal.model.LayoutFriendlyURL;
 import com.liferay.portal.model.LayoutPrototype;
 import com.liferay.portal.model.LayoutRevision;
 import com.liferay.portal.model.LayoutSet;
@@ -54,6 +55,7 @@ import com.liferay.portal.model.LayoutTemplate;
 import com.liferay.portal.model.LayoutTypePortlet;
 import com.liferay.portal.model.LayoutTypePortletConstants;
 import com.liferay.portal.service.ImageLocalServiceUtil;
+import com.liferay.portal.service.LayoutFriendlyURLLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.LayoutPrototypeLocalServiceUtil;
 import com.liferay.portal.service.LayoutSetLocalServiceUtil;
@@ -160,6 +162,8 @@ public class LayoutStagedModelDataHandler
 			return;
 		}
 
+		portletDataContext.setPlid(layout.getPlid());
+
 		long parentLayoutId = layout.getParentLayoutId();
 
 		if (parentLayoutId != LayoutConstants.DEFAULT_PARENT_LAYOUT_ID) {
@@ -178,7 +182,18 @@ public class LayoutStagedModelDataHandler
 			}
 		}
 
-		portletDataContext.setPlid(layout.getPlid());
+		List<LayoutFriendlyURL> layoutFriendlyURLs =
+			LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURLs(
+				layout.getPlid());
+
+		for (LayoutFriendlyURL layoutFriendlyURL : layoutFriendlyURLs) {
+			StagedModelDataHandlerUtil.exportStagedModel(
+				portletDataContext, layoutFriendlyURL);
+
+			portletDataContext.addReferenceElement(
+				layout, layoutElement, layoutFriendlyURL,
+				PortletDataContext.REFERENCE_TYPE_DEPENDENCY, false);
+		}
 
 		if (layout.isIconImage()) {
 			exportLayoutIconImage(portletDataContext, layout, layoutElement);
@@ -291,8 +306,8 @@ public class LayoutStagedModelDataHandler
 					PortletDataHandlerKeys.
 						LAYOUTS_IMPORT_MODE_CREATED_FROM_PROTOTYPE)) {
 
-			existingLayout = LayoutUtil.fetchByG_P_SPLU(
-				groupId, privateLayout, layout.getUuid());
+			existingLayout = LayoutUtil.fetchByUUID_G_P(
+				layout.getUuid(), groupId, privateLayout);
 
 			if (SitesUtil.isLayoutModifiedSinceLastMerge(existingLayout)) {
 				newLayoutsMap.put(oldLayoutId, existingLayout);
@@ -384,6 +399,9 @@ public class LayoutStagedModelDataHandler
 			importedLayout = existingLayout;
 		}
 
+		portletDataContext.setPlid(importedLayout.getPlid());
+		portletDataContext.setOldPlid(layout.getPlid());
+
 		newLayoutsMap.put(oldLayoutId, importedLayout);
 
 		long parentLayoutId = layout.getParentLayoutId();
@@ -463,6 +481,18 @@ public class LayoutStagedModelDataHandler
 		importedLayout.setHidden(layout.isHidden());
 		importedLayout.setFriendlyURL(friendlyURL);
 
+		importLayoutFriendlyURLs(portletDataContext, layout);
+
+		importedLayout.setIconImage(false);
+
+		if (layout.isIconImage()) {
+			importLayoutIconImage(
+				portletDataContext, importedLayout, layoutElement);
+		}
+		else {
+			ImageLocalServiceUtil.deleteImage(importedLayout.getIconImageId());
+		}
+
 		boolean importThemeSettings = MapUtil.getBoolean(
 			portletDataContext.getParameterMap(),
 			PortletDataHandlerKeys.THEME_REFERENCE);
@@ -484,16 +514,6 @@ public class LayoutStagedModelDataHandler
 		importedLayout.setLayoutPrototypeLinkEnabled(
 			layout.isLayoutPrototypeLinkEnabled());
 
-		importedLayout.setIconImage(false);
-
-		if (layout.isIconImage()) {
-			importLayoutIconImage(
-				portletDataContext, importedLayout, layoutElement);
-		}
-		else {
-			ImageLocalServiceUtil.deleteImage(importedLayout.getIconImageId());
-		}
-
 		StagingUtil.updateLastImportSettings(
 			layoutElement, importedLayout, portletDataContext);
 
@@ -504,9 +524,6 @@ public class LayoutStagedModelDataHandler
 		List<Layout> newLayouts = portletDataContext.getNewLayouts();
 
 		newLayouts.add(importedLayout);
-
-		portletDataContext.setPlid(importedLayout.getPlid());
-		portletDataContext.setOldPlid(layout.getPlid());
 
 		portletDataContext.importClassedModel(
 			layout, importedLayout, LayoutPortletDataHandler.NAMESPACE);
@@ -751,6 +768,27 @@ public class LayoutStagedModelDataHandler
 			layout.getLayoutId(), StringPool.BLANK, articleId, true);
 	}
 
+	protected void importLayoutFriendlyURLs(
+			PortletDataContext portletDataContext, Layout layout)
+		throws Exception {
+
+		List<Element> layoutFriendlyURLElements =
+			portletDataContext.getReferenceDataElements(
+				layout, LayoutFriendlyURL.class);
+
+		for (Element layoutFriendlyURLElement : layoutFriendlyURLElements) {
+			String layoutFriendlyURLPath =
+				layoutFriendlyURLElement.attributeValue("path");
+
+			LayoutFriendlyURL layoutFriendlyURL =
+				(LayoutFriendlyURL)portletDataContext.getZipEntryAsObject(
+					layoutFriendlyURLPath);
+
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, layoutFriendlyURL);
+		}
+	}
+
 	protected void importLayoutIconImage(
 			PortletDataContext portletDataContext, Layout importedLayout,
 			Element layoutElement)
@@ -791,45 +829,48 @@ public class LayoutStagedModelDataHandler
 		String linkedToLayoutUuid = layoutElement.attributeValue(
 			"linked-to-layout-uuid");
 
-		if (linkToLayoutId > 0) {
-			Element linkedToLayoutElement =
-				portletDataContext.getReferenceDataElement(
-					layout, Layout.class, layout.getGroupId(),
-					linkedToLayoutUuid);
+		if (linkToLayoutId <= 0) {
+			updateTypeSettings(importedLayout, layout);
 
-			if (linkedToLayoutElement != null) {
-				String linkedToLayoutPath =
-					linkedToLayoutElement.attributeValue("path");
+			return;
+		}
 
-				Layout linkedToLayout =
-					(Layout)portletDataContext.getZipEntryAsObject(
-						linkedToLayoutPath);
+		Element linkedToLayoutElement =
+			portletDataContext.getReferenceDataElement(
+				layout, Layout.class, layout.getGroupId(), linkedToLayoutUuid);
 
-				StagedModelDataHandlerUtil.importStagedModel(
-					portletDataContext, linkedToLayout);
+		if (linkedToLayoutElement != null) {
+			String linkedToLayoutPath = linkedToLayoutElement.attributeValue(
+				"path");
 
-				Layout importedLinkedLayout = newLayoutsMap.get(linkToLayoutId);
+			Layout linkedToLayout =
+				(Layout)portletDataContext.getZipEntryAsObject(
+					linkedToLayoutPath);
 
-				typeSettingsProperties.setProperty(
-					"privateLayout",
-					String.valueOf(importedLinkedLayout.isPrivateLayout()));
-				typeSettingsProperties.setProperty(
-					"linkToLayoutId",
-					String.valueOf(importedLinkedLayout.getLayoutId()));
-			}
-			else {
-				if (_log.isWarnEnabled()) {
-					StringBundler sb = new StringBundler(6);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, linkedToLayout);
 
-					sb.append("Unable to link layout with friendly URL ");
-					sb.append(layout.getFriendlyURL());
-					sb.append(" and layout id ");
-					sb.append(layout.getLayoutId());
-					sb.append(" to layout with layout id ");
-					sb.append(linkToLayoutId);
+			Layout importedLinkedLayout = newLayoutsMap.get(linkToLayoutId);
 
-					_log.warn(sb.toString());
-				}
+			typeSettingsProperties.setProperty(
+				"privateLayout",
+				String.valueOf(importedLinkedLayout.isPrivateLayout()));
+			typeSettingsProperties.setProperty(
+				"linkToLayoutId",
+				String.valueOf(importedLinkedLayout.getLayoutId()));
+		}
+		else {
+			if (_log.isWarnEnabled()) {
+				StringBundler sb = new StringBundler(6);
+
+				sb.append("Unable to link layout with friendly URL ");
+				sb.append(layout.getFriendlyURL());
+				sb.append(" and layout id ");
+				sb.append(layout.getLayoutId());
+				sb.append(" to layout with layout id ");
+				sb.append(linkToLayoutId);
+
+				_log.warn(sb.toString());
 			}
 		}
 
@@ -999,6 +1040,8 @@ public class LayoutStagedModelDataHandler
 			(LayoutTypePortlet)importedLayout.getLayoutType();
 
 		List<String> importedPortletIds = importedLayoutType.getPortletIds();
+
+		layout.setGroupId(importedLayout.getGroupId());
 
 		LayoutTypePortlet layoutType =
 			(LayoutTypePortlet)layout.getLayoutType();

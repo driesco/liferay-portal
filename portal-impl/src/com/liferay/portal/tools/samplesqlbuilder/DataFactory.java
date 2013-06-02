@@ -38,6 +38,7 @@ import com.liferay.portal.model.Group;
 import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutConstants;
+import com.liferay.portal.model.LayoutFriendlyURL;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.LayoutTypePortletConstants;
 import com.liferay.portal.model.ModelHintsUtil;
@@ -56,6 +57,7 @@ import com.liferay.portal.model.impl.ClassNameImpl;
 import com.liferay.portal.model.impl.CompanyImpl;
 import com.liferay.portal.model.impl.ContactImpl;
 import com.liferay.portal.model.impl.GroupImpl;
+import com.liferay.portal.model.impl.LayoutFriendlyURLImpl;
 import com.liferay.portal.model.impl.LayoutImpl;
 import com.liferay.portal.model.impl.LayoutSetImpl;
 import com.liferay.portal.model.impl.PortletPreferencesImpl;
@@ -109,6 +111,7 @@ import com.liferay.portlet.dynamicdatamapping.model.impl.DDMContentImpl;
 import com.liferay.portlet.dynamicdatamapping.model.impl.DDMStorageLinkImpl;
 import com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureImpl;
 import com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureLinkImpl;
+import com.liferay.portlet.dynamicdatamapping.util.DDMImpl;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalArticleConstants;
 import com.liferay.portlet.journal.model.JournalArticleResource;
@@ -145,6 +148,7 @@ import com.liferay.portlet.wiki.model.impl.WikiNodeImpl;
 import com.liferay.portlet.wiki.model.impl.WikiPageImpl;
 import com.liferay.portlet.wiki.model.impl.WikiPageResourceImpl;
 import com.liferay.portlet.wiki.social.WikiActivityKeys;
+import com.liferay.util.PwdGenerator;
 import com.liferay.util.SimpleCounter;
 
 import java.io.File;
@@ -489,8 +493,18 @@ public class DataFactory {
 			DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT);
 		_defaultDLFileEntryType.setCreateDate(nextFutureDate());
 		_defaultDLFileEntryType.setModifiedDate(nextFutureDate());
-		_defaultDLFileEntryType.setName(
-			DLFileEntryTypeConstants.NAME_BASIC_DOCUMENT);
+		_defaultDLFileEntryType.setFileEntryTypeKey(
+			DLFileEntryTypeConstants.NAME_BASIC_DOCUMENT.toUpperCase());
+
+		StringBundler sb = new StringBundler(5);
+
+		sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?><root ");
+		sb.append("available-locales=\"en_US\" default-locale=\"en_US\">");
+		sb.append("<Name language-id=\"en_US\">");
+		sb.append(DLFileEntryTypeConstants.NAME_BASIC_DOCUMENT);
+		sb.append("</Name></root>");
+
+		_defaultDLFileEntryType.setName(sb.toString());
 
 		_defaultDLDDMStructure = newDDMStructure(
 			_guestGroupId, getDLFileEntryClassNameId(), "TIKARAWMETADATA",
@@ -902,14 +916,14 @@ public class DataFactory {
 		ddlRecordVersion.setRecordId(ddlRecord.getRecordId());
 		ddlRecordVersion.setVersion(ddlRecord.getVersion());
 		ddlRecordVersion.setDisplayIndex(ddlRecord.getDisplayIndex());
-		ddlRecordVersion.setStatus(WorkflowConstants.STATUS_DRAFT);
+		ddlRecordVersion.setStatus(WorkflowConstants.STATUS_APPROVED);
 		ddlRecordVersion.setStatusDate(ddlRecord.getModifiedDate());
 
 		return ddlRecordVersion;
 	}
 
 	public DDMContent newDDMContent(DDLRecord ddlRecord, int currentIndex) {
-		StringBundler sb = new StringBundler(2 + _maxDDLCustomFieldCount * 6);
+		StringBundler sb = new StringBundler(3 + _maxDDLCustomFieldCount * 10);
 
 		sb.append("<?xml version=\"1.0\"?><root>");
 
@@ -922,7 +936,19 @@ public class DataFactory {
 			sb.append("]]></dynamic-content></dynamic-element>");
 		}
 
-		sb.append("</root>");
+		sb.append("<dynamic-element default-language-id=\"en_US\" name=\"_");
+		sb.append(
+			"fieldsDisplay\"><dynamic-content language-id=\"en_US\"><![CDATA[");
+
+		for (int i = 0; i < _maxDDLCustomFieldCount; i++) {
+			sb.append(nextDDLCustomFieldName(ddlRecord.getGroupId(), i));
+			sb.append(DDMImpl.INSTANCE_SEPARATOR);
+			sb.append(PwdGenerator.getPassword(4));
+			sb.append(StringPool.COMMA);
+		}
+
+		sb.setStringAt(
+			"]]></dynamic-content></dynamic-element></root>", sb.index() - 1);
 
 		return newDDMContent(
 			ddlRecord.getDDMStorageId(), ddlRecord.getGroupId(), sb.toString());
@@ -1194,6 +1220,24 @@ public class DataFactory {
 		layout.setTypeSettings(typeSettings);
 
 		return layout;
+	}
+
+	public LayoutFriendlyURL newLayoutFriendlyURL(Layout layout) {
+		LayoutFriendlyURL layoutFriendlyURL = new LayoutFriendlyURLImpl();
+
+		layoutFriendlyURL.setUuid(SequentialUUID.generate());
+		layoutFriendlyURL.setLayoutFriendlyURLId(_counter.get());
+		layoutFriendlyURL.setGroupId(layout.getGroupId());
+		layoutFriendlyURL.setCompanyId(_companyId);
+		layoutFriendlyURL.setUserId(_sampleUserId);
+		layoutFriendlyURL.setUserName(_SAMPLE_USER_NAME);
+		layoutFriendlyURL.setCreateDate(new Date());
+		layoutFriendlyURL.setModifiedDate(new Date());
+		layoutFriendlyURL.setPlid(layout.getPlid());
+		layoutFriendlyURL.setFriendlyURL(layout.getFriendlyURL());
+		layoutFriendlyURL.setLanguageId("en_US");
+
+		return layoutFriendlyURL;
 	}
 
 	public List<LayoutSet> newLayoutSets(

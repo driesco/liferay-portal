@@ -347,7 +347,17 @@ public class ServiceTestUtil {
 	}
 
 	public static long randomLong() throws Exception {
-		return _random.nextLong();
+		long value = _random.nextLong();
+
+		if (value > 0) {
+			return value;
+		}
+		else if (value == 0) {
+			return randomLong();
+		}
+		else {
+			return -value;
+		}
 	}
 
 	public static String randomString() throws Exception {
