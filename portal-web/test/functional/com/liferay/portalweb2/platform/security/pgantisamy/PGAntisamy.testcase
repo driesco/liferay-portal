@@ -9,11 +9,20 @@
 			<var name="pageName" value="${pageName}" />
 		</execute>
 
-		<execute macro="Portlet#addPG">
+		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
 			<var name="portletName" value="${portletName}" />
 		</execute>
 	</set-up>
+
+	<tear-down>
+		<execute macro="WikiPage#tearDownCP" />
+
+		<execute macro="Page#tearDownPG" />
+	</tear-down>
 
 	<command name="AddWikiFrontPageContentJavascript">
 		<var name="wikiPageContent">
@@ -34,10 +43,4 @@
 			<var name="wikiPageText" value="${wikiPageText}" />
 		</execute>
 	</command>
-
-	<tear-down>
-		<execute macro="WikiPage#tearDownCP" />
-
-		<execute macro="Page#tearDownPG" />
-	</tear-down>
 </definition>

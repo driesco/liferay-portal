@@ -9,11 +9,20 @@
 			<var name="pageName" value="${pageName}" />
 		</execute>
 
-		<execute macro="Portlet#addPG">
+		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
 			<var name="portletName" value="${portletName}" />
 		</execute>
 	</set-up>
+
+	<tear-down>
+		<execute macro="User#firstLoginPG" />
+
+		<execute macro="Page#tearDownPG" />
+	</tear-down>
 
 	<command name="ViewBlogsPortletAsGuestPG">
 		<execute macro="BlogsEntry#viewPortletPG">
@@ -28,10 +37,4 @@
 
 		<execute macro="BlogsEntry#viewPortletAsGuestPG" />
 	</command>
-
-	<tear-down>
-		<execute macro="User#firstLoginPG" />
-
-		<execute macro="Page#tearDownPG" />
-	</tear-down>
 </definition>
