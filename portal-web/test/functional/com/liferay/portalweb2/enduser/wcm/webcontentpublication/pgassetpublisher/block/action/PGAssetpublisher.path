@@ -20,7 +20,7 @@
 </tr>
 <tr>
 	<td>OPTIONS_WRENCH_ICON</td>
-	<td>//a[@title='Options']</td>
+	<td>//section[contains(.,'Asset Publisher')]//a[contains(.,'Options')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -44,6 +44,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ADD_NEW_DROPDOWN_SITE_NAME</td>
+	<td>//div[contains(@class,'lfr-meta-actions add-asset-selector')]//span[contains(.,'Add New in ${key_siteName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_NEW_DROPDOWN_CHILD_SITENAME</td>
+	<td>//div[contains(@class,'lfr-meta-actions add-asset-selector')]//span[contains(.,'Add New in ${key_childSiteName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADD_NEW_DROPDOWN_IN_SCOPED_SITE</td>
 	<td>//div[contains(@class,'lfr-meta-actions') and contains(@class,'add-asset-selector')]//span[contains(.,'Add New in ${key_siteScope}')]</td>
 	<td></td>
@@ -51,6 +61,17 @@
 <tr>
 	<td>INFO_MESSAGE</td>
 	<td>//div[contains(@class,'alert') and contains(@class,'alert-info')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--CATEGORIES_FILTER-->
+<tr>
+	<td>CATEGORIES_FILTER_CATEGORY</td>
+	<td>//section[contains(.,'Asset Publisher')]//div[@class='portlet-body']//span[contains(.,'${key_categoryName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -129,12 +150,12 @@
 <!--ASSET_ABSTRACT-->
 <tr>
 	<td>ASSET_ABSTRACT_TITLE</td>
-	<td>//div[@class='asset-abstract ' and contains(.,'${key_assetTitle}')]//h3[@class='asset-title']/a</td>
+	<td>//h3[@class='asset-title']/a[contains(.,'${key_assetTitle}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ASSET_ABSTRACT_EDIT</td>
-	<td>//div[@class='asset-abstract ' and contains(.,'${key_assetTitle}')]//span[@class='taglib-text' and contains(.,'Edit')]</td>
+	<td>//div[@class='asset-abstract ' and contains(.,'${key_assetTitle}')]//span[contains(.,'Edit')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -144,7 +165,12 @@
 </tr>
 <tr>
 	<td>ASSET_ABSTRACT_DESCRIPTION</td>
-	<td>//div[@class='asset-abstract ' and contains(.,'${key_assetTitle}')]//p[@class='asset-description']</td>
+	<td>//div[contains(.,'${key_assetTitle}')]//div[@class='asset-summary']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_ABSTRACT_DESCRIPTION_SMALL_IMAGE</td>
+	<td>//div[contains(.,'${key_assetTitle}')]//div[@class='asset-small-image']</td>
 	<td></td>
 </tr>
 <tr>
@@ -154,7 +180,80 @@
 </tr>
 <tr>
 	<td>ASSET_ABSTRACT_READ_MORE</td>
-	<td>//div[@class='asset-abstract ' and contains(.,'${key_assetTitle}')]//div[@class='asset-more']/a</td>
+	<td>//a[contains(.,'Read More')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_ABSTRACT_COMMENTS_BE_THE_FIRST</td>
+	<td>//fieldset[contains(@class,'add-comment')]/div/a[contains(.,'Be the first.')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_ABSTRACT_COMMENTS_SUBCRIBE_TO_COMMENTS</td>
+	<td>//fieldset[contains(@class,'add-comment')]/div/span[@class='subscribe-link']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--ASSET_ORDER-->
+<tr>
+	<td>ASSET_ORDER_FIRST</td>
+	<td>//div[@class='portlet-body']/div[3]/h3/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_ORDER_SECOND</td>
+	<td>//div[@class='portlet-body']/div[4]/h3/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_ORDER_THIRD</td>
+	<td>//div[@class='portlet-body']/div[5]/h3/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--ASSET_ABSTRACT_BOOKMARK-->
+<tr>
+	<td>ASSET_ABSTRACT_BOOKMARK_TABLE_DISPLAY_TEMPLATE_STAR_ICON</td>
+	<td>//h3/a[contains(.,'${bookmarkName}')]/img</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_ABSTRACT_BOOKMARK_TITLE_LIST_DISPLAY_TEMPLATE_STAR_ICON</td>
+	<td>//a[contains(.,'${bookmarkName}')]/img</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--ASSET_ABSTRACT_BOOKMARK_DETAIL-->
+<tr>
+	<td>ASSET_ABSTRACT_BOOKMARK_DETAIL_NAME</td>
+	<td>//h3[contains(.,'${bookmarkName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_ABSTRACT_BOOKMARK_DETAIL_LINK</td>
+	<td>//div/a[contains(@title,'(Opens New Window)')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_ABSTRACT_BOOKMARK_LIFERAY_LOGO</td>
+	<td>//img[@alt='Liferay']</td>
 	<td></td>
 </tr>
 <tr>
@@ -246,7 +345,7 @@
 </tr>
 <tr>
 	<td>AVERAGE_STAR_4</td>
-	<td>//div[@class='taglib-header ' and contains(.,'${key_assetTitle}')]/following-sibling::div//div[contains(@id,'_ratingScore')]//a[1][@class='rating-element icon-star-empty']</td>
+	<td>//div[@class='taglib-header ' and contains(.,'${key_assetTitle}')]/following-sibling::div//div[contains(@id,'_ratingScore')]//a[4][@class='rating-element icon-star']</td>
 	<td></td>
 </tr>
 <tr>
@@ -277,6 +376,134 @@
 <tr>
 	<td>AVERAGE_STAR_EMPTY_5</td>
 	<td>//div[@class='taglib-header ' and contains(.,'${key_assetTitle}')]/following-sibling::div//div[contains(@id,'_ratingScore')]//a[5][@class='rating-element icon-star-empty']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--DISPLAY_ICON-->
+<tr>
+	<td>DISPLAY_ICON_PRINT</td>
+	<td>//div[contains(@class,'asset-actions')]/span/a[contains(.,'Print')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISPLAY_ICON_FLAG</td>
+	<td>//div[contains(@class,'asset-actions')]/div[@title='Flag']/span/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISPLAY_ICON_EDIT</td>
+	<td>//div[contains(@class,'asset-actions')]/span/a[contains(.,'Edit')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISPLAY_ICON_TWITTER</td>
+	<td>//li[@class='taglib-social-bookmark-twitter']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISPLAY_ICON_GOOGLE_PLUS</td>
+	<td>//li[@class='taglib-social-bookmark-plusone']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--METADATA-->
+<tr>
+	<td>METADATA_AUTHOR</td>
+	<td>//span[@class='metadata-entry metadata-author']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METADATA_VOCABULARY</td>
+	<td>//span[@class='metadata-entry metadata-categories']/span[contains(.,'${key_vocabularyName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METADATA_CATEGORY</td>
+	<td>//span[@class='metadata-entry metadata-categories']/span/a[contains(.,'${key_categoryName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METADATA_CREATE_DATE</td>
+	<td>//span[@class='metadata-entry metadata-create-date']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METADATA_EXPIRATION_DATE</td>
+	<td>//span[@class='metadata-entry metadata-expiration-date']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METADATA_MODIFIED_DATE</td>
+	<td>//span[@class='metadata-entry metadata-modified-date']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METADATA_PRIORITY</td>
+	<td>//span[@class='metadata-entry metadata-priority']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METADATA_PUBLISH_DATE</td>
+	<td>//span[@class='metadata-entry metadata-publish-date']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METADATA_TAGS</td>
+	<td>//span[@class='metadata-entry metadata-tags']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>METADATA_VIEW_COUNT</td>
+	<td>//span[@class='metadata-entry metadata-view-count']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--PAGINATION-->
+<tr>
+	<td>PAGINATION_PAGE_BUTTON</td>
+	<td>//div[@class='lfr-pagination-page-selector']/div/a[contains(.,'Page ${key_pageNumber}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGINATION_ITEMS_PER_PAGE</td>
+	<td>//div[@class='clearfix lfr-pagination']/div/div[contains(.,'${key_paginationNumber} Items per Page')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGINATION_TOTAL_ITEMS</td>
+	<td>//div[@class='clearfix lfr-pagination']/small[contains(.,'Showing ${key_pageMod} results.')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGINATION_FIRST</td>
+	<td>//ul[@class='pager lfr-pagination-buttons']/li/a[contains(.,'First')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGINATION_PREVIOUS</td>
+	<td>//ul[@class='pager lfr-pagination-buttons']/li/a[contains(.,'Previous')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGINATION_NEXT</td>
+	<td>//ul[@class='pager lfr-pagination-buttons']/li/a[contains(.,'Next')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGINATION_LAST</td>
+	<td>//a[contains(@class,'aui-paginator-link') and contains(@class,'aui-paginator-last-link')]</td>
 	<td></td>
 </tr>
 </tbody>

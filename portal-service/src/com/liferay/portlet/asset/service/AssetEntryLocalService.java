@@ -571,8 +571,8 @@ public interface AssetEntryLocalService extends BaseLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
-	public com.liferay.portlet.asset.model.AssetEntry incrementViewCounter(
-		long userId, java.lang.String className, long classPK, int increment)
+	public void incrementViewCounter(long userId, java.lang.String className,
+		long classPK, int increment)
 		throws com.liferay.portal.kernel.exception.SystemException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -584,6 +584,7 @@ public interface AssetEntryLocalService extends BaseLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #search(long, long[], long,
 	String, String, int, int, int)}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.kernel.search.Hits search(long companyId,
 		long[] groupIds, long userId, java.lang.String className,
@@ -601,6 +602,7 @@ public interface AssetEntryLocalService extends BaseLocalService,
 	String, String, String, String, String, String, int, boolean,
 	int, int)}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.kernel.search.Hits search(long companyId,
 		long[] groupIds, long userId, java.lang.String className,
@@ -622,6 +624,7 @@ public interface AssetEntryLocalService extends BaseLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #search(long, long[], long,
 	String, String, int, int, int)}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.kernel.search.Hits search(long companyId,
 		long[] groupIds, java.lang.String className, java.lang.String keywords,
@@ -653,6 +656,7 @@ public interface AssetEntryLocalService extends BaseLocalService,
 	Date, Date, String, String, String, String, String, String,
 	int, int, Integer, boolean)}
 	*/
+	@Deprecated
 	public com.liferay.portlet.asset.model.AssetEntry updateEntry(long userId,
 		long groupId, java.lang.String className, long classPK,
 		java.lang.String classUuid, long classTypeId, long[] categoryIds,
@@ -672,6 +676,7 @@ public interface AssetEntryLocalService extends BaseLocalService,
 	boolean, Date, Date, Date, String, String, String, String,
 	String, String, int, int, Integer, boolean)}
 	*/
+	@Deprecated
 	public com.liferay.portlet.asset.model.AssetEntry updateEntry(long userId,
 		long groupId, java.lang.String className, long classPK,
 		java.lang.String classUuid, long classTypeId, long[] categoryIds,

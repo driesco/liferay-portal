@@ -60,6 +60,10 @@ public interface AssetRendererFactory {
 
 	public long getClassNameId();
 
+	public Tuple getClassTypeFieldName(
+			long classTypeId, String fieldName, Locale locale)
+		throws Exception;
+
 	public List<Tuple> getClassTypeFieldNames(
 			long classTypeId, Locale locale, int start, int end)
 		throws Exception;
@@ -87,6 +91,10 @@ public interface AssetRendererFactory {
 			LiferayPortletResponse liferayPortletResponse,
 			WindowState windowState)
 		throws PortalException, SystemException;
+
+	public boolean hasAddPermission(
+			PermissionChecker permissionChecker, long groupId, long classTypeId)
+		throws Exception;
 
 	public boolean hasClassTypeFieldNames(long classTypeId, Locale locale)
 		throws Exception;

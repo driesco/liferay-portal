@@ -1476,35 +1476,6 @@ public interface JournalArticleService extends BaseService {
 		throws com.liferay.portal.kernel.exception.SystemException;
 
 	/**
-	* Subscribes the user to notifications for the web content article matching
-	* the group, notifying him the instant versions of the article are created,
-	* deleted, or modified.
-	*
-	* @param groupId the primary key of the group
-	* @throws PortalException if the user did not have permission to subscribe
-	to the web content article or if a matching user or group could
-	not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public void subscribe(long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	/**
-	* Unsubscribes the user from notifications for the web content article
-	* matching the group.
-	*
-	* @param groupId the primary key of the group
-	* @throws PortalException if the user did not have permission to subscribe
-	to the web content article or if a matching user or subscription
-	could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public void unsubscribe(long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	/**
 	* Updates the web content article matching the version, replacing its
 	* folder, title, description, content, and layout UUID.
 	*
@@ -1694,6 +1665,7 @@ public interface JournalArticleService extends BaseService {
 	#updateArticleTranslation(long, String, double, Locale,
 	String, String, String, Map, ServiceContext)}
 	*/
+	@Deprecated
 	public com.liferay.portlet.journal.model.JournalArticle updateArticleTranslation(
 		long groupId, java.lang.String articleId, double version,
 		java.util.Locale locale, java.lang.String title,

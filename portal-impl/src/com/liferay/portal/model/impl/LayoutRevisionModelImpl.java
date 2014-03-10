@@ -16,6 +16,7 @@ package com.liferay.portal.model.impl;
 
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.util.DateUtil;
@@ -31,8 +32,9 @@ import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.LayoutRevision;
 import com.liferay.portal.model.LayoutRevisionModel;
 import com.liferay.portal.model.LayoutRevisionSoap;
+import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.service.UserLocalServiceUtil;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
@@ -73,6 +75,7 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	 */
 	public static final String TABLE_NAME = "LayoutRevision";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "layoutRevisionId", Types.BIGINT },
 			{ "groupId", Types.BIGINT },
 			{ "companyId", Types.BIGINT },
@@ -93,7 +96,6 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 			{ "keywords", Types.VARCHAR },
 			{ "robots", Types.VARCHAR },
 			{ "typeSettings", Types.CLOB },
-			{ "iconImage", Types.BOOLEAN },
 			{ "iconImageId", Types.BIGINT },
 			{ "themeId", Types.VARCHAR },
 			{ "colorSchemeId", Types.VARCHAR },
@@ -105,7 +107,7 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 			{ "statusByUserName", Types.VARCHAR },
 			{ "statusDate", Types.TIMESTAMP }
 		};
-	public static final String TABLE_SQL_CREATE = "create table LayoutRevision (layoutRevisionId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,layoutSetBranchId LONG,layoutBranchId LONG,parentLayoutRevisionId LONG,head BOOLEAN,major BOOLEAN,plid LONG,privateLayout BOOLEAN,name STRING null,title STRING null,description STRING null,keywords STRING null,robots STRING null,typeSettings TEXT null,iconImage BOOLEAN,iconImageId LONG,themeId VARCHAR(75) null,colorSchemeId VARCHAR(75) null,wapThemeId VARCHAR(75) null,wapColorSchemeId VARCHAR(75) null,css TEXT null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
+	public static final String TABLE_SQL_CREATE = "create table LayoutRevision (mvccVersion LONG default 0,layoutRevisionId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,layoutSetBranchId LONG,layoutBranchId LONG,parentLayoutRevisionId LONG,head BOOLEAN,major BOOLEAN,plid LONG,privateLayout BOOLEAN,name STRING null,title STRING null,description STRING null,keywords STRING null,robots STRING null,typeSettings TEXT null,iconImageId LONG,themeId VARCHAR(75) null,colorSchemeId VARCHAR(75) null,wapThemeId VARCHAR(75) null,wapColorSchemeId VARCHAR(75) null,css TEXT null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
 	public static final String TABLE_SQL_DROP = "drop table LayoutRevision";
 	public static final String ORDER_BY_JPQL = " ORDER BY layoutRevision.modifiedDate DESC";
 	public static final String ORDER_BY_SQL = " ORDER BY LayoutRevision.modifiedDate DESC";
@@ -142,6 +144,7 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 
 		LayoutRevision model = new LayoutRevisionImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setLayoutRevisionId(soapModel.getLayoutRevisionId());
 		model.setGroupId(soapModel.getGroupId());
 		model.setCompanyId(soapModel.getCompanyId());
@@ -162,7 +165,6 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 		model.setKeywords(soapModel.getKeywords());
 		model.setRobots(soapModel.getRobots());
 		model.setTypeSettings(soapModel.getTypeSettings());
-		model.setIconImage(soapModel.getIconImage());
 		model.setIconImageId(soapModel.getIconImageId());
 		model.setThemeId(soapModel.getThemeId());
 		model.setColorSchemeId(soapModel.getColorSchemeId());
@@ -237,6 +239,7 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("layoutRevisionId", getLayoutRevisionId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -257,7 +260,6 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 		attributes.put("keywords", getKeywords());
 		attributes.put("robots", getRobots());
 		attributes.put("typeSettings", getTypeSettings());
-		attributes.put("iconImage", getIconImage());
 		attributes.put("iconImageId", getIconImageId());
 		attributes.put("themeId", getThemeId());
 		attributes.put("colorSchemeId", getColorSchemeId());
@@ -269,11 +271,20 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 		attributes.put("statusByUserName", getStatusByUserName());
 		attributes.put("statusDate", getStatusDate());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long layoutRevisionId = (Long)attributes.get("layoutRevisionId");
 
 		if (layoutRevisionId != null) {
@@ -395,12 +406,6 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 			setTypeSettings(typeSettings);
 		}
 
-		Boolean iconImage = (Boolean)attributes.get("iconImage");
-
-		if (iconImage != null) {
-			setIconImage(iconImage);
-		}
-
 		Long iconImageId = (Long)attributes.get("iconImageId");
 
 		if (iconImageId != null) {
@@ -464,6 +469,17 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 
 	@JSON
 	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
 	public long getLayoutRevisionId() {
 		return _layoutRevisionId;
 	}
@@ -508,12 +524,18 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 
 	@Override
 	public String getUserUuid() throws SystemException {
-		return PortalUtil.getUserValue(getUserId(), "uuid", _userUuid);
+		try {
+			User user = UserLocalServiceUtil.getUserById(getUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
+		}
 	}
 
 	@Override
 	public void setUserUuid(String userUuid) {
-		_userUuid = userUuid;
 	}
 
 	@JSON
@@ -1227,22 +1249,6 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 
 	@JSON
 	@Override
-	public boolean getIconImage() {
-		return _iconImage;
-	}
-
-	@Override
-	public boolean isIconImage() {
-		return _iconImage;
-	}
-
-	@Override
-	public void setIconImage(boolean iconImage) {
-		_iconImage = iconImage;
-	}
-
-	@JSON
-	@Override
 	public long getIconImageId() {
 		return _iconImageId;
 	}
@@ -1368,13 +1374,18 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 
 	@Override
 	public String getStatusByUserUuid() throws SystemException {
-		return PortalUtil.getUserValue(getStatusByUserId(), "uuid",
-			_statusByUserUuid);
+		try {
+			User user = UserLocalServiceUtil.getUserById(getStatusByUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
+		}
 	}
 
 	@Override
 	public void setStatusByUserUuid(String statusByUserUuid) {
-		_statusByUserUuid = statusByUserUuid;
 	}
 
 	@JSON
@@ -1407,6 +1418,7 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #isApproved}
 	 */
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return isApproved();
@@ -1656,6 +1668,7 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	public Object clone() {
 		LayoutRevisionImpl layoutRevisionImpl = new LayoutRevisionImpl();
 
+		layoutRevisionImpl.setMvccVersion(getMvccVersion());
 		layoutRevisionImpl.setLayoutRevisionId(getLayoutRevisionId());
 		layoutRevisionImpl.setGroupId(getGroupId());
 		layoutRevisionImpl.setCompanyId(getCompanyId());
@@ -1676,7 +1689,6 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 		layoutRevisionImpl.setKeywords(getKeywords());
 		layoutRevisionImpl.setRobots(getRobots());
 		layoutRevisionImpl.setTypeSettings(getTypeSettings());
-		layoutRevisionImpl.setIconImage(getIconImage());
 		layoutRevisionImpl.setIconImageId(getIconImageId());
 		layoutRevisionImpl.setThemeId(getThemeId());
 		layoutRevisionImpl.setColorSchemeId(getColorSchemeId());
@@ -1737,6 +1749,16 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		LayoutRevisionModelImpl layoutRevisionModelImpl = this;
 
@@ -1770,6 +1792,8 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	@Override
 	public CacheModel<LayoutRevision> toCacheModel() {
 		LayoutRevisionCacheModel layoutRevisionCacheModel = new LayoutRevisionCacheModel();
+
+		layoutRevisionCacheModel.mvccVersion = getMvccVersion();
 
 		layoutRevisionCacheModel.layoutRevisionId = getLayoutRevisionId();
 
@@ -1867,8 +1891,6 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 			layoutRevisionCacheModel.typeSettings = null;
 		}
 
-		layoutRevisionCacheModel.iconImage = getIconImage();
-
 		layoutRevisionCacheModel.iconImageId = getIconImageId();
 
 		layoutRevisionCacheModel.themeId = getThemeId();
@@ -1939,7 +1961,9 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	public String toString() {
 		StringBundler sb = new StringBundler(63);
 
-		sb.append("{layoutRevisionId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", layoutRevisionId=");
 		sb.append(getLayoutRevisionId());
 		sb.append(", groupId=");
 		sb.append(getGroupId());
@@ -1979,8 +2003,6 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 		sb.append(getRobots());
 		sb.append(", typeSettings=");
 		sb.append(getTypeSettings());
-		sb.append(", iconImage=");
-		sb.append(getIconImage());
 		sb.append(", iconImageId=");
 		sb.append(getIconImageId());
 		sb.append(", themeId=");
@@ -2014,6 +2036,10 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 		sb.append("com.liferay.portal.model.LayoutRevision");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>layoutRevisionId</column-name><column-value><![CDATA[");
 		sb.append(getLayoutRevisionId());
@@ -2095,10 +2121,6 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 		sb.append(getTypeSettings());
 		sb.append("]]></column-value></column>");
 		sb.append(
-			"<column><column-name>iconImage</column-name><column-value><![CDATA[");
-		sb.append(getIconImage());
-		sb.append("]]></column-value></column>");
-		sb.append(
 			"<column><column-name>iconImageId</column-name><column-value><![CDATA[");
 		sb.append(getIconImageId());
 		sb.append("]]></column-value></column>");
@@ -2148,11 +2170,11 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			LayoutRevision.class
 		};
+	private long _mvccVersion;
 	private long _layoutRevisionId;
 	private long _groupId;
 	private long _companyId;
 	private long _userId;
-	private String _userUuid;
 	private String _userName;
 	private Date _createDate;
 	private Date _modifiedDate;
@@ -2184,7 +2206,6 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	private String _robots;
 	private String _robotsCurrentLanguageId;
 	private String _typeSettings;
-	private boolean _iconImage;
 	private long _iconImageId;
 	private String _themeId;
 	private String _colorSchemeId;
@@ -2195,7 +2216,6 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	private int _originalStatus;
 	private boolean _setOriginalStatus;
 	private long _statusByUserId;
-	private String _statusByUserUuid;
 	private String _statusByUserName;
 	private Date _statusDate;
 	private long _columnBitmask;

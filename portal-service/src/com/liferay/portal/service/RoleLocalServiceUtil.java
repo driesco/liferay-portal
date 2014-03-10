@@ -595,6 +595,7 @@ public class RoleLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #addRole(long, String, long,
 	String, Map, Map, int, String, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.Role addRole(long userId,
 		long companyId, java.lang.String name,
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
@@ -631,6 +632,7 @@ public class RoleLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #addRole(long, String, long,
 	String, Map, Map, int, String, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.Role addRole(long userId,
 		long companyId, java.lang.String name,
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
@@ -1067,8 +1069,8 @@ public class RoleLocalServiceUtil {
 	* @param groups the groups (optionally <code>null</code>)
 	* @return the union of all the user's roles within the groups
 	* @throws SystemException if a system exception occurred
-	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(
-	long, List)
+	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(long,
+	List)
 	*/
 	public static java.util.List<com.liferay.portal.model.Role> getUserRelatedRoles(
 		long userId, java.util.List<com.liferay.portal.model.Group> groups)
@@ -1083,8 +1085,8 @@ public class RoleLocalServiceUtil {
 	* @param groupId the primary key of the group
 	* @return the user's roles within the group
 	* @throws SystemException if a system exception occurred
-	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(
-	long, long)
+	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(long,
+	long)
 	*/
 	public static java.util.List<com.liferay.portal.model.Role> getUserRelatedRoles(
 		long userId, long groupId)
@@ -1099,8 +1101,8 @@ public class RoleLocalServiceUtil {
 	* @param groupIds the primary keys of the groups
 	* @return the union of all the user's roles within the groups
 	* @throws SystemException if a system exception occurred
-	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(
-	long, long[])
+	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(long,
+	long[])
 	*/
 	public static java.util.List<com.liferay.portal.model.Role> getUserRelatedRoles(
 		long userId, long[] groupIds)
@@ -1473,6 +1475,7 @@ public class RoleLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(RoleLocalService service) {
 	}
 

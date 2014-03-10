@@ -45,6 +45,11 @@ public class DummyIndexer implements Indexer {
 	}
 
 	@Override
+	public int getDatabaseCount() throws Exception {
+		return 0;
+	}
+
+	@Override
 	public Document getDocument(Object obj) {
 		return null;
 	}
@@ -118,6 +123,18 @@ public class DummyIndexer implements Indexer {
 	}
 
 	@Override
+	public boolean isVisible(long classPK, int status) throws Exception {
+		return true;
+	}
+
+	@Override
+	public boolean isVisibleRelatedEntry(long classPK, int status)
+		throws Exception {
+
+		return true;
+	}
+
+	@Override
 	public void postProcessContextQuery(
 		BooleanQuery contextQuery, SearchContext searchContext) {
 	}
@@ -150,6 +167,13 @@ public class DummyIndexer implements Indexer {
 
 	@Override
 	public Hits search(SearchContext searchContext) {
+		return null;
+	}
+
+	@Override
+	public Hits search(
+		SearchContext searchContext, String... selectedFieldNames) {
+
 		return null;
 	}
 

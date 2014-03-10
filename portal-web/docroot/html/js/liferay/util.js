@@ -781,7 +781,7 @@
 			Liferay.Util.openWindow(
 				{
 					cache: false,
-					title: event.title,
+					title: Liferay.Util.escapeHTML(event.title),
 					uri: event.uri
 				}
 			);
@@ -1365,7 +1365,7 @@
 				);
 			}
 
-			if (selectedOption && selectedOption.text() != '' && sort == true) {
+			if (selectedOption && selectedOption.text() !== '' && sort === true) {
 				Util.sortBox(toBox);
 			}
 		},
@@ -1582,11 +1582,14 @@
 
 				var length = selectedItems.size();
 
+				var item;
+				var itemIndex;
+
 				if (down) {
 					while (length--) {
-						var item = selectedItems.item(length);
+						item = selectedItems.item(length);
 
-						var itemIndex = item.get('index');
+						itemIndex = item.get('index');
 
 						var referenceNode = box.get('firstChild');
 
@@ -1603,11 +1606,11 @@
 				}
 				else {
 					for (var i = 0; i < length; i++) {
-						var item = selectedItems.item(i);
+						item = selectedItems.item(i);
 
-						var itemIndex = item.get('index');
+						itemIndex = item.get('index');
 
-						if (itemIndex == 0) {
+						if (itemIndex === 0) {
 							box.append(item);
 						}
 						else {
@@ -1757,7 +1760,7 @@
 			};
 
 			if (dialog) {
-				eventHandles.push(dialog.after('visibleChange', detachSelectionOnHideFn));
+				eventHandles.push(dialog.after(['destroy', 'visibleChange'], detachSelectionOnHideFn));
 
 				dialog.show();
 			}
@@ -1765,7 +1768,7 @@
 				Util.openWindow(
 					config,
 					function(dialogWindow) {
-						eventHandles.push(dialogWindow.after('visibleChange', detachSelectionOnHideFn));
+						eventHandles.push(dialogWindow.after(['destroy', 'visibleChange'], detachSelectionOnHideFn));
 					}
 				);
 			}
@@ -1775,11 +1778,40 @@
 
 	Liferay.provide(
 		Util,
+		'selectEntityHandler',
+		function(container, selectEventName, disableButton) {
+			var openingLiferay = Util.getOpener().Liferay;
+
+			A.one(container).delegate(
+				'click',
+				function(event) {
+					var currentTarget = event.currentTarget;
+
+					if (disableButton !== false) {
+						currentTarget.attr('disabled', true);
+					}
+
+					var result = Util.getAttributes(currentTarget, 'data-');
+
+					openingLiferay.fire(selectEventName, result);
+
+					Util.getWindow().hide();
+				},
+				'.selector-button'
+			);
+		},
+		['aui-base']
+	);
+
+	Liferay.provide(
+		Util,
 		'selectFolder',
 		function(folderData, namespace) {
 			A.byIdNS(namespace, folderData.idString).val(folderData.idValue);
 
-			A.byIdNS(namespace, folderData.nameString).val(folderData.nameValue);
+			var name = AString.unescapeEntities(folderData.nameValue);
+
+			A.byIdNS(namespace, folderData.nameString).val(name);
 
 			var button = A.byIdNS(namespace, 'removeFolderButton');
 
@@ -1933,22 +1965,29 @@
 				docBody.addClass(currentClass);
 
 				trigger.on(
-					EVENT_CLICK,
+					'gesturemovestart',
 					function(event) {
-						if (icon) {
-							icon.toggleClass(iconVisibleClass).toggleClass(iconHiddenClass);
-						}
+						event.currentTarget.once(
+							'gesturemoveend',
+							function(event) {
+								if (icon) {
+									icon.toggleClass(iconVisibleClass);
+									icon.toggleClass(iconHiddenClass);
+								}
 
-						docBody.toggleClass(visibleClass).toggleClass(hiddenClass);
+								docBody.toggleClass(visibleClass);
+								docBody.toggleClass(hiddenClass);
 
-						Liferay._editControlsState = (docBody.hasClass(visibleClass) ? 'visible' : 'hidden');
+								Liferay._editControlsState = (docBody.hasClass(visibleClass) ? 'visible' : 'hidden');
 
-						Liferay.Store('liferay_toggle_controls', Liferay._editControlsState);
+								Liferay.Store('liferay_toggle_controls', Liferay._editControlsState);
+							}
+						);
 					}
 				);
 			}
 		},
-		['liferay-store']
+		['event-move', 'liferay-store']
 	);
 
 	Liferay.provide(

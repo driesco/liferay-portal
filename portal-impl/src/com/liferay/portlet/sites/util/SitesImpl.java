@@ -619,9 +619,6 @@ public class SitesImpl implements Sites {
 			new LinkedHashMap<String, String[]>();
 
 		parameterMap.put(
-			PortletDataHandlerKeys.CATEGORIES,
-			new String[] {Boolean.TRUE.toString()});
-		parameterMap.put(
 			PortletDataHandlerKeys.DATA_STRATEGY,
 			new String[] {PortletDataHandlerKeys.DATA_STRATEGY_MIRROR});
 		parameterMap.put(
@@ -659,6 +656,10 @@ public class SitesImpl implements Sites {
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_DATA,
+			new String[] {Boolean.TRUE.toString()});
+		parameterMap.put(
+			PortletDataHandlerKeys.PORTLET_DATA + StringPool.UNDERLINE +
+				PortletKeys.ASSET_CATEGORIES_ADMIN,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_DATA_ALL,
@@ -1181,6 +1182,7 @@ public class SitesImpl implements Sites {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #mergeLayoutPrototypeLayout(Group, Layout)}
 	 */
+	@Deprecated
 	@Override
 	public void mergeLayoutProtypeLayout(Group group, Layout layout)
 		throws Exception {
@@ -1268,6 +1270,9 @@ public class SitesImpl implements Sites {
 			Map<String, String[]> parameterMap =
 				getLayoutSetPrototypesParameters(importData);
 
+			layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
+				layoutSet.getLayoutSetId());
+
 			removeMergeFailFriendlyURLLayouts(layoutSet);
 
 			importLayoutSetPrototype(
@@ -1295,6 +1300,7 @@ public class SitesImpl implements Sites {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #mergeLayoutSetPrototypeLayouts(Group, LayoutSet)}
 	 */
+	@Deprecated
 	@Override
 	public void mergeLayoutSetProtypeLayouts(Group group, LayoutSet layoutSet)
 		throws Exception {
@@ -1693,9 +1699,6 @@ public class SitesImpl implements Sites {
 			new LinkedHashMap<String, String[]>();
 
 		parameterMap.put(
-			PortletDataHandlerKeys.CATEGORIES,
-			new String[] {Boolean.TRUE.toString()});
-		parameterMap.put(
 			PortletDataHandlerKeys.DELETE_MISSING_LAYOUTS,
 			new String[] {Boolean.FALSE.toString()});
 		parameterMap.put(
@@ -1717,9 +1720,6 @@ public class SitesImpl implements Sites {
 					LAYOUTS_IMPORT_MODE_CREATED_FROM_PROTOTYPE
 			});
 		parameterMap.put(
-			PortletDataHandlerKeys.LOGO,
-			new String[] {Boolean.TRUE.toString()});
-		parameterMap.put(
 			PortletDataHandlerKeys.PERMISSIONS,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
@@ -1727,6 +1727,10 @@ public class SitesImpl implements Sites {
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_CONFIGURATION_ALL,
+			new String[] {Boolean.TRUE.toString()});
+		parameterMap.put(
+			PortletDataHandlerKeys.PORTLET_DATA + StringPool.UNDERLINE +
+				PortletKeys.ASSET_CATEGORIES_ADMIN,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_SETUP_ALL,
@@ -1746,6 +1750,9 @@ public class SitesImpl implements Sites {
 				PortletDataHandlerKeys.DATA_STRATEGY,
 				new String[] {PortletDataHandlerKeys.DATA_STRATEGY_MIRROR});
 			parameterMap.put(
+				PortletDataHandlerKeys.LOGO,
+				new String[] {Boolean.TRUE.toString()});
+			parameterMap.put(
 				PortletDataHandlerKeys.PORTLET_DATA,
 				new String[] {Boolean.TRUE.toString()});
 			parameterMap.put(
@@ -1753,6 +1760,9 @@ public class SitesImpl implements Sites {
 				new String[] {Boolean.TRUE.toString()});
 		}
 		else {
+			parameterMap.put(
+				PortletDataHandlerKeys.LOGO,
+				new String[] {Boolean.FALSE.toString()});
 			parameterMap.put(
 				PortletDataHandlerKeys.PORTLET_DATA,
 				new String[] {Boolean.FALSE.toString()});

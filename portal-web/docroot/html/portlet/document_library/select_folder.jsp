@@ -59,7 +59,7 @@ if (folder != null) {
 		data.put("folderid", folderId);
 		data.put("folderissupportsmetadata", ((folder != null) ? folder.isSupportsMetadata() : Boolean.TRUE.toString()));
 		data.put("folderissupportssocial", ((folder != null) ? folder.isSupportsSocial() : Boolean.TRUE.toString()));
-		data.put("foldername", HtmlUtil.escapeAttribute(folderName));
+		data.put("foldername", folderName);
 		%>
 
 		<aui:button cssClass="selector-button" data="<%= data %>" value="choose-this-folder" />
@@ -160,7 +160,7 @@ if (folder != null) {
 					data.put("folderid", curFolder.getFolderId());
 					data.put("folderissupportsmetadata", curFolder.isSupportsMetadata());
 					data.put("folderissupportssocial", curFolder.isSupportsSocial());
-					data.put("foldername", HtmlUtil.escapeAttribute(curFolder.getName()));
+					data.put("foldername", curFolder.getName());
 					%>
 
 					<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />
@@ -173,17 +173,5 @@ if (folder != null) {
 </aui:form>
 
 <aui:script use="aui-base">
-	var Util = Liferay.Util;
-
-	A.one('#<portlet:namespace />selectFolderFm').delegate(
-		'click',
-		function(event) {
-			var result = Util.getAttributes(event.currentTarget, 'data-');
-
-			Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
-
-			Util.getWindow().hide();
-		},
-		'.selector-button'
-	);
+	Liferay.Util.selectEntityHandler('#<portlet:namespace />selectFolderFm', '<%= HtmlUtil.escapeJS(eventName) %>');
 </aui:script>

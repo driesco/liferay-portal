@@ -18,6 +18,7 @@ import com.liferay.portal.NoSuchLayoutException;
 import com.liferay.portal.dao.shard.ShardDataSourceTargetSource;
 import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.events.StartupAction;
+import com.liferay.portal.events.StartupHelperUtil;
 import com.liferay.portal.kernel.cache.Lifecycle;
 import com.liferay.portal.kernel.cache.ThreadLocalCacheManager;
 import com.liferay.portal.kernel.deploy.hot.HotDeployUtil;
@@ -30,6 +31,7 @@ import com.liferay.portal.kernel.plugin.PluginPackage;
 import com.liferay.portal.kernel.servlet.DynamicServletRequest;
 import com.liferay.portal.kernel.servlet.PortalSessionThreadLocal;
 import com.liferay.portal.kernel.servlet.ProtectedServletRequest;
+import com.liferay.portal.kernel.servlet.SerializableSessionAttributeListener;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
@@ -195,8 +197,10 @@ public class MainServlet extends ActionServlet {
 		callParentInit();
 
 		if (_log.isDebugEnabled()) {
-			_log.debug("Initialize servlet context pool");
+			_log.debug("Initialize listeners");
 		}
+
+		initListeners();
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Process startup events");
@@ -352,6 +356,8 @@ public class MainServlet extends ActionServlet {
 
 		servletContext.setAttribute(WebKeys.STARTUP_FINISHED, true);
 
+		StartupHelperUtil.setStartupFinished(true);
+
 		ThreadLocalCacheManager.clearAll(Lifecycle.REQUEST);
 	}
 
@@ -418,7 +424,7 @@ public class MainServlet extends ActionServlet {
 			_log.debug("Set portal port");
 		}
 
-		setPortalPort(request);
+		setPortalInetSocketAddresses(request);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Check variables");
@@ -803,6 +809,10 @@ public class MainServlet extends ActionServlet {
 
 		servletContext.setAttribute(
 			WebKeys.PLUGIN_LAYOUT_TEMPLATES, layoutTemplates);
+	}
+
+	protected void initListeners() {
+		SerializableSessionAttributeListener.initialize();
 	}
 
 	protected PluginPackage initPluginPackage() throws Exception {
@@ -1269,8 +1279,8 @@ public class MainServlet extends ActionServlet {
 		PortalUtil.sendError(status, (Exception)t, dynamicRequest, response);
 	}
 
-	protected void setPortalPort(HttpServletRequest request) {
-		PortalUtil.setPortalPort(request);
+	protected void setPortalInetSocketAddresses(HttpServletRequest request) {
+		PortalUtil.setPortalInetSocketAddresses(request);
 	}
 
 	protected void setPrincipal(

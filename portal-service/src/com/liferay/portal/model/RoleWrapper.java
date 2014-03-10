@@ -52,6 +52,7 @@ public class RoleWrapper implements Role, ModelWrapper<Role> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("roleId", getRoleId());
 		attributes.put("companyId", getCompanyId());
@@ -72,6 +73,12 @@ public class RoleWrapper implements Role, ModelWrapper<Role> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -175,6 +182,26 @@ public class RoleWrapper implements Role, ModelWrapper<Role> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_role.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this role.
+	*
+	* @return the mvcc version of this role
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _role.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this role.
+	*
+	* @param mvccVersion the mvcc version of this role
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_role.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -907,6 +934,7 @@ public class RoleWrapper implements Role, ModelWrapper<Role> {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Role getWrappedRole() {
 		return _role;
 	}
@@ -914,6 +942,16 @@ public class RoleWrapper implements Role, ModelWrapper<Role> {
 	@Override
 	public Role getWrappedModel() {
 		return _role;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _role.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _role.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -907,10 +907,6 @@ public interface PropsKeys {
 
 	public static final String GLOBAL_STARTUP_EVENTS = "global.startup.events";
 
-	public static final String GOOGLE_APPS_PASSWORD = "google.apps.password";
-
-	public static final String GOOGLE_APPS_USERNAME = "google.apps.username";
-
 	public static final String GOOGLE_GADGET_SERVLET_MAPPING = "google.gadget.servlet.mapping";
 
 	public static final String GROUPS_COMPLEX_SQL_CLASS_NAMES = "groups.complex.sql.class.names";
@@ -983,13 +979,13 @@ public interface PropsKeys {
 
 	public static final String INDEX_DUMP_COMPRESSION_ENABLED = "index.dump.compression.enabled";
 
-	public static final String INDEX_FILTER_SEARCH_LIMIT = "index.filter.search.limit";
-
 	public static final String INDEX_ON_STARTUP = "index.on.startup";
 
 	public static final String INDEX_ON_STARTUP_DELAY = "index.on.startup.delay";
 
 	public static final String INDEX_ON_UPGRADE = "index.on.upgrade";
+
+	public static final String INDEX_PERMISSION_FILTER_SEARCH_AMPLIFICATION_FACTOR = "index.permission.filter.search.amplification.factor";
 
 	public static final String INDEX_READ_ONLY = "index.read.only";
 
@@ -1296,6 +1292,8 @@ public interface PropsKeys {
 	public static final String LAYOUT_PROTOTYPE_MERGE_LOCK_MAX_TIME = "layout.prototype.merge.lock.max.time";
 
 	public static final String LAYOUT_REMEMBER_MAXIMIZED_WINDOW_STATE = "layout.remember.maximized.window.state";
+
+	public static final String LAYOUT_RESET_PORTLET_IDS = "layout.reset.portlet.ids";
 
 	public static final String LAYOUT_SET_FORM_UPDATE = "layout.set.form.update";
 
@@ -1619,15 +1617,11 @@ public interface PropsKeys {
 
 	public static final String MESSAGE_BOARDS_EMAIL_MESSAGE_ADDED_ENABLED = "message.boards.email.message.added.enabled";
 
-	public static final String MESSAGE_BOARDS_EMAIL_MESSAGE_ADDED_SIGNATURE = "message.boards.email.message.added.signature";
-
 	public static final String MESSAGE_BOARDS_EMAIL_MESSAGE_ADDED_SUBJECT = "message.boards.email.message.added.subject";
 
 	public static final String MESSAGE_BOARDS_EMAIL_MESSAGE_UPDATED_BODY = "message.boards.email.message.updated.body";
 
 	public static final String MESSAGE_BOARDS_EMAIL_MESSAGE_UPDATED_ENABLED = "message.boards.email.message.updated.enabled";
-
-	public static final String MESSAGE_BOARDS_EMAIL_MESSAGE_UPDATED_SIGNATURE = "message.boards.email.message.updated.signature";
 
 	public static final String MESSAGE_BOARDS_EMAIL_MESSAGE_UPDATED_SUBJECT = "message.boards.email.message.updated.subject";
 
@@ -1668,6 +1662,8 @@ public interface PropsKeys {
 	public static final String MINIFIER_INLINE_CONTENT_CACHE_SKIP_CSS = "minifier.inline.content.cache.skip.css";
 
 	public static final String MINIFIER_INLINE_CONTENT_CACHE_SKIP_JAVASCRIPT = "minifier.inline.content.cache.skip.javascript";
+
+	public static final String MINIFIER_JAVASCRIPT_IMPL = "minifier.javascript.impl";
 
 	public static final String MOBILE_DEVICE_RULES_PUBLISH_TO_LIVE_BY_DEFAULT = "mobile.device.rules.publish.to.live.by.default";
 
@@ -1975,7 +1971,9 @@ public interface PropsKeys {
 
 	public static final String PORTAL_IMPERSONATION_ENABLE = "portal.impersonation.enable";
 
-	public static final String PORTAL_INSTANCE_HTTP_PORT = "portal.instance.http.port";
+	public static final String PORTAL_INSTANCE_HTTP_INET_SOCKET_ADDRESS = "portal.instance.http.inet.socket.address";
+
+	public static final String PORTAL_INSTANCE_HTTPS_INET_SOCKET_ADDRESS = "portal.instance.https.inet.socket.address";
 
 	public static final String PORTAL_JAAS_AUTH_TYPE = "portal.jaas.auth.type";
 
@@ -2094,6 +2092,8 @@ public interface PropsKeys {
 	public static final String RSS_FEEDS_ENABLED = "rss.feeds.enabled";
 
 	public static final String RSS_PUBLISH_TO_LIVE_BY_DEFAULT = "rss.publish.to.live.by.default";
+
+	public static final String RTL_CSS_EXCLUDED_PATHS_REGEXP = "rtl.css.excluded.paths.regexp";
 
 	public static final String SANDBOX_DEPLOY_DIR = "sandbox.deploy.dir";
 
@@ -2373,6 +2373,8 @@ public interface PropsKeys {
 
 	public static final String SQL_DATA_MAX_PARAMETERS = "sql.data.max.parameters";
 
+	public static final String STAGING_LIVE_GROUP_REMOTE_STAGING_ENABLED = "staging.live.group.remote.staging.enabled";
+
 	public static final String STAGING_LOCK_ENABLED = "staging.lock.enabled";
 
 	public static final String STAGING_REMOTE_TRANSFER_BUFFER_SIZE = "staging.remote.transfer.buffer.size";
@@ -2563,6 +2565,8 @@ public interface PropsKeys {
 
 	public static final String VALUE_OBJECT_LISTENER = "value.object.listener.";
 
+	public static final String VALUE_OBJECT_MVCC_ENTITY_CACHE_ENABLED = "value.object.mvcc.entity.cache.enabled";
+
 	public static final String VELOCITY_ENGINE_DIRECTIVE_IF_TO_STRING_NULL_CHECK = "velocity.engine.directive.if.to.string.null.check";
 
 	public static final String VELOCITY_ENGINE_LOGGER = "velocity.engine.logger";
@@ -2635,15 +2639,11 @@ public interface PropsKeys {
 
 	public static final String WIKI_EMAIL_PAGE_ADDED_ENABLED = "wiki.email.page.added.enabled";
 
-	public static final String WIKI_EMAIL_PAGE_ADDED_SIGNATURE = "wiki.email.page.added.signature";
-
 	public static final String WIKI_EMAIL_PAGE_ADDED_SUBJECT = "wiki.email.page.added.subject";
 
 	public static final String WIKI_EMAIL_PAGE_UPDATED_BODY = "wiki.email.page.updated.body";
 
 	public static final String WIKI_EMAIL_PAGE_UPDATED_ENABLED = "wiki.email.page.updated.enabled";
-
-	public static final String WIKI_EMAIL_PAGE_UPDATED_SIGNATURE = "wiki.email.page.updated.signature";
 
 	public static final String WIKI_EMAIL_PAGE_UPDATED_SUBJECT = "wiki.email.page.updated.subject";
 

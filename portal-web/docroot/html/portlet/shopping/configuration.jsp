@@ -44,14 +44,13 @@ else if (tabs3.equals("shipping-email")) {
 }
 %>
 
-<liferay-portlet:renderURL portletConfiguration="true" var="portletURL">
+<liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL" />
+
+<liferay-portlet:renderURL portletConfiguration="true" var="configurationRenderURL">
 	<portlet:param name="tabs2" value="<%= tabs2 %>" />
-	<portlet:param name="redirect" value="<%= redirect %>" />
 </liferay-portlet:renderURL>
 
-<liferay-portlet:actionURL portletConfiguration="true" var="configurationURL" />
-
-<aui:form action="<%= configurationURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
+<aui:form action="<%= configurationActionURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
 	<aui:input name="tabs2" type="hidden" value="<%= tabs2 %>" />
 	<aui:input name="tabs3" type="hidden" value="<%= tabs3 %>" />
@@ -61,7 +60,7 @@ else if (tabs3.equals("shipping-email")) {
 	<liferay-ui:tabs
 		names="payment-settings,shipping-calculation,insurance-calculation,emails"
 		param="tabs2"
-		url="<%= portletURL %>"
+		url="<%= configurationRenderURL %>"
 	/>
 
 	<c:choose>
@@ -90,7 +89,7 @@ else if (tabs3.equals("shipping-email")) {
 					List leftList = new ArrayList();
 
 					for (String ccType : ccTypes2) {
-						leftList.add(new KeyValuePair(ccType, LanguageUtil.get(pageContext, "cc_" + ccType)));
+						leftList.add(new KeyValuePair(HtmlUtil.escapeAttribute(ccType), LanguageUtil.get(pageContext, "cc_" + HtmlUtil.escape(ccType))));
 					}
 
 					// Right list
@@ -232,7 +231,7 @@ else if (tabs3.equals("shipping-email")) {
 			<liferay-ui:tabs
 				names="email-from,confirmation-email,shipping-email"
 				param="tabs3"
-				url="<%= portletURL.toString() %>"
+				url="<%= configurationRenderURL %>"
 			/>
 
 			<liferay-ui:error key="emailFromAddress" message="please-enter-a-valid-email-address" />
@@ -268,8 +267,10 @@ else if (tabs3.equals("shipping-email")) {
 							<aui:input name="<%= editorParam %>" type="hidden" value="" />
 						</aui:field-wrapper>
 
-						<div class="definition-of-terms">
-							<h4><liferay-ui:message key="definition-of-terms" /></h4>
+						<aui:fieldset cssClass="definition-of-terms">
+							<legend>
+								<liferay-ui:message key="definition-of-terms" />
+							</legend>
 
 							<dl>
 								<dt>
@@ -339,7 +340,7 @@ else if (tabs3.equals("shipping-email")) {
 									<liferay-ui:message key="the-name-of-the-email-recipient" />
 								</dd>
 							</dl>
-						</div>
+						</aui:fieldset>
 					</aui:fieldset>
 				</c:when>
 				<c:otherwise>

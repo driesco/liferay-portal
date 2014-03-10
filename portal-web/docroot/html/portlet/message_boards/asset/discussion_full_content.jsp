@@ -36,7 +36,7 @@ MBMessage parentMessage = MBMessageLocalServiceUtil.getMessage(message.getParent
 <tr>
 	<td class="lfr-center lfr-top">
 		<liferay-ui:user-display
-			displayStyle="<%= 2 %>"
+			displayStyle="2"
 			userId="<%= message.getUserId() %>"
 			userName="<%= HtmlUtil.escape(message.getUserName()) %>"
 		/>
@@ -58,7 +58,7 @@ MBMessage parentMessage = MBMessageLocalServiceUtil.getMessage(message.getParent
 
 		<div>
 			<c:if test="<%= message.getParentMessageId() == rootMessage.getMessageId() %>">
-				<%= LanguageUtil.format(pageContext, "posted-on-x", dateFormatDateTime.format(message.getModifiedDate())) %>
+				<%= LanguageUtil.format(pageContext, "posted-on-x", dateFormatDateTime.format(message.getModifiedDate()), false) %>
 			</c:if>
 		</div>
 	</td>

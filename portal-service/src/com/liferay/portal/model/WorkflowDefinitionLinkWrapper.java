@@ -53,6 +53,7 @@ public class WorkflowDefinitionLinkWrapper implements WorkflowDefinitionLink,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("workflowDefinitionLinkId", getWorkflowDefinitionLinkId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -72,6 +73,12 @@ public class WorkflowDefinitionLinkWrapper implements WorkflowDefinitionLink,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long workflowDefinitionLinkId = (Long)attributes.get(
 				"workflowDefinitionLinkId");
 
@@ -166,6 +173,26 @@ public class WorkflowDefinitionLinkWrapper implements WorkflowDefinitionLink,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_workflowDefinitionLink.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this workflow definition link.
+	*
+	* @return the mvcc version of this workflow definition link
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _workflowDefinitionLink.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this workflow definition link.
+	*
+	* @param mvccVersion the mvcc version of this workflow definition link
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_workflowDefinitionLink.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -574,6 +601,7 @@ public class WorkflowDefinitionLinkWrapper implements WorkflowDefinitionLink,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public WorkflowDefinitionLink getWrappedWorkflowDefinitionLink() {
 		return _workflowDefinitionLink;
 	}
@@ -581,6 +609,16 @@ public class WorkflowDefinitionLinkWrapper implements WorkflowDefinitionLink,
 	@Override
 	public WorkflowDefinitionLink getWrappedModel() {
 		return _workflowDefinitionLink;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _workflowDefinitionLink.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _workflowDefinitionLink.isFinderCacheEnabled();
 	}
 
 	@Override

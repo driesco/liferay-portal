@@ -171,10 +171,22 @@ public class JournalFolderServiceUtil {
 		return getService().getFoldersCount(groupId, parentFolderId, status);
 	}
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #getSubfolderIds(List, long,
+	long, boolean)}
+	*/
+	@Deprecated
 	public static void getSubfolderIds(
 		java.util.List<java.lang.Long> folderIds, long groupId, long folderId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		getService().getSubfolderIds(folderIds, groupId, folderId);
+	}
+
+	public static void getSubfolderIds(
+		java.util.List<java.lang.Long> folderIds, long groupId, long folderId,
+		boolean recurse)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().getSubfolderIds(folderIds, groupId, folderId, recurse);
 	}
 
 	public static java.util.List<java.lang.Long> getSubfolderIds(long groupId,
@@ -213,6 +225,18 @@ public class JournalFolderServiceUtil {
 		getService().restoreFolderFromTrash(folderId);
 	}
 
+	public static void subscribe(long groupId, long folderId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().subscribe(groupId, folderId);
+	}
+
+	public static void unsubscribe(long groupId, long folderId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().unsubscribe(groupId, folderId);
+	}
+
 	public static com.liferay.portlet.journal.model.JournalFolder updateFolder(
 		long folderId, long parentFolderId, java.lang.String name,
 		java.lang.String description, boolean mergeWithParentFolder,
@@ -238,6 +262,7 @@ public class JournalFolderServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(JournalFolderService service) {
 	}
 

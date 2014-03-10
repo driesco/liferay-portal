@@ -80,7 +80,7 @@ MBThread thread = message.getThread();
 			/>
 		</c:if>
 
-		<c:if test="<%= MBMessagePermission.contains(permissionChecker, message, ActionKeys.SUBSCRIBE) && (MBUtil.getEmailMessageAddedEnabled(portletPreferences) || MBUtil.getEmailMessageUpdatedEnabled(portletPreferences)) %>">
+		<c:if test="<%= MBMessagePermission.contains(permissionChecker, message, ActionKeys.SUBSCRIBE) && (mbSettings.isEmailMessageAddedEnabled() || mbSettings.isEmailMessageUpdatedEnabled()) %>">
 			<c:choose>
 				<c:when test="<%= (threadSubscriptionClassPKs != null) && threadSubscriptionClassPKs.contains(message.getThreadId()) %>">
 					<portlet:actionURL var="unsubscribeURL">
@@ -146,7 +146,7 @@ MBThread thread = message.getThread();
 		</c:choose>
 	</c:if>
 
-	<c:if test="<%= MBCategoryPermission.contains(permissionChecker, message.getGroupId(), message.getCategoryId(), ActionKeys.MOVE_THREAD) %>">
+	<c:if test="<%= MBCategoryPermission.contains(permissionChecker, message.getGroupId(), message.getCategoryId(), ActionKeys.MOVE_THREAD) && !thread.isLocked() %>">
 		<portlet:renderURL var="moveThreadURL">
 			<portlet:param name="struts_action" value="/message_boards/move_thread" />
 			<portlet:param name="redirect" value="<%= currentURL %>" />

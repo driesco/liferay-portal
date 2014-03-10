@@ -158,10 +158,9 @@ public class SetUtil {
 		return set;
 	}
 
-	@SuppressWarnings("rawtypes")
-	public static <E> Set<E> fromCollection(Collection<E> c) {
+	public static <E> Set<E> fromCollection(Collection<? extends E> c) {
 		if ((c != null) && Set.class.isAssignableFrom(c.getClass())) {
-			return (Set)c;
+			return (Set<E>)c;
 		}
 
 		if ((c == null) || (c.size() == 0)) {
@@ -171,7 +170,7 @@ public class SetUtil {
 		return new HashSet<E>(c);
 	}
 
-	public static <E> Set<E> fromEnumeration(Enumeration<E> enu) {
+	public static <E> Set<E> fromEnumeration(Enumeration<? extends E> enu) {
 		Set<E> set = new HashSet<E>();
 
 		while (enu.hasMoreElements()) {
@@ -212,7 +211,7 @@ public class SetUtil {
 		return set;
 	}
 
-	public static <E> Set<E> fromList(List<E> array) {
+	public static <E> Set<E> fromList(List<? extends E> array) {
 		if ((array == null) || (array.size() == 0)) {
 			return new HashSet<E>();
 		}

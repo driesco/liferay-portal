@@ -32,8 +32,6 @@ Group selGroup = (Group)request.getAttribute(WebKeys.GROUP);
 Group liveGroup = null;
 Group stagingGroup = null;
 
-int pagesCount = 0;
-
 if (selGroup.isStagingGroup()) {
 	liveGroup = selGroup.getLiveGroup();
 	stagingGroup = selGroup;
@@ -133,34 +131,7 @@ for (int i = 0; i < selectedLayoutIds.length; i++) {
 	}
 }
 
-if (privateLayout) {
-	pagesCount = selGroup.getPrivateLayoutsPageCount();
-}
-else {
-	pagesCount = selGroup.getPublicLayoutsPageCount();
-}
-
-UnicodeProperties groupTypeSettings = selGroup.getTypeSettingsProperties();
 UnicodeProperties liveGroupTypeSettings = liveGroup.getTypeSettingsProperties();
-
-Organization organization = null;
-User user2 = null;
-
-if (liveGroup.isOrganization()) {
-	organization = OrganizationLocalServiceUtil.getOrganization(liveGroup.getOrganizationId());
-}
-else if (liveGroup.isUser()) {
-	user2 = UserLocalServiceUtil.getUserById(liveGroup.getClassPK());
-}
-
-String rootNodeName = liveGroup.getDescriptiveName(locale);
-
-if (liveGroup.isOrganization()) {
-	rootNodeName = organization.getName();
-}
-else if (liveGroup.isUser()) {
-	rootNodeName = user2.getFullName();
-}
 
 PortletURL portletURL = renderResponse.createActionURL();
 
@@ -248,7 +219,7 @@ else {
 						%>
 
 						<li>
-							<%= ResourceActionsUtil.getModelResource(locale, layoutPrototypeClassName) %>: <strong><%= HtmlUtil.escape(layoutPrototypeName) %></strong> (<%= layoutPrototypeUuid %>)
+							<%= ResourceActionsUtil.getModelResource(locale, layoutPrototypeClassName) %>: <strong><%= HtmlUtil.escape(layoutPrototypeName) %></strong> (<%= HtmlUtil.escape(layoutPrototypeUuid) %>)
 						</li>
 
 						<%
@@ -339,7 +310,7 @@ else {
 						</c:if>
 
 						<%
-						List<Portlet> dataSiteLevelPortlets = LayoutExporter.getDataSiteLevelPortlets(company.getCompanyId());
+						List<Portlet> dataSiteLevelPortlets = LayoutExporter.getDataSiteLevelPortlets(company.getCompanyId(), false);
 						%>
 
 						<c:if test="<%= !dataSiteLevelPortlets.isEmpty() %>">
@@ -348,11 +319,9 @@ else {
 							</aui:fieldset>
 						</c:if>
 
-						<c:if test="<%= !selGroup.isCompany() %>">
-							<aui:fieldset cssClass="options-group" label="permissions">
-								<%@ include file="/html/portlet/layouts_admin/publish_layouts_permissions.jspf" %>
-							</aui:fieldset>
-						</c:if>
+						<aui:fieldset cssClass="options-group" label="permissions">
+							<%@ include file="/html/portlet/layouts_admin/publish_layouts_permissions.jspf" %>
+						</aui:fieldset>
 
 						<c:if test="<%= !localPublishing %>">
 							<aui:fieldset cssClass="options-group" label="remote-live-connection-settings">

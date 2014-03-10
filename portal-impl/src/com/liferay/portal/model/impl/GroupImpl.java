@@ -544,7 +544,7 @@ public class GroupImpl extends GroupBaseImpl {
 
 	@Override
 	public boolean hasLocalOrRemoteStagingGroup() {
-		if (hasStagingGroup() || (getRemoteStagingGroupCount() > 0)) {
+		if (hasRemoteStagingGroup() || hasStagingGroup()) {
 			return true;
 		}
 
@@ -572,6 +572,15 @@ public class GroupImpl extends GroupBaseImpl {
 	}
 
 	@Override
+	public boolean hasRemoteStagingGroup() {
+		if (getRemoteStagingGroupCount() > 0) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
 	public boolean hasStagingGroup() {
 		if (isStagingGroup()) {
 			return false;
@@ -592,6 +601,7 @@ public class GroupImpl extends GroupBaseImpl {
 	/**
 	 * @deprecated As of 7.0.0, replaced by {@link #hasAncestor}
 	 */
+	@Deprecated
 	@Override
 	public boolean isChild(long groupId) {
 		return hasAncestor(groupId);
@@ -600,6 +610,7 @@ public class GroupImpl extends GroupBaseImpl {
 	/**
 	 * @deprecated As of 6.1.0, renamed to {@link #isRegularSite}
 	 */
+	@Deprecated
 	@Override
 	public boolean isCommunity() {
 		return isRegularSite();

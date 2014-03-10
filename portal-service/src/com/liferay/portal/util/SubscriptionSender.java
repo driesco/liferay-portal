@@ -17,12 +17,18 @@ package com.liferay.portal.util;
 import com.liferay.mail.model.FileAttachment;
 import com.liferay.mail.service.MailServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.mail.MailMessage;
 import com.liferay.portal.kernel.mail.SMTPAccount;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
+import com.liferay.portal.kernel.notifications.NotificationEvent;
+import com.liferay.portal.kernel.notifications.NotificationEventFactoryUtil;
+import com.liferay.portal.kernel.notifications.UserNotificationManagerUtil;
+import com.liferay.portal.kernel.transaction.TransactionCommitCallbackRegistryUtil;
 import com.liferay.portal.kernel.util.ClassLoaderPool;
 import com.liferay.portal.kernel.util.EscapableObject;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -37,6 +43,7 @@ import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Subscription;
 import com.liferay.portal.model.User;
+import com.liferay.portal.model.UserNotificationDeliveryConstants;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.service.CompanyLocalServiceUtil;
@@ -44,6 +51,7 @@ import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.SubscriptionLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
+import com.liferay.portal.service.UserNotificationEventLocalServiceUtil;
 import com.liferay.portal.service.permission.SubscriptionPermissionUtil;
 
 import java.io.File;
@@ -59,6 +67,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import javax.mail.internet.InternetAddress;
 
@@ -206,11 +215,23 @@ public class SubscriptionSender implements Serializable {
 	}
 
 	public void flushNotificationsAsync() {
-		Thread currentThread = Thread.currentThread();
+		TransactionCommitCallbackRegistryUtil.registerCallback(
+			new Callable<Void>() {
 
-		_classLoader = currentThread.getContextClassLoader();
+				@Override
+				public Void call() throws Exception {
+					Thread currentThread = Thread.currentThread();
 
-		MessageBusUtil.sendMessage(DestinationNames.SUBSCRIPTION_SENDER, this);
+					_classLoader = currentThread.getContextClassLoader();
+
+					MessageBusUtil.sendMessage(
+						DestinationNames.SUBSCRIPTION_SENDER,
+						SubscriptionSender.this);
+
+					return null;
+				}
+			}
+		);
 	}
 
 	public Object getContextAttribute(String key) {
@@ -266,6 +287,14 @@ public class SubscriptionSender implements Serializable {
 		this.bulk = bulk;
 	}
 
+	public void setClassName(String className) {
+		_className = className;
+	}
+
+	public void setClassPK(long classPK) {
+		_classPK = classPK;
+	}
+
 	public void setCompanyId(long companyId) {
 		this.companyId = companyId;
 	}
@@ -292,6 +321,14 @@ public class SubscriptionSender implements Serializable {
 
 	public void setContextUserPrefix(String contextUserPrefix) {
 		_contextUserPrefix = contextUserPrefix;
+	}
+
+	public void setEntryTitle(String entryTitle) {
+		this._entryTitle = entryTitle;
+	}
+
+	public void setEntryURL(String entryURL) {
+		_entryURL = entryURL;
 	}
 
 	public void setFrom(String fromAddress, String fromName) {
@@ -324,6 +361,17 @@ public class SubscriptionSender implements Serializable {
 	public void setMailId(String popPortletPrefix, Object... ids) {
 		_mailIdPopPortletPrefix = popPortletPrefix;
 		_mailIdIds = ids;
+	}
+
+	public void setNotificationClassNameId(long notificationClassNameId) {
+		_notificationClassNameId = notificationClassNameId;
+	}
+
+	/**
+	 * @see com.liferay.portal.kernel.notifications.UserNotificationDefinition
+	 */
+	public void setNotificationType(int notificationType) {
+		_notificationType = notificationType;
 	}
 
 	public void setPortletId(String portletId) {
@@ -394,6 +442,7 @@ public class SubscriptionSender implements Serializable {
 	 * @deprecated As of 6.2.0, replaced by {@link #hasPermission(Subscription,
 	 *             String, long, User)}
 	 */
+	@Deprecated
 	protected boolean hasPermission(Subscription subscription, User user)
 		throws Exception {
 
@@ -404,6 +453,7 @@ public class SubscriptionSender implements Serializable {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #notifySubscriber(Subscription, String, long)}
 	 */
+	@Deprecated
 	protected void notifySubscriber(Subscription subscription)
 		throws Exception {
 
@@ -486,10 +536,49 @@ public class SubscriptionSender implements Serializable {
 		}
 		else {
 			try {
-				InternetAddress to = new InternetAddress(
-					user.getEmailAddress(), user.getFullName());
+				if (UserNotificationManagerUtil.isDeliver(
+						user.getUserId(), portletId, _notificationClassNameId,
+						_notificationType,
+						UserNotificationDeliveryConstants.TYPE_EMAIL)) {
 
-				sendEmail(to, user.getLocale());
+					InternetAddress to = new InternetAddress(
+						user.getEmailAddress(), user.getFullName());
+
+					sendEmail(to, user.getLocale());
+				}
+			}
+			catch (Exception e) {
+				_log.error(e, e);
+			}
+
+			try {
+				if (UserNotificationManagerUtil.isDeliver(
+						user.getUserId(), portletId, _notificationClassNameId,
+						_notificationType,
+						UserNotificationDeliveryConstants.TYPE_WEBSITE)) {
+
+					JSONObject notificationEventJSONObject =
+						JSONFactoryUtil.createJSONObject();
+
+					notificationEventJSONObject.put("className", _className);
+					notificationEventJSONObject.put("classPK", _classPK);
+					notificationEventJSONObject.put("entryTitle", _entryTitle);
+					notificationEventJSONObject.put("entryURL", _entryURL);
+					notificationEventJSONObject.put(
+						"notificationType", _notificationType);
+					notificationEventJSONObject.put("userId", user.getUserId());
+
+					NotificationEvent notificationEvent =
+						NotificationEventFactoryUtil.createNotificationEvent(
+							System.currentTimeMillis(), portletId,
+							notificationEventJSONObject);
+
+					notificationEvent.setDeliveryRequired(0);
+
+					UserNotificationEventLocalServiceUtil.
+						addUserNotificationEvent(
+							user.getUserId(), notificationEvent);
+				}
 			}
 			catch (Exception e) {
 				_log.error(e, e);
@@ -725,12 +814,18 @@ public class SubscriptionSender implements Serializable {
 
 	private List<InternetAddress> _bulkAddresses;
 	private transient ClassLoader _classLoader;
+	private String _className;
+	private long _classPK;
 	private Map<String, EscapableObject<String>> _context =
 		new HashMap<String, EscapableObject<String>>();
 	private String _contextUserPrefix;
+	private String _entryTitle;
+	private String _entryURL;
 	private boolean _initialized;
 	private Object[] _mailIdIds;
 	private String _mailIdPopPortletPrefix;
+	private long _notificationClassNameId;
+	private int _notificationType;
 	private List<ObjectValuePair<String, Long>> _persistestedSubscribersOVPs =
 		new ArrayList<ObjectValuePair<String, Long>>();
 	private List<ObjectValuePair<String, String>> _runtimeSubscribersOVPs =

@@ -53,6 +53,7 @@ public class OrganizationWrapper implements Organization,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("organizationId", getOrganizationId());
 		attributes.put("companyId", getCompanyId());
@@ -69,12 +70,19 @@ public class OrganizationWrapper implements Organization,
 		attributes.put("countryId", getCountryId());
 		attributes.put("statusId", getStatusId());
 		attributes.put("comments", getComments());
+		attributes.put("logoId", getLogoId());
 
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -170,6 +178,12 @@ public class OrganizationWrapper implements Organization,
 		if (comments != null) {
 			setComments(comments);
 		}
+
+		Long logoId = (Long)attributes.get("logoId");
+
+		if (logoId != null) {
+			setLogoId(logoId);
+		}
 	}
 
 	/**
@@ -190,6 +204,26 @@ public class OrganizationWrapper implements Organization,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_organization.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this organization.
+	*
+	* @return the mvcc version of this organization
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _organization.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this organization.
+	*
+	* @param mvccVersion the mvcc version of this organization
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_organization.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -544,6 +578,26 @@ public class OrganizationWrapper implements Organization,
 		_organization.setComments(comments);
 	}
 
+	/**
+	* Returns the logo ID of this organization.
+	*
+	* @return the logo ID of this organization
+	*/
+	@Override
+	public long getLogoId() {
+		return _organization.getLogoId();
+	}
+
+	/**
+	* Sets the logo ID of this organization.
+	*
+	* @param logoId the logo ID of this organization
+	*/
+	@Override
+	public void setLogoId(long logoId) {
+		_organization.setLogoId(logoId);
+	}
+
 	@Override
 	public boolean isNew() {
 		return _organization.isNew();
@@ -701,11 +755,6 @@ public class OrganizationWrapper implements Organization,
 	}
 
 	@Override
-	public long getLogoId() {
-		return _organization.getLogoId();
-	}
-
-	@Override
 	public com.liferay.portal.model.Organization getParentOrganization()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -812,6 +861,7 @@ public class OrganizationWrapper implements Organization,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Organization getWrappedOrganization() {
 		return _organization;
 	}
@@ -819,6 +869,16 @@ public class OrganizationWrapper implements Organization,
 	@Override
 	public Organization getWrappedModel() {
 		return _organization;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _organization.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _organization.isFinderCacheEnabled();
 	}
 
 	@Override

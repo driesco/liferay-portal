@@ -29,11 +29,24 @@ import java.util.Map;
 public class MapUtil {
 
 	public static <K, V> void copy(
-		Map<K, V> master, Map<? super K, ? super V> copy) {
+		Map<? extends K, ? extends V> master, Map<? super K, ? super V> copy) {
 
 		copy.clear();
 
 		merge(master, copy);
+	}
+
+	public static <K, V> Map<K, V> filter(
+		Map<? extends K, ? extends V> inputMap, Map<K, V> outputMap,
+		PredicateFilter<K> keyPredicateFilter) {
+
+		for (Map.Entry<? extends K, ? extends V> entry : inputMap.entrySet()) {
+			if (keyPredicateFilter.filter(entry.getKey())) {
+				outputMap.put(entry.getKey(), entry.getValue());
+			}
+		}
+
+		return outputMap;
 	}
 
 	public static boolean getBoolean(Map<String, ?> map, String key) {
@@ -233,8 +246,20 @@ public class MapUtil {
 		return GetterUtil.getString(String.valueOf(value), defaultValue);
 	}
 
+	public static boolean isEmpty(Map<?, ?> map) {
+		if ((map == null) || map.isEmpty()) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public static boolean isNotEmpty(Map<?, ?> map) {
+		return !isEmpty(map);
+	}
+
 	public static <K, V> void merge(
-		Map<K, V> master, Map<? super K, ? super V> copy) {
+		Map<? extends K, ? extends V> master, Map<? super K, ? super V> copy) {
 
 		copy.putAll(master);
 	}

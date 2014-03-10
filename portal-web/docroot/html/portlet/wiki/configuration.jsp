@@ -19,8 +19,6 @@
 <%
 String tabs2 = ParamUtil.getString(request, "tabs2", "display-settings");
 
-String redirect = ParamUtil.getString(request, "redirect");
-
 String emailFromName = ParamUtil.getString(request, "preferences--emailFromName--", WikiUtil.getEmailFromName(portletPreferences, company.getCompanyId()));
 String emailFromAddress = ParamUtil.getString(request, "preferences--emailFromAddress--", WikiUtil.getEmailFromAddress(portletPreferences, company.getCompanyId()));
 
@@ -30,41 +28,35 @@ boolean emailPageUpdatedEnabled = ParamUtil.getBoolean(request, "preferences--em
 String emailParam = StringPool.BLANK;
 String defaultEmailSubject = StringPool.BLANK;
 String defaultEmailBody = StringPool.BLANK;
-String defaultEmailSignature = StringPool.BLANK;
 
 if (tabs2.equals("page-added-email")) {
 	emailParam = "emailPageAdded";
 	defaultEmailSubject = ContentUtil.get(PropsValues.WIKI_EMAIL_PAGE_ADDED_SUBJECT);
 	defaultEmailBody = ContentUtil.get(PropsValues.WIKI_EMAIL_PAGE_ADDED_BODY);
-	defaultEmailSignature = ContentUtil.get(PropsValues.WIKI_EMAIL_PAGE_ADDED_SIGNATURE);
 }
 else if (tabs2.equals("page-updated-email")) {
 	emailParam = "emailPageUpdated";
 	defaultEmailSubject = ContentUtil.get(PropsValues.WIKI_EMAIL_PAGE_UPDATED_SUBJECT);
 	defaultEmailBody = ContentUtil.get(PropsValues.WIKI_EMAIL_PAGE_UPDATED_BODY);
-	defaultEmailSignature = ContentUtil.get(PropsValues.WIKI_EMAIL_PAGE_UPDATED_SIGNATURE);
 }
 
 String emailSubjectParam = emailParam + "Subject";
 String emailBodyParam = emailParam + "Body";
-String emailSignatureParam = emailParam + "Signature";
 
 String emailSubject = PrefsParamUtil.getString(portletPreferences, request, emailSubjectParam, defaultEmailSubject);
 String emailBody = PrefsParamUtil.getString(portletPreferences, request, emailBodyParam, defaultEmailBody);
-String emailSignature = PrefsParamUtil.getString(portletPreferences, request, emailSignatureParam, defaultEmailSignature);
 %>
 
-<liferay-portlet:renderURL portletConfiguration="true" var="portletURL">
+<liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL" />
+
+<liferay-portlet:renderURL portletConfiguration="true" var="configurationRenderURL">
 	<portlet:param name="tabs2" value="<%= tabs2 %>" />
-	<portlet:param name="redirect" value="<%= redirect %>" />
 </liferay-portlet:renderURL>
 
-<liferay-portlet:actionURL portletConfiguration="true" var="configurationURL" />
-
-<aui:form action="<%= configurationURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
+<aui:form action="<%= configurationActionURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
 	<aui:input name="tabs2" type="hidden" value="<%= tabs2 %>" />
-	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+	<aui:input name="redirect" type="hidden" value="<%= configurationRenderURL %>" />
 
 	<%
 	String tabs2Names = "display-settings,email-from,page-added-email,page-updated-email";
@@ -77,16 +69,14 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 	<liferay-ui:tabs
 		names="<%= tabs2Names %>"
 		param="tabs2"
-		url="<%= portletURL %>"
+		url="<%= configurationRenderURL %>"
 	/>
 
 	<liferay-ui:error key="emailFromAddress" message="please-enter-a-valid-email-address" />
 	<liferay-ui:error key="emailFromName" message="please-enter-a-valid-name" />
 	<liferay-ui:error key="emailPageAddedBody" message="please-enter-a-valid-body" />
-	<liferay-ui:error key="emailPageAddedSignature" message="please-enter-a-valid-signature" />
 	<liferay-ui:error key="emailPageAddedSubject" message="please-enter-a-valid-subject" />
 	<liferay-ui:error key="emailPageUpdatedBody" message="please-enter-a-valid-body" />
-	<liferay-ui:error key="emailPageUpdatedSignature" message="please-enter-a-valid-signature" />
 	<liferay-ui:error key="emailPageUpdatedSubject" message="please-enter-a-valid-subject" />
 	<liferay-ui:error key="visibleNodesCount" message="please-specify-at-least-one-visible-node" />
 
@@ -101,8 +91,10 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 				<aui:input cssClass="lfr-input-text-container" label="address" name="preferences--emailFromAddress--" value="<%= emailFromAddress %>" />
 			</aui:fieldset>
 
-			<div class="definition-of-terms">
-				<h4><liferay-ui:message key="definition-of-terms" /></h4>
+			<aui:fieldset cssClass="definition-of-terms">
+				<legend>
+					<liferay-ui:message key="definition-of-terms" />
+				</legend>
 
 				<dl>
 					<dt>
@@ -148,7 +140,7 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 						<liferay-ui:message key="the-site-name-associated-with-the-wiki" />
 					</dd>
 				</dl>
-			</div>
+			</aui:fieldset>
 		</c:when>
 		<c:when test='<%= tabs2.startsWith("page-") %>'>
 			<aui:fieldset>
@@ -164,12 +156,12 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 				<aui:input cssClass="lfr-input-text-container" label="subject" name='<%= "preferences--" + emailSubjectParam + "--" %>' value="<%= emailSubject %>" />
 
 				<aui:input cssClass="lfr-textarea-container" label="body" name='<%= "preferences--" + emailBodyParam + "--" %>' type="textarea" value="<%= emailBody %>" />
-
-				<aui:input cssClass="lfr-textarea-container" label="signature" name='<%= "preferences--" + emailSignatureParam + "--" %>' type="textarea" value="<%= emailSignature %>" wrap="soft" />
 			</aui:fieldset>
 
-			<div class="definition-of-terms">
-				<h4><liferay-ui:message key="definition-of-terms" /></h4>
+			<aui:fieldset cssClass="definition-of-terms">
+				<legend>
+					<liferay-ui:message key="definition-of-terms" />
+				</legend>
 
 				<dl>
 					<dt>
@@ -299,7 +291,7 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 						<liferay-ui:message key="the-name-of-the-email-recipient" />
 					</dd>
 				</dl>
-			</div>
+			</aui:fieldset>
 		</c:when>
 		<c:when test='<%= tabs2.equals("rss") %>'>
 			<liferay-ui:rss-settings

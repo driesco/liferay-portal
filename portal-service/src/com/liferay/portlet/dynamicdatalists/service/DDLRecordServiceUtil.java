@@ -81,6 +81,12 @@ public class DDLRecordServiceUtil {
 			serviceContext);
 	}
 
+	public static void deleteRecord(long recordId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().deleteRecord(recordId);
+	}
+
 	public static com.liferay.portlet.dynamicdatalists.model.DDLRecord deleteRecordLocale(
 		long recordId, java.util.Locale locale,
 		com.liferay.portal.service.ServiceContext serviceContext)
@@ -94,6 +100,14 @@ public class DDLRecordServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getRecord(recordId);
+	}
+
+	public static void revertRecordVersion(long recordId,
+		java.lang.String version,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().revertRecordVersion(recordId, version, serviceContext);
 	}
 
 	public static com.liferay.portlet.dynamicdatalists.model.DDLRecord updateRecord(
@@ -134,6 +148,7 @@ public class DDLRecordServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(DDLRecordService service) {
 	}
 

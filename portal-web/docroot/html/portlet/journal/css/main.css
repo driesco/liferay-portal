@@ -146,12 +146,15 @@
 			&[data-repeatable="true"], .field-wrapper {
 				border: 1px solid #D0D0D0;
 				border-left-width: 10px;
-				margin: 7px 0 0 5px;
 				padding: 7px 10px 10px;
 			}
 
 			&[data-repeatable="true"]:nth-of-type(even) {
 				background-color: #F5F5F5;
+			}
+
+			.field-wrapper {
+				margin: 15px 0 0;
 			}
 		}
 
@@ -279,6 +282,13 @@
 			margin: 7px 0 0 5px;
 			padding: 7px 10px 10px;
 		}
+	}
+
+	.subscribe-action {
+		margin-bottom: 10px;
+		margin-right: 10px;
+		margin-top: 5px;
+		text-align: right;
 	}
 
 	.component-group .tree-placeholder {
@@ -421,9 +431,7 @@
 		.entry-title {
 			@include ellipsis;
 
-			overflow: hidden;
 			position: relative;
-			white-space: nowrap;
 		}
 	}
 
@@ -532,6 +540,9 @@
 			.article-name {
 				color: #036;
 				display: block;
+
+				@include ellipsis;
+
 				font-size: 14px;
 			}
 
@@ -575,7 +586,7 @@
 		margin-top: 0.5em;
 	}
 
-	.wcm-image-preview img {
+	.ddm-image-preview img {
 		max-width: 600px;
 	}
 }

@@ -52,6 +52,7 @@ public class UserTrackerWrapper implements UserTracker,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("userTrackerId", getUserTrackerId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
@@ -66,6 +67,12 @@ public class UserTrackerWrapper implements UserTracker,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long userTrackerId = (Long)attributes.get("userTrackerId");
 
 		if (userTrackerId != null) {
@@ -133,6 +140,26 @@ public class UserTrackerWrapper implements UserTracker,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_userTracker.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this user tracker.
+	*
+	* @return the mvcc version of this user tracker
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _userTracker.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this user tracker.
+	*
+	* @param mvccVersion the mvcc version of this user tracker
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_userTracker.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -468,6 +495,7 @@ public class UserTrackerWrapper implements UserTracker,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public UserTracker getWrappedUserTracker() {
 		return _userTracker;
 	}
@@ -475,6 +503,16 @@ public class UserTrackerWrapper implements UserTracker,
 	@Override
 	public UserTracker getWrappedModel() {
 		return _userTracker;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _userTracker.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _userTracker.isFinderCacheEnabled();
 	}
 
 	@Override

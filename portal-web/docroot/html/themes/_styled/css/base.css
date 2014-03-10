@@ -13,10 +13,12 @@
 body.html-editor {
 	background: #FFF;
 	color: #000;
+	padding: 1em;
 }
 
 .html-editor.portlet-message-boards {
 	@include hyphenation;
+
 	word-wrap: break-word;
 
 	blockquote {

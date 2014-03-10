@@ -193,10 +193,6 @@
 		<display-name>Message Boards</display-name>
 		<portlet-class>com.liferay.portlet.StrutsPortlet</portlet-class>
 		<init-param>
-			<name>config-template</name>
-			<value>/html/portlet/message_boards/configuration.jsp</value>
-		</init-param>
-		<init-param>
 			<name>template-path</name>
 			<value>/html/portlet/message_boards/</value>
 		</init-param>
@@ -2630,6 +2626,10 @@
 		<display-name>Message Boards Admin</display-name>
 		<portlet-class>com.liferay.portlet.StrutsPortlet</portlet-class>
 		<init-param>
+			<name>config-template</name>
+			<value>/html/portlet/message_boards_admin/configuration.jsp</value>
+		</init-param>
+		<init-param>
 			<name>template-path</name>
 			<value>/html/portlet/message_boards_admin/</value>
 		</init-param>
@@ -3413,6 +3413,52 @@
 		<supported-public-render-parameter>resetCur</supported-public-render-parameter>
 		<supported-public-render-parameter>tag</supported-public-render-parameter>
 		<supported-public-render-parameter>tags</supported-public-render-parameter>
+	</portlet>
+	<portlet>
+		<portlet-name>195</portlet-name>
+		<display-name>Image Uploader</display-name>
+		<portlet-class>com.liferay.portlet.StrutsPortlet</portlet-class>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlet/image_uploader/</value>
+		</init-param>
+		<init-param>
+			<name>view-action</name>
+			<value>/image_uploader/view</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>com.liferay.portlet.StrutsResourceBundle</resource-bundle>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>196</portlet-name>
+		<display-name>Comments</display-name>
+		<portlet-class>com.liferay.portlet.StrutsPortlet</portlet-class>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>com.liferay.portlet.StrutsResourceBundle</resource-bundle>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
 	</portlet>
 	<custom-portlet-mode>
 		<portlet-mode>edit_guest</portlet-mode>

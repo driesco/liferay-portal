@@ -1,10 +1,47 @@
 <definition>
+	<command name="addPageTypePanelPG">
+		<var name="key_componentName" value="${componentName}" />
+
+		<execute action="Dockbar#click" locator-key1="ADD_PAGE_PANEL_COMPONENT_TREE_ARROW" />
+
+		<for list="${portletNameList}" param="portletName" >
+			<var name="key_componentOrPortletName" value="${portletName}" />
+
+			<execute action="Dockbar#click" locator-key1="ADD_PAGE_TYPE_PANEL_CHECKBOX" value1="${portletName}" />
+			<execute action="Dockbar#assertChecked" locator-key1="ADD_PAGE_TYPE_PANEL_CHECKBOX_INPUT" />
+		</for>
+	</command>
+
 	<command name="addPG">
+		<description message="Add a page called ${pageName}." />
+
 		<execute macro="Page#openURL" />
 
 		<execute action="Dockbar#click" locator-key1="ADD" value1="Add" />
 		<execute action="Dockbar#assertClick" locator-key1="ADD_PAGE_LINK" value1="Page" />
 		<execute action="Dockbar#type" locator-key1="ADD_PAGE_NAME_FIELD" value1="${pageName}" />
+
+		<if>
+			<isset var="pageType" />
+			<then>
+				<execute macro="Page#selectPageTypeRadioPG">
+					<var name="pageType" value="${pageType}" />
+				</execute>
+			</then>
+		</if>
+
+		<var name="key_pageType" value="${pageTemplateName}" />
+
+		<if>
+			<isset var="pageTemplateName" />
+			<then>
+				<execute action="CPSitepagesAddpage#assertTextEquals" locator-key1="PAGE_TYPE_LABEL" value1="${pageTemplateName}" />
+				<execute action="CPSitepagesAddpage#click" locator-key1="PAGE_TYPE_RADIO" />
+				<execute action="CPSitepagesAddpage#assertTextEquals" locator-key1="PAGE_TYPE_TEMPLATE_AUTOMATICALLY_APPLY_CHANGES_LABEL"  value1="Automatically apply changes done to the page template." />
+				<execute action="CPSitepagesAddpage#check" locator-key1="PAGE_TYPE_TEMPLATE_AUTOMATICALLY_APPLY_CHANGES_CHECKBOX" />
+			</then>
+		</if>
+
 		<execute action="Dockbar#assertClick" locator-key1="ADD_PAGE_BUTTON" value1="Add Page" />
 
 		<var name="key_pageName" value="${pageName}" />
@@ -24,26 +61,44 @@
 
 		<execute action="Home#assertClick" locator-key1="PAGE" value1="${pageName}" />
 
+		<execute macro="Staging#submitForPublicationPageRevision" />
+	</command>
+
+	<command name="deletePG">
+		<var name="key_pageName" value="${pageName}" />
+
+		<execute action="Home#mouseOver" locator-key1="PAGE" />
+		<execute action="Home#click" locator-key1="PAGE_DELETE" />
+		<execute action="Home#confirm" locator-key1="PAGE_CONFIRM" value1="Are you sure you want to delete this page?" />
+		<execute action="Home#assertElementNotPresent" locator-key1="PAGE_DELETE" />
+	</command>
+
+	<command name="editPageLayoutColumn">
+		<execute action="Dockbar#click" locator-key1="EDIT" />
+
 		<if>
-			<condition action="PGStaging#isElementNotPresent" locator-key1="STAGING_MENU_SUBMIT_FOR_PUBLICATION" />
+			<condition action="Dockbar#isElementNotPresent" locator-key1="EDIT_NAME_FIELD" />
 			<then>
-				<execute action="PGStaging#click" locator-key1="STAGING_DROP_DOWN_BUTTON" />
-				<execute action="PGStaging#assertElementPresent" locator-key1="STAGING_MENU_SUBMIT_FOR_PUBLICATION" />
+				<execute action="Dockbar#assertClick" locator-key1="EDIT_DETAILS" value1="Details" />
 			</then>
 		</if>
 
-		<execute action="PGStaging#assertClick" locator-key1="STAGING_MENU_SUBMIT_FOR_PUBLICATION" value1="Submit for Publication" />
-		<execute action="PGStaging#assertElementPresent" locator-key1="STAGING_MENU_SUBMIT_FOR_PUBLICATION_DISABLED" />
+		<var name="key_columnName" value="${columnName}" />
 
-		<if>
-			<condition action="PGStaging#isTextEqual" locator-key1="STAGING_MENU_STATUS" value1="Pending (Created)" />
-			<then>
-				<execute action="PGStaging#assertTextEquals" locator-key1="STAGING_MENU_STATUS" value1="Pending (Created)" />
-			</then>
-			<else>
-				<execute action="PGStaging#assertTextEquals" locator-key1="STAGING_MENU_STATUS" value1="${workflowStatus}" />
-			</else>
-		</if>
+		<execute action="Dockbar#click" locator-key1="EDIT_DETAILS_COLUMN_RADIO" />
+		<execute action="Dockbar#assertClick" locator-key1="EDIT_SAVE_BUTTON" value1="Save" />
+	</command>
+
+	<command name="gotoChildPagePG">
+		<execute macro="Page#gotoPG" />
+
+		<var name="key_pageName" value="${pageName}" />
+
+		<execute action="Home#mouseOver" locator-key1="PAGE" value1="${pageName}" />
+
+		<var name="key_childPageName" value="${childPageName}" />
+
+		<execute action="Home#assertClick" locator-key1="PAGE_CHILD_PAGE" value1="${childPageName}" />
 	</command>
 
 	<command name="gotoCmdCP">
@@ -74,7 +129,6 @@
 			</then>
 		</if>
 
-
 		<if>
 			<not>
 				<contains string="${portletName}" substring="{portletName}" />
@@ -88,6 +142,8 @@
 	</command>
 
 	<command name="gotoConfigurationCP">
+		<description message="Navigate to Site Administration > Configuration > ${portletName}." />
+
 		<execute macro="Page#gotoCmdCP">
 			<var name="portletCategoryKey" value="ADMIN_SITE_ADMINISTRATION_CONFIGURATION" />
 			<var name="portletCategoryName" value="Configuration" />
@@ -96,6 +152,8 @@
 	</command>
 
 	<command name="gotoContentCP">
+		<description message="Navigate to Site Administration > Content > ${portletName}." />
+
 		<execute macro="Page#gotoCmdCP">
 			<var name="portletCategoryKey" value="ADMIN_SITE_ADMINISTRATION_CONTENT" />
 			<var name="portletCategoryName" value="Content" />
@@ -104,6 +162,8 @@
 	</command>
 
 	<command name="gotoCP">
+		<description message="Navigate to Control Panel > ${portletName}." />
+
 		<execute macro="Page#openURL" />
 
 		<execute action="Dockbar#assertClick" locator-key1="ADMIN" value1="Admin" />
@@ -119,14 +179,9 @@
 		</if>
 	</command>
 
-	<command name="gotoMyDashboard">
-		<execute macro="Page#openURL" />
-
-		<execute action="Dockbar#click" locator-key1="USER_NAME" />
-		<execute action="Dockbar#assertClick" locator-key1="USER_MY_DASHBOARD" value1="My Dashboard" />
-	</command>
-
 	<command name="gotoMyAccount">
+		<description message="Navigate to My Account > ${portletName}." />
+
 		<execute macro="Page#openURL" />
 
 		<execute action="Dockbar#click" locator-key1="USER_NAME" />
@@ -136,21 +191,83 @@
 		<execute action="Myaccount#assertClick" locator1="//ul[@class='nav control-panel-bar-secondary nav-pills']//a[contains(.,'${portletName}')]" value1="${portletName}" />
 	</command>
 
+	<command name="gotoMyDashboard">
+		<description message="Navigate to My Dashboard." />
+
+		<execute macro="Page#openURL" />
+
+		<execute action="Dockbar#click" locator-key1="USER_NAME" />
+		<execute action="Dockbar#assertClick" locator-key1="USER_MY_DASHBOARD" value1="My Dashboard" />
+	</command>
+
+	<command name="gotoMyProfile">
+		<description message="Navigate to My Profile." />
+
+		<execute macro="Page#openURL" />
+
+		<execute action="Dockbar#click" locator-key1="USER_NAME" />
+		<execute action="Dockbar#assertClick" locator-key1="USER_MY_PROFILE" value1="My Profile" />
+	</command>
+
 	<command name="gotoPagesCP">
+		<description message="Navigate to Site Administration > Pages > ${portletName}." />
+
 		<execute macro="Page#gotoCmdCP">
 			<var name="portletCategoryKey" value="ADMIN_SITE_ADMINISTRATION_PAGES" />
 			<var name="portletCategoryName" value="Pages" />
 			<var name="portletName" value="${portletName}" />
 		</execute>
-     </command>
+	</command>
 
 	<command name="gotoPG">
+		<description message="Navigate to the page named ${pageName}." />
+
 		<execute macro="Page#openURL" />
 
-		<execute action="Home#click" locator1="link=${pageName}" />
+		<if>
+			<equals arg1="${soPage}" arg2="true" />
+			<then>
+				<if>
+					<equals arg1="${soDashboard}" arg2="true" />
+					<then>
+						<var name="key_pageName" value="${pageName}" />
+
+						<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+
+						<execute action="SODashboard#click" locator-key1="NAVIGATION_PAGE" />
+					</then>
+					<else>
+						<var name="key_pageName" value="${pageName}" />
+
+						<execute action="SOSiteHome#click" locator-key1="NAVIGATION_PAGE" />
+					</else>
+				</if>
+			</then>
+			<else>
+				<var name="key_pageName" value="${pageName}" />
+
+				<execute action="Home#assertClick" locator-key1="PAGE" value1="${pageName}" />
+			</else>
+		</if>
+	</command>
+
+	<command name="gotoSALocalizedCP">
+		<execute macro="Page#openURL" />
+
+		<execute action="Dockbar#assertClick" locator-key1="ADMIN" value1="${adminLocalized}" />
+
+		<var name="key_portletCategoryName" value="${portletCategoryName}" />
+
+		<execute action="Dockbar#assertClick" locator-key1="ADMIN_SITE_ADMINISTRATION_CATEGORY" value1="${portletCategoryName}" />
+
+		<var name="key_portletName" value="${portletName}" />
+
+		<execute action="Home#assertClick" locator-key1="SITE_ADMINISTRATION_NAVIGATION" value1="${portletName}" />
 	</command>
 
 	<command name="gotoUsersCP">
+		<description message="Navigate to Site Administration > Users > ${portletName}." />
+
 		<execute macro="Page#gotoCmdCP">
 			<var name="portletCategoryKey" value="ADMIN_SITE_ADMINISTRATION_USERS" />
 			<var name="portletCategoryName" value="Users" />
@@ -161,7 +278,9 @@
 	<command name="isPresent">
 		<execute macro="Page#openURL" />
 
-		<execute action="Home#isElementPresent" locator1="link=${pageName}" />
+		<var name="key_pageName" value="${pageName}" />
+
+		<execute action="Home#isElementPresent" locator-key1="PAGE" value1="${pageName}" />
 	</command>
 
 	<command name="openURL">
@@ -185,11 +304,11 @@
 				<var name="siteNameURL" value="/${siteNameURL?lowercase()}" />
 			</then>
 			<elseif>
-   			 	<isset var="friendlyURL" />
-    			<then>
-     				<var name="siteNameURL" value="/${friendlyURL}" />
-    			</then>
-   			</elseif>
+				<isset var="friendlyURL" />
+				<then>
+					<var name="siteNameURL" value="/${friendlyURL}" />
+				</then>
+			</elseif>
 			<else>
 				<var name="siteNameURL" value="/guest" />
 			</else>
@@ -205,10 +324,32 @@
 			</else>
 		</if>
 
-		<execute action="Home#open" locator1="${pageAccessURL}${siteNameURL}${pageStagingURL}" />
+		<if>
+			<isset var="virtualHostsURL" />
+			<then>
+				<var name="siteNameURL" value="${virtualHostsURL}" />
+
+				<execute action="Home#open" locator1="${siteNameURL}" />
+			</then>
+			<else>
+				<execute action="Home#open" locator1="${pageAccessURL}${siteNameURL}${pageStagingURL}" />
+			</else>
+		</if>
+	</command>
+
+	<command name="selectPageTypeRadioPG">
+		<var name="key_pageType" value="${pageType}" />
+
+		<execute action="Dockbar#click" locator-key1="ADD_PAGE_TYPE_RADIO" value1="${pageType}" />
+
+		<execute macro="Page#addPageTypePanelPG">
+			<var name="portletNameList" value="${portletNameList}" />
+		</execute>
 	</command>
 
 	<command name="tearDownPG">
+		<description message="Delete all pages except the Welcome Page." />
+
 		<execute macro="Page#openURL" />
 
 		<while>
@@ -222,8 +363,37 @@
 		</while>
 	</command>
 
+	<command name="viewPageLayoutColumn">
+		<execute action="Home#assertElementPresent" locator-key1="${pageColumnLayout}" />
+	</command>
+
+	<command name="viewPanelPortletListPG">
+		<var name="key_componentName" value="${componentName}" />
+
+		<execute action="PGPanel#assertTextEquals" locator-key1="PANEL_TITLE" value1="${componentName}" />
+
+		<var name="key_pageName" value="${pageName}" />
+
+		<execute action="PGPanel#assertTextEquals" locator-key1="PANEL_PAGE_TITLE" value1="${pageName}" />
+		<execute action="PGPanel#assertTextEquals" locator-key1="INFO_MESSAGE" value1="Please select a tool from the left menu." />
+
+		<for list="${portletNameList}" param="portletName">
+			<var name="key_portletName" value="${portletName}" />
+
+			<execute action="PGPanel#assertTextEquals" locator-key1="MENU_ITEM" value1="${portletName}" />
+		</for>
+	</command>
+
 	<command name="viewPG">
 		<execute action="Home#assertTextEquals" locator-key1="BREADCRUMB_2" value1="${pageName}" />
+	</command>
+
+	<command name="viewSpecificPG">
+		<for list="${pageNameList}" param="pageName">
+			<var name="key_pageName" value="${pageName}" />
+
+			<execute action="Home#assertTextEquals" locator-key1="PAGE" value1="${pageName}" />
+		</for>
 	</command>
 
 	<command name="viewWithWorkflowPG">

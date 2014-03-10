@@ -71,10 +71,6 @@ import com.liferay.portal.service.ServiceContextThreadLocal;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.service.permission.PortletPermissionUtil;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
-import com.liferay.portlet.asset.model.AssetCategory;
-import com.liferay.portlet.asset.model.AssetVocabulary;
-import com.liferay.portlet.asset.service.AssetVocabularyLocalServiceUtil;
-import com.liferay.portlet.asset.service.persistence.AssetCategoryUtil;
 
 import java.io.File;
 
@@ -109,6 +105,13 @@ public class LayoutExporter {
 	public static List<Portlet> getDataSiteLevelPortlets(long companyId)
 		throws Exception {
 
+		return getDataSiteLevelPortlets(companyId, false);
+	}
+
+	public static List<Portlet> getDataSiteLevelPortlets(
+			long companyId, boolean excludeDataAlwaysStaged)
+		throws Exception {
+
 		List<Portlet> portlets = PortletLocalServiceUtil.getPortlets(companyId);
 
 		Iterator<Portlet> itr = portlets.iterator();
@@ -126,7 +129,9 @@ public class LayoutExporter {
 				portlet.getPortletDataHandlerInstance();
 
 			if ((portletDataHandler == null) ||
-				!portletDataHandler.isDataSiteLevel()) {
+				!portletDataHandler.isDataSiteLevel() ||
+				(excludeDataAlwaysStaged &&
+				 portletDataHandler.isDataAlwaysStaged())) {
 
 				itr.remove();
 			}
@@ -183,14 +188,6 @@ public class LayoutExporter {
 		return portlets;
 	}
 
-	public static List<Portlet> getPortletDataHandlerPortlets(
-			long groupId, boolean privateLayout)
-		throws Exception {
-
-		return getPortletDataHandlerPortlets(
-			LayoutLocalServiceUtil.getLayouts(groupId, privateLayout));
-	}
-
 	public byte[] exportLayouts(
 			long groupId, boolean privateLayout, long[] layoutIds,
 			Map<String, String[]> parameterMap, Date startDate, Date endDate)
@@ -230,14 +227,10 @@ public class LayoutExporter {
 			Map<String, String[]> parameterMap, Date startDate, Date endDate)
 		throws Exception {
 
-		boolean exportCategories = MapUtil.getBoolean(
-			parameterMap, PortletDataHandlerKeys.CATEGORIES);
 		boolean exportIgnoreLastPublishDate = MapUtil.getBoolean(
 			parameterMap, PortletDataHandlerKeys.IGNORE_LAST_PUBLISH_DATE);
 		boolean exportPermissions = MapUtil.getBoolean(
 			parameterMap, PortletDataHandlerKeys.PERMISSIONS);
-		boolean exportPortletDataAll = MapUtil.getBoolean(
-			parameterMap, PortletDataHandlerKeys.PORTLET_DATA_ALL);
 		boolean exportLogo = MapUtil.getBoolean(
 			parameterMap, PortletDataHandlerKeys.LOGO);
 		boolean exportLayoutSetSettings = MapUtil.getBoolean(
@@ -478,9 +471,9 @@ public class LayoutExporter {
 				portletDataContext, portlets, layoutIds, portletIds, layout);
 		}
 
-		long previousScopeGroupId = portletDataContext.getScopeGroupId();
-
 		Element portletsElement = rootElement.addElement("portlets");
+
+		long previousScopeGroupId = portletDataContext.getScopeGroupId();
 
 		for (Map.Entry<String, Object[]> portletIdsEntry :
 				portletIds.entrySet()) {
@@ -512,8 +505,8 @@ public class LayoutExporter {
 			if (layout == null) {
 				layout = new LayoutImpl();
 
-				layout.setGroupId(groupId);
 				layout.setCompanyId(companyId);
+				layout.setGroupId(groupId);
 			}
 
 			portletDataContext.setPlid(plid);
@@ -535,13 +528,8 @@ public class LayoutExporter {
 
 		portletDataContext.setScopeGroupId(previousScopeGroupId);
 
-		exportAssetCategories(
-			portletDataContext, exportPortletDataAll, exportCategories,
-			group.isCompany());
-
 		_portletExporter.exportAssetLinks(portletDataContext);
 		_portletExporter.exportAssetTags(portletDataContext);
-		_portletExporter.exportComments(portletDataContext);
 		_portletExporter.exportExpandoTables(portletDataContext);
 		_portletExporter.exportLocks(portletDataContext);
 
@@ -552,8 +540,6 @@ public class LayoutExporter {
 			_permissionExporter.exportPortletDataPermissions(
 				portletDataContext);
 		}
-
-		_portletExporter.exportRatingsEntries(portletDataContext, rootElement);
 
 		ExportImportHelperUtil.writeManifestSummary(
 			document, portletDataContext.getManifestSummary());
@@ -572,54 +558,6 @@ public class LayoutExporter {
 			"/manifest.xml", document.formattedString());
 
 		return zipWriter.getFile();
-	}
-
-	protected void exportAssetCategories(
-			PortletDataContext portletDataContext, boolean exportPortletDataAll,
-			boolean exportCategories, boolean companyGroup)
-		throws Exception {
-
-		Document document = SAXReaderUtil.createDocument();
-
-		Element rootElement = document.addElement("categories-hierarchy");
-
-		if (exportPortletDataAll || exportCategories || companyGroup) {
-			if (_log.isDebugEnabled()) {
-				_log.debug("Export categories");
-			}
-
-			Element assetVocabulariesElement = rootElement.addElement(
-				"vocabularies");
-
-			List<AssetVocabulary> assetVocabularies =
-				AssetVocabularyLocalServiceUtil.getGroupVocabularies(
-					portletDataContext.getGroupId());
-
-			for (AssetVocabulary assetVocabulary : assetVocabularies) {
-				_portletExporter.exportAssetVocabulary(
-					portletDataContext, assetVocabulariesElement,
-					assetVocabulary);
-			}
-
-			Element categoriesElement = rootElement.addElement("categories");
-
-			List<AssetCategory> assetCategories =
-				AssetCategoryUtil.findByGroupId(
-					portletDataContext.getGroupId());
-
-			for (AssetCategory assetCategory : assetCategories) {
-				_portletExporter.exportAssetCategory(
-					portletDataContext, assetVocabulariesElement,
-					categoriesElement, assetCategory);
-			}
-		}
-
-		_portletExporter.exportAssetCategories(portletDataContext, rootElement);
-
-		portletDataContext.addZipEntry(
-			ExportImportPathUtil.getRootPath(portletDataContext) +
-				"/categories-hierarchy.xml",
-			document.formattedString());
 	}
 
 	protected void exportLayout(

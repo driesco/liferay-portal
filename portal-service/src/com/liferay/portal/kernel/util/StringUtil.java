@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.search.util.SearchUtil;
 import com.liferay.portal.kernel.security.RandomUtil;
 
 import java.io.IOException;
@@ -33,8 +34,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
-import java.util.StringTokenizer;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -123,7 +122,7 @@ public class StringUtil {
 		}
 
 		if (allowDuplicates || !contains(s, add, delimiter)) {
-			StringBundler sb = new StringBundler();
+			StringBundler sb = new StringBundler(4);
 
 			sb.append(s);
 
@@ -348,12 +347,12 @@ public class StringUtil {
 
 	/**
 	 * Returns <code>true</code> if the string ends with the specified
-	 * character.
+	 * character, ignoring case.
 	 *
 	 * @param  s the string in which to search
 	 * @param  end the character to search for at the end of the string
 	 * @return <code>true</code> if the string ends with the specified
-	 *         character; <code>false</code> otherwise
+	 *         character, ignoring case; <code>false</code> otherwise
 	 */
 	public static boolean endsWith(String s, char end) {
 		return endsWith(s, (new Character(end)).toString());
@@ -361,12 +360,12 @@ public class StringUtil {
 
 	/**
 	 * Returns <code>true</code> if the string ends with the string
-	 * <code>end</code>.
+	 * <code>end</code>, ignoring case.
 	 *
 	 * @param  s the string in which to search
 	 * @param  end the string to check for at the end of the string
 	 * @return <code>true</code> if the string ends with the string
-	 *         <code>end</code>; <code>false</code> otherwise
+	 *         <code>end</code>, ignoring case; <code>false</code> otherwise
 	 */
 	public static boolean endsWith(String s, String end) {
 		if ((s == null) || (end == null)) {
@@ -387,6 +386,14 @@ public class StringUtil {
 		}
 	}
 
+	/**
+	 * Returns <code>true</code> if the strings are equal, ignoring case.
+	 *
+	 * @param  s1 the first string to compare
+	 * @param  s2 the second string to compare
+	 * @return <code>true</code> if the strings are equal, ignoring case;
+	 *         <code>false</code> otherwise
+	 */
 	public static boolean equalsIgnoreCase(String s1, String s2) {
 		if (s1 == s2) {
 			return true;
@@ -618,6 +625,14 @@ public class StringUtil {
 		}
 	}
 
+	/**
+	 * Returns the substring of all leading digits of string <code>s</code>, or
+	 * an empty string if it has no leading digits.
+	 *
+	 * @param  s the string from which to extract the substring
+	 * @return the substring of all leading digits of string <code>s</code>, or
+	 *         an empty string if it has no leading digits
+	 */
 	public static String extractLeadingDigits(String s) {
 		if (s == null) {
 			return StringPool.BLANK;
@@ -640,59 +655,24 @@ public class StringUtil {
 	}
 
 	/**
-	 * @deprecated As of 6.1.0
+	 * @deprecated As of 7.0.0, moved to {@link SearchUtil#highlight(String,
+	 *             String[])}}
 	 */
-	public static String highlight(String s, String keywords) {
-		return highlight(s, keywords, "<span class=\"highlight\">", "</span>");
+	@Deprecated
+	public static String highlight(String s, String[] queryTerms) {
+		return SearchUtil.highlight(
+			s, queryTerms, SearchUtil.HIGHLIGHT_1, SearchUtil.HIGHLIGHT_2);
 	}
 
 	/**
-	 * @deprecated As of 6.1.0
+	 * @deprecated As of 7.0.0, moved to {@link SearchUtil#highlight(String,
+	 *             String[], String, String)}}
 	 */
-	public static String highlight(
-		String s, String keywords, String highlight1, String highlight2) {
-
-		if (Validator.isNull(s) || Validator.isNull(keywords)) {
-			return s;
-		}
-
-		Pattern pattern = Pattern.compile(
-			Pattern.quote(keywords), Pattern.CASE_INSENSITIVE);
-
-		return _highlight(s, pattern, highlight1, highlight2);
-	}
-
-	public static String highlight(String s, String[] queryTerms) {
-		return highlight(
-			s, queryTerms, "<span class=\"highlight\">", "</span>");
-	}
-
+	@Deprecated
 	public static String highlight(
 		String s, String[] queryTerms, String highlight1, String highlight2) {
 
-		if (Validator.isNull(s) || ArrayUtil.isEmpty(queryTerms)) {
-			return s;
-		}
-
-		if (queryTerms.length == 0) {
-			return StringPool.BLANK;
-		}
-
-		StringBundler sb = new StringBundler(2 * queryTerms.length - 1);
-
-		for (int i = 0; i < queryTerms.length; i++) {
-			sb.append(Pattern.quote(queryTerms[i].trim()));
-
-			if ((i + 1) < queryTerms.length) {
-				sb.append(StringPool.PIPE);
-			}
-		}
-
-		int flags = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
-
-		Pattern pattern = Pattern.compile(sb.toString(), flags);
-
-		return _highlight(s, pattern, highlight1, highlight2);
+		return SearchUtil.highlight(s, queryTerms, highlight1, highlight2);
 	}
 
 	/**
@@ -1052,6 +1032,15 @@ public class StringUtil {
 		return prefix.concat(insert).concat(postfix);
 	}
 
+	/**
+	 * Returns <code>true</code> if all the characters in string <code>s</code>
+	 * are lower case, ignoring any non-alphabetic characters.
+	 *
+	 * @param  s the string in which to search
+	 * @return <code>true</code> if all the characters in string <code>s</code>
+	 *         are lower case, ignoring any non-alphabetic characters;
+	 *         <code>false</code> otherwise
+	 */
 	public static boolean isLowerCase(String s) {
 		if (s == null) {
 			return false;
@@ -1080,6 +1069,15 @@ public class StringUtil {
 		return true;
 	}
 
+	/**
+	 * Returns <code>true</code> if all the characters in string <code>s</code>
+	 * are upper case, ignoring any non-alphabetic characters.
+	 *
+	 * @param  s the string in which to search
+	 * @return <code>true</code> if all the characters in string <code>s</code>
+	 *         are upper case, ignoring any non-alphabetic characters;
+	 *         <code>false</code> otherwise
+	 */
 	public static boolean isUpperCase(String s) {
 		if (s == null) {
 			return false;
@@ -1445,12 +1443,7 @@ public class StringUtil {
 	 * @see    String#toLowerCase()
 	 */
 	public static String lowerCase(String s) {
-		if (s == null) {
-			return null;
-		}
-		else {
-			return toLowerCase(s);
-		}
+		return toLowerCase(s);
 	}
 
 	public static void lowerCase(String... array) {
@@ -1969,6 +1962,11 @@ public class StringUtil {
 		return quote.concat(s).concat(quote);
 	}
 
+	/**
+	 * Returns a randomized string of four lower case, alphabetic characters.
+	 *
+	 * @return a randomized string of four lower case, alphabetic characters
+	 */
 	public static String randomId() {
 		Random random = new Random();
 
@@ -1993,10 +1991,25 @@ public class StringUtil {
 		return RandomUtil.shuffle(s);
 	}
 
+	/**
+	 * Returns a randomized string of eight characters consisting of lower case
+	 * letters, upper case letters, and single-digit whole numbers.
+	 *
+	 * @return a randomized string of eight characters consisting of lower case
+	 *         letters, upper case letters, and single-digit whole numbers
+	 */
 	public static String randomString() {
 		return randomString(8);
 	}
 
+	/**
+	 * Returns a randomized string of the specified length consisting of lower
+	 * case letters, upper case letters, and single-digit whole numbers.
+	 *
+	 * @param  length the character length of the randomized string
+	 * @return a randomized string of the specified length consisting of lower
+	 *         case letters, upper case letters, and single-digit whole numbers
+	 */
 	public static String randomString(int length) {
 		Random random = new Random();
 
@@ -2108,6 +2121,7 @@ public class StringUtil {
 	 * @deprecated As of 7.0.0, replaced by {@link #removeFromList(String,
 	 *             String)}
 	 */
+	@Deprecated
 	public static String remove(String s, String element) {
 		return removeFromList(s, element, StringPool.COMMA);
 	}
@@ -2116,6 +2130,7 @@ public class StringUtil {
 	 * @deprecated As of 7.0.0, replaced by {@link #removeFromList(String,
 	 *             String, String)}
 	 */
+	@Deprecated
 	public static String remove(String s, String element, String delimiter) {
 		return removeFromList(s, element, delimiter);
 	}
@@ -3718,6 +3733,28 @@ public class StringUtil {
 		return sb.toString();
 	}
 
+	/**
+	 * Returns a string representing the hexidecimal character code of the
+	 * integer.
+	 *
+	 * <p>
+	 * Example:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * toHexString(10) returns "a"
+	 * toHexString(15) returns "f"
+	 * toHexString(10995) returns "2af3"
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  i the integer to convert
+	 * @return a string representing the hexidecimal character code of the
+	 *         integer
+	 */
 	public static String toHexString(int i) {
 		char[] buffer = new char[8];
 
@@ -3733,6 +3770,26 @@ public class StringUtil {
 		return new String(buffer, index, 8 - index);
 	}
 
+	/**
+	 * Returns a string representing the hexidecimal character code of the long
+	 * integer.
+	 *
+	 * <p>
+	 * Example:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * toHexString(12345678910L) returns "2dfdc1c3e"
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  l the long integer to convert
+	 * @return a string representing the hexidecimal character code of the long
+	 *         integer
+	 */
 	public static String toHexString(long l) {
 		char[] buffer = new char[16];
 
@@ -3748,6 +3805,15 @@ public class StringUtil {
 		return new String(buffer, index, 16 - index);
 	}
 
+	/**
+	 * Returns a string representing the hexidecimal character code of the
+	 * <code>Integer</code> or <code>Long</code> object type. If the object is
+	 * not an instance of these types, the object's original value is returned.
+	 *
+	 * @param  obj the object to convert
+	 * @return a string representing the hexidecimal character code of the
+	 *         object
+	 */
 	public static String toHexString(Object obj) {
 		if (obj instanceof Integer) {
 			return toHexString(((Integer)obj).intValue());
@@ -3765,6 +3831,10 @@ public class StringUtil {
 	}
 
 	public static String toLowerCase(String s, Locale locale) {
+		if (s == null) {
+			return null;
+		}
+
 		StringBuilder sb = null;
 
 		for (int i = 0; i < s.length(); i++) {
@@ -3802,6 +3872,10 @@ public class StringUtil {
 	}
 
 	public static String toUpperCase(String s, Locale locale) {
+		if (s == null) {
+			return null;
+		}
+
 		StringBuilder sb = null;
 
 		for (int i = 0; i < s.length(); i++) {
@@ -3815,7 +3889,7 @@ public class StringUtil {
 					locale = LocaleUtil.getDefault();
 				}
 
-				return s.toLowerCase(locale);
+				return s.toUpperCase(locale);
 			}
 
 			if ((c >= 'a') && (c <= 'z')) {
@@ -4214,12 +4288,7 @@ public class StringUtil {
 	 * @see    String#toUpperCase()
 	 */
 	public static String upperCase(String s) {
-		if (s == null) {
-			return null;
-		}
-		else {
-			return toUpperCase(s);
-		}
+		return toUpperCase(s);
 	}
 
 	/**
@@ -4386,48 +4455,6 @@ public class StringUtil {
 
 			return text;
 		}
-	}
-
-	private static String _highlight(
-		String s, Pattern pattern, String highlight1, String highlight2) {
-
-		StringTokenizer st = new StringTokenizer(s);
-
-		if (st.countTokens() == 0) {
-			return StringPool.BLANK;
-		}
-
-		StringBundler sb = new StringBundler(2 * st.countTokens() - 1);
-
-		while (st.hasMoreTokens()) {
-			String token = st.nextToken();
-
-			Matcher matcher = pattern.matcher(token);
-
-			if (matcher.find()) {
-				StringBuffer hightlighted = new StringBuffer();
-
-				do {
-					matcher.appendReplacement(
-						hightlighted,
-						highlight1 + matcher.group() + highlight2);
-				}
-				while (matcher.find());
-
-				matcher.appendTail(hightlighted);
-
-				sb.append(hightlighted);
-			}
-			else {
-				sb.append(token);
-			}
-
-			if (st.hasMoreTokens()) {
-				sb.append(StringPool.SPACE);
-			}
-		}
-
-		return sb.toString();
 	}
 
 	/**

@@ -62,9 +62,10 @@ public interface PhoneService extends BaseService {
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addPhone( String, long,
+	* @deprecated As of 6.2.0, replaced by {@link #addPhone(String, long,
 	String, String, int, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	public com.liferay.portal.model.Phone addPhone(java.lang.String className,
 		long classPK, java.lang.String number, java.lang.String extension,
 		int typeId, boolean primary)

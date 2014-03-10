@@ -53,6 +53,11 @@ public class IndexerWrapper implements Indexer {
 	}
 
 	@Override
+	public int getDatabaseCount() throws Exception {
+		return _indexer.getDatabaseCount();
+	}
+
+	@Override
 	public Document getDocument(Object obj) throws SearchException {
 		return _indexer.getDocument(obj);
 	}
@@ -132,6 +137,18 @@ public class IndexerWrapper implements Indexer {
 	}
 
 	@Override
+	public boolean isVisible(long classPK, int status) throws Exception {
+		return _indexer.isVisible(classPK, status);
+	}
+
+	@Override
+	public boolean isVisibleRelatedEntry(long classPK, int status)
+		throws Exception {
+
+		return _indexer.isVisibleRelatedEntry(classPK, status);
+	}
+
+	@Override
 	public void postProcessContextQuery(
 			BooleanQuery contextQuery, SearchContext searchContext)
 		throws Exception {
@@ -179,6 +196,14 @@ public class IndexerWrapper implements Indexer {
 	@Override
 	public Hits search(SearchContext searchContext) throws SearchException {
 		return _indexer.search(searchContext);
+	}
+
+	@Override
+	public Hits search(
+			SearchContext searchContext, String... selectedFieldNames)
+		throws SearchException {
+
+		return _indexer.search(searchContext, selectedFieldNames);
 	}
 
 	@Override

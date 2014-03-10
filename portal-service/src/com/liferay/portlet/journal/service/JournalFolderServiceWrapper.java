@@ -184,11 +184,24 @@ public class JournalFolderServiceWrapper implements JournalFolderService,
 			status);
 	}
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #getSubfolderIds(List, long,
+	long, boolean)}
+	*/
+	@Deprecated
 	@Override
 	public void getSubfolderIds(java.util.List<java.lang.Long> folderIds,
 		long groupId, long folderId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_journalFolderService.getSubfolderIds(folderIds, groupId, folderId);
+	}
+
+	@Override
+	public void getSubfolderIds(java.util.List<java.lang.Long> folderIds,
+		long groupId, long folderId, boolean recurse)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_journalFolderService.getSubfolderIds(folderIds, groupId, folderId,
+			recurse);
 	}
 
 	@Override
@@ -234,6 +247,20 @@ public class JournalFolderServiceWrapper implements JournalFolderService,
 	}
 
 	@Override
+	public void subscribe(long groupId, long folderId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_journalFolderService.subscribe(groupId, folderId);
+	}
+
+	@Override
+	public void unsubscribe(long groupId, long folderId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_journalFolderService.unsubscribe(groupId, folderId);
+	}
+
+	@Override
 	public com.liferay.portlet.journal.model.JournalFolder updateFolder(
 		long folderId, long parentFolderId, java.lang.String name,
 		java.lang.String description, boolean mergeWithParentFolder,
@@ -247,6 +274,7 @@ public class JournalFolderServiceWrapper implements JournalFolderService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public JournalFolderService getWrappedJournalFolderService() {
 		return _journalFolderService;
 	}
@@ -254,6 +282,7 @@ public class JournalFolderServiceWrapper implements JournalFolderService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedJournalFolderService(
 		JournalFolderService journalFolderService) {
 		_journalFolderService = journalFolderService;

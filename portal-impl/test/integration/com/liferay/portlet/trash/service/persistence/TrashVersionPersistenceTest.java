@@ -142,6 +142,57 @@ public class TrashVersionPersistenceTest {
 	}
 
 	@Test
+	public void testCountByEntryId() {
+		try {
+			_persistence.countByEntryId(ServiceTestUtil.nextLong());
+
+			_persistence.countByEntryId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByE_C() {
+		try {
+			_persistence.countByE_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByE_C(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_C() {
+		try {
+			_persistence.countByC_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_C(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByE_C_C() {
+		try {
+			_persistence.countByE_C_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+
+			_persistence.countByE_C_C(0L, 0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		TrashVersion newTrashVersion = addTrashVersion();
 
@@ -301,6 +352,11 @@ public class TrashVersionPersistenceTest {
 		_persistence.clearCache();
 
 		TrashVersionModelImpl existingTrashVersionModelImpl = (TrashVersionModelImpl)_persistence.findByPrimaryKey(newTrashVersion.getPrimaryKey());
+
+		Assert.assertEquals(existingTrashVersionModelImpl.getClassNameId(),
+			existingTrashVersionModelImpl.getOriginalClassNameId());
+		Assert.assertEquals(existingTrashVersionModelImpl.getClassPK(),
+			existingTrashVersionModelImpl.getOriginalClassPK());
 
 		Assert.assertEquals(existingTrashVersionModelImpl.getEntryId(),
 			existingTrashVersionModelImpl.getOriginalEntryId());

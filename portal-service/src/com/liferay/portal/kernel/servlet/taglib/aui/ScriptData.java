@@ -82,7 +82,7 @@ public class ScriptData implements Mergeable<ScriptData>, Serializable {
 
 		writer.write("<script type=\"text/javascript\">\n// <![CDATA[\n");
 
-		StringBundler callbackSB = new StringBundler();
+		StringBundler callbackSB = new StringBundler(_portletDataMap.size());
 
 		for (PortletData portletData : _portletDataMap.values()) {
 			portletData._rawSB.writeTo(writer);
@@ -188,7 +188,7 @@ public class ScriptData implements Mergeable<ScriptData>, Serializable {
 				String[] useArray = StringUtil.split(use);
 
 				for (int i = 0; i < useArray.length; i++) {
-					_useSet.add(useArray[i]);
+					_useSet.add(StringUtil.trim(useArray[i]));
 				}
 			}
 		}
@@ -205,7 +205,7 @@ public class ScriptData implements Mergeable<ScriptData>, Serializable {
 				String[] useArray = StringUtil.split(use);
 
 				for (int i = 0; i < useArray.length; i++) {
-					_useSet.add(useArray[i]);
+					_useSet.add(StringUtil.trim(useArray[i]));
 				}
 			}
 		}

@@ -1,6 +1,7 @@
 <definition>
 	<command name="addSOSite">
 		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute action="SOUserBar#click" locator-key1="USER_BAR" />
 		<execute action="SOUserBar#click" locator-key1="GO_TO" />
 		<execute action="SOUserBar#click" locator-key1="GO_TO_ADD_SITE_BUTTON" />
 
@@ -33,6 +34,12 @@
 		<execute action="SOUserBarAddSite#assertElementNotPresent" locator-key1="SAVE_BUTTON" />
 	</command>
 
+	<command name="dashboardPG">
+		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+
+		<execute action="Dockbar#assertTextEquals" locator-key1="USER_NAME" value1="${userName}" />
+	</command>
+
 	<command name="deleteSOSite">
 		<var name="key_siteName" value="${siteName}" />
 
@@ -56,7 +63,7 @@
 		<execute action="SOUserBarSitesDirectory#assertTextEquals" locator-key1="SITE_NAME_LINK" value1="${siteName}" />
 		<execute action="SOUserBarSitesDirectory#click" locator-key1="DELETE_SITE_ICON" value1="Delete" />
 		<execute action="SOUserBarSitesDirectory#confirm" locator-key1="CONFIRMATION" value1="Are you sure you want to delete ${siteName}?" />
-		<execute action="SOUserBarSitesDirectory#assertTextNotPresent" value1="${siteName}" />
+		<execute action="SOUserBarSitesDirectory#assertElementNotPresent" locator-key1="SITE_NAME_LINK" />
 	</command>
 
 	<command name="favoriteSOSite">
@@ -115,7 +122,7 @@
 		<execute action="SOUserBar#click" locator-key1="GO_TO_SITES_DIRECTORY_BUTTON" />
 
 		<execute action="SOUserBarSitesDirectory#type" locator-key1="SITE_SEARCH_FIELD" value1="${siteName}" />
-	
+
 		<if>
 			<equals arg1="${siteType}" arg2="Private Restricted" />
 			<then>
@@ -155,16 +162,20 @@
 	<command name="tearDownNotifications">
 		<execute macro="SOUser#firstLoginPG" />
 
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
-
-		<execute action="SOUserBar#mouseOver" locator-key1="NOTIFICATION_MENU_COUNT" />
-		<execute action="SOUserBar#click" locator-key1="NOTIFICATION_MENU_VIEW_ALL" value1="View All" />
-
 		<while>
-			<condition action="SONotifications#isElementPresent" locator-key1="NOTIFICATIONS_CHECKBOX" />
+			<condition action="SOUserBar#isTextNotEqual" locator-key1="NOTIFICATION_MENU_COUNT" value1="0" />
 			<then>
-				<execute action="SONotifications#check" locator-key1="NOTIFICATIONS_CHECKBOX" />
-				<execute action="SONotifications#click" locator-key1="DELETE_BUTTON" />
+				<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+				<execute action="SOUserBar#click" locator-key1="NOTIFICATION_MENU_COUNT" />
+
+				<if>
+					<condition action="SOUserBar#isElementPresent" locator-key1="NOTIFICATION_MENU_ENTRY" />
+					<then>
+						<execute action="SOUserBar#click" locator-key1="NOTIFICATION_MENU_ENTRY" />
+					</then>
+				</if>
+
+				<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
 			</then>
 		</while>
 	</command>

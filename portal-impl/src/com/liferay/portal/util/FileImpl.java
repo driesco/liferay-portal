@@ -222,7 +222,7 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 
 	@Override
 	public String createTempFileName(String prefix, String extension) {
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(7);
 
 		sb.append(SystemProperties.get(SystemProperties.TMP_DIR));
 		sb.append(StringPool.SLASH);
@@ -458,6 +458,11 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 	public String getAbsolutePath(File file) {
 		return StringUtil.replace(
 			file.getAbsolutePath(), CharPool.BACK_SLASH, CharPool.SLASH);
+	}
+
+	@Override
+	public byte[] getBytes(Class<?> clazz, String fileName) throws IOException {
+		return getBytes(clazz.getResourceAsStream(fileName));
 	}
 
 	@Override

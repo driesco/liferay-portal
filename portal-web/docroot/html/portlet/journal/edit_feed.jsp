@@ -151,7 +151,7 @@ if (feed != null) {
 			</c:otherwise>
 		</c:choose>
 
-		<aui:input autoFocus="<%= ((feed != null) && !PropsValues.JOURNAL_FEED_FORCE_AUTOGENERATE_ID && windowState.equals(WindowState.MAXIMIZED)) %>" cssClass="lfr-input-text-container" name="name" />
+		<aui:input autoFocus="<%= ((feed != null) && !PropsValues.JOURNAL_FEED_FORCE_AUTOGENERATE_ID && (windowState.equals(WindowState.MAXIMIZED)) || windowState.equals(LiferayWindowState.POP_UP)) %>" cssClass="lfr-input-text-container" name="name" />
 
 		<aui:input cssClass="lfr-textarea-container" name="description" />
 
@@ -251,7 +251,7 @@ if (feed != null) {
 							for (DDMTemplate curTemplate : ddmTemplates) {
 							%>
 
-								<aui:option data-contentField="<%= JournalFeedConstants.RENDERED_WEB_CONTENT %>" label='<%= LanguageUtil.format(pageContext, "use-template-x", HtmlUtil.escape(curTemplate.getName(locale))) %>' selected="<%= rendererTemplateId.equals(curTemplate.getTemplateKey()) %>" value="<%= curTemplate.getTemplateKey() %>" />
+								<aui:option data-contentField="<%= JournalFeedConstants.RENDERED_WEB_CONTENT %>" label='<%= LanguageUtil.format(pageContext, "use-template-x", HtmlUtil.escape(curTemplate.getName(locale)), false) %>' selected="<%= rendererTemplateId.equals(curTemplate.getTemplateKey()) %>" value="<%= curTemplate.getTemplateKey() %>" />
 
 							<%
 							}

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.permission;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.model.Contact;
@@ -24,22 +26,27 @@ import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.security.permission.BaseModelPermissionChecker;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.service.UserGroupRoleLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 
+import java.util.List;
+
 /**
  * @author Charles May
  * @author Jorge Ferrer
  */
-public class UserPermissionImpl implements UserPermission {
+public class UserPermissionImpl
+	implements BaseModelPermissionChecker, UserPermission {
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #check(PermissionChecker,
 	 *             long, long[], String)}
 	 */
+	@Deprecated
 	@Override
 	public void check(
 			PermissionChecker permissionChecker, long userId,
@@ -72,10 +79,31 @@ public class UserPermissionImpl implements UserPermission {
 		}
 	}
 
+	@Override
+	public void checkBaseModel(
+			PermissionChecker permissionChecker, long groupId, long primaryKey,
+			String actionId)
+		throws PortalException, SystemException {
+
+		List<Organization> organizations =
+			OrganizationLocalServiceUtil.getUserOrganizations(primaryKey);
+
+		long[] organizationsIds = new long[organizations.size()];
+
+		for (int i = 0; i < organizations.size(); i++) {
+			Organization organization = organizations.get(i);
+
+			organizationsIds[i] = organization.getOrganizationId();
+		}
+
+		check(permissionChecker, primaryKey, organizationsIds, actionId);
+	}
+
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #contains(PermissionChecker,
 	 *             long, long[], String)}
 	 */
+	@Deprecated
 	@Override
 	public boolean contains(
 		PermissionChecker permissionChecker, long userId, long organizationId,

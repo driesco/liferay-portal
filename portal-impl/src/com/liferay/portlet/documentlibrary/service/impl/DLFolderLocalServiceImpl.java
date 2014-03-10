@@ -22,6 +22,9 @@ import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.increment.BufferedIncrement;
+import com.liferay.portal.kernel.increment.DateOverrideIncrement;
+import com.liferay.portal.kernel.lar.ExportImportThreadLocal;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Indexable;
@@ -135,12 +138,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		// Parent folder
 
 		if (parentFolderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			DLFolder parentDLFolder = dlFolderPersistence.findByPrimaryKey(
-				parentFolderId);
-
-			parentDLFolder.setLastPostDate(now);
-
-			dlFolderPersistence.update(parentDLFolder);
+			dlFolderLocalService.updateLastPostDate(parentFolderId, now);
 		}
 
 		// App helper
@@ -156,6 +154,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	 *             long, long, boolean, long, String, String, boolean,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public DLFolder addFolder(
 			long userId, long groupId, long repositoryId, boolean mountPoint,
@@ -403,6 +402,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #getFileEntriesAndFileShortcuts(long, long, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<Object> getFileEntriesAndFileShortcuts(
 			long groupId, long folderId, int status, int start, int end)
@@ -429,6 +429,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	 *             #getFileEntriesAndFileShortcutsCount(long, long,
 	 *             QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public int getFileEntriesAndFileShortcutsCount(
 			long groupId, long folderId, int status)
@@ -532,6 +533,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	 *             #getFoldersAndFileEntriesAndFileShortcuts(long, long,
 	 *             String[], boolean, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<Object> getFoldersAndFileEntriesAndFileShortcuts(
 			long groupId, long folderId, int status,
@@ -551,6 +553,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	 *             #getFoldersAndFileEntriesAndFileShortcutsCount(long, long,
 	 *             String[], boolean, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<Object> getFoldersAndFileEntriesAndFileShortcuts(
 			long groupId, long folderId, int status, String[] mimeTypes,
@@ -580,6 +583,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	 *             #getFoldersAndFileEntriesAndFileShortcutsCount(long, long,
 	 *             String[], boolean, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public int getFoldersAndFileEntriesAndFileShortcutsCount(
 			long groupId, long folderId, int status,
@@ -597,6 +601,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	 *             #getFoldersAndFileEntriesAndFileShortcutsCount(long, long,
 	 *             String[], boolean, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public int getFoldersAndFileEntriesAndFileShortcutsCount(
 			long groupId, long folderId, int status, String[] mimeTypes,
@@ -1011,14 +1016,25 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		}
 	}
 
-	/**
-	 * @deprecated As of 6.2.0
-	 */
+	@BufferedIncrement(
+		configuration = "DLFolderEntry",
+		incrementClass = DateOverrideIncrement.class)
 	@Override
 	public void updateLastPostDate(long folderId, Date lastPostDate)
 		throws PortalException, SystemException {
 
+		if (ExportImportThreadLocal.isImportInProcess() ||
+			(folderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) ||
+			(lastPostDate == null)) {
+
+			return;
+		}
+
 		DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
+
+		if (lastPostDate.before(dlFolder.getLastPostDate())) {
+			return;
+		}
 
 		dlFolder.setLastPostDate(lastPostDate);
 

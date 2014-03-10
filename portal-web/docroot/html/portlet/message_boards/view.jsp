@@ -159,7 +159,7 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 					/>
 				</c:if>
 
-				<c:if test="<%= MBCategoryPermission.contains(permissionChecker, category, ActionKeys.SUBSCRIBE) && (MBUtil.getEmailMessageAddedEnabled(portletPreferences) || MBUtil.getEmailMessageUpdatedEnabled(portletPreferences)) %>">
+				<c:if test="<%= MBCategoryPermission.contains(permissionChecker, category, ActionKeys.SUBSCRIBE) && (mbSettings.isEmailMessageAddedEnabled() || mbSettings.isEmailMessageUpdatedEnabled()) %>">
 					<c:choose>
 						<c:when test="<%= (categorySubscriptionClassPKs != null) && categorySubscriptionClassPKs.contains(category.getCategoryId()) %>">
 							<portlet:actionURL var="unsubscribeURL">
@@ -218,7 +218,7 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 			/>
 		</c:if>
 
-		<div class="displayStyle-<%= displayStyle %>">
+		<div class="displayStyle-<%= HtmlUtil.escapeAttribute(displayStyle) %>">
 			<liferay-util:include page='<%= "/html/portlet/message_boards/view_category_" + displayStyle + ".jsp" %>' />
 		</div>
 

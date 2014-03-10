@@ -58,6 +58,8 @@ List results = searchContainer.getResults();
 				else {
 					thumbnailId = "entry_" + fileEntry.getFileEntryId();
 				}
+
+				DLActionsDisplayContext dlActionsDisplayContext = new DLActionsDisplayContext(request, fileEntry);
 				%>
 
 				<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.VIEW) %>">
@@ -298,7 +300,7 @@ embeddedPlayerURL.setWindowState(LiferayWindowState.POP_UP);
 				</c:if>
 			},
 			delay: 5000,
-			infoTemplate: '<%= LanguageUtil.format(pageContext, "image-x-of-x", new String[] {"{current}", "{total}"}) %>',
+			infoTemplate: '<%= LanguageUtil.format(pageContext, "image-x-of-x", new String[] {"{current}", "{total}"}, false) %>',
 			links: '#<portlet:namespace />imageGalleryAssetInfo .image-link.preview',
 			maxHeight: maxHeight,
 			maxWidth: maxWidth,

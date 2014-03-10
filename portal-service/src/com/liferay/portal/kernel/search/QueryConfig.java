@@ -93,6 +93,10 @@ public class QueryConfig implements Serializable {
 				_INDEX_SEARCH_QUERY_SUGGESTION_SCORES_THRESHOLD);
 	}
 
+	public String[] getSelectedFieldNames() {
+		return (String[])_attributes.get(_SELECTED_FIELD_NAMES);
+	}
+
 	public boolean isCollatedSpellCheckResultEnabled() {
 		return GetterUtil.getBoolean(
 			_attributes.get(
@@ -102,7 +106,8 @@ public class QueryConfig implements Serializable {
 
 	public boolean isHighlightEnabled() {
 		return GetterUtil.getBoolean(
-			_attributes.get(PropsKeys.INDEX_SEARCH_HIGHLIGHT_ENABLED), false);
+			_attributes.get(PropsKeys.INDEX_SEARCH_HIGHLIGHT_ENABLED),
+			_INDEX_SEARCH_HIGHLIGHT_ENABLED);
 	}
 
 	public boolean isHitsProcessingEnabled() {
@@ -224,6 +229,10 @@ public class QueryConfig implements Serializable {
 		_attributes.put(SEARCH_SUBFOLDERS, searchSubfolders);
 	}
 
+	public void setSelectedFieldNames(String... selectedFieldNames) {
+		_attributes.put(_SELECTED_FIELD_NAMES, selectedFieldNames);
+	}
+
 	private static final String _HITS_PROCESSING_ENABLED =
 		"hitsProcessingEnabled";
 
@@ -281,6 +290,8 @@ public class QueryConfig implements Serializable {
 	private static final boolean _INDEX_SEARCH_SCORING_ENABLED =
 		GetterUtil.getBoolean(
 			PropsUtil.get(PropsKeys.INDEX_SEARCH_SCORING_ENABLED));
+
+	private static final String _SELECTED_FIELD_NAMES = "selectedFieldNames";
 
 	private Map<String, Serializable> _attributes =
 		new HashMap<String, Serializable>();

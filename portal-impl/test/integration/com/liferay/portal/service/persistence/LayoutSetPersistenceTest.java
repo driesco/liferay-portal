@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.impl.LayoutSetModelImpl;
@@ -113,6 +114,8 @@ public class LayoutSetPersistenceTest {
 
 		LayoutSet newLayoutSet = _persistence.create(pk);
 
+		newLayoutSet.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newLayoutSet.setGroupId(ServiceTestUtil.nextLong());
 
 		newLayoutSet.setCompanyId(ServiceTestUtil.nextLong());
@@ -122,8 +125,6 @@ public class LayoutSetPersistenceTest {
 		newLayoutSet.setModifiedDate(ServiceTestUtil.nextDate());
 
 		newLayoutSet.setPrivateLayout(ServiceTestUtil.randomBoolean());
-
-		newLayoutSet.setLogo(ServiceTestUtil.randomBoolean());
 
 		newLayoutSet.setLogoId(ServiceTestUtil.nextLong());
 
@@ -149,6 +150,8 @@ public class LayoutSetPersistenceTest {
 
 		LayoutSet existingLayoutSet = _persistence.findByPrimaryKey(newLayoutSet.getPrimaryKey());
 
+		Assert.assertEquals(existingLayoutSet.getMvccVersion(),
+			newLayoutSet.getMvccVersion());
 		Assert.assertEquals(existingLayoutSet.getLayoutSetId(),
 			newLayoutSet.getLayoutSetId());
 		Assert.assertEquals(existingLayoutSet.getGroupId(),
@@ -163,7 +166,6 @@ public class LayoutSetPersistenceTest {
 			Time.getShortTimestamp(newLayoutSet.getModifiedDate()));
 		Assert.assertEquals(existingLayoutSet.getPrivateLayout(),
 			newLayoutSet.getPrivateLayout());
-		Assert.assertEquals(existingLayoutSet.getLogo(), newLayoutSet.getLogo());
 		Assert.assertEquals(existingLayoutSet.getLogoId(),
 			newLayoutSet.getLogoId());
 		Assert.assertEquals(existingLayoutSet.getThemeId(),
@@ -183,6 +185,45 @@ public class LayoutSetPersistenceTest {
 			newLayoutSet.getLayoutSetPrototypeUuid());
 		Assert.assertEquals(existingLayoutSet.getLayoutSetPrototypeLinkEnabled(),
 			newLayoutSet.getLayoutSetPrototypeLinkEnabled());
+	}
+
+	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByLayoutSetPrototypeUuid() {
+		try {
+			_persistence.countByLayoutSetPrototypeUuid(StringPool.BLANK);
+
+			_persistence.countByLayoutSetPrototypeUuid(StringPool.NULL);
+
+			_persistence.countByLayoutSetPrototypeUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_P() {
+		try {
+			_persistence.countByG_P(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomBoolean());
+
+			_persistence.countByG_P(0L, ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -219,9 +260,9 @@ public class LayoutSetPersistenceTest {
 	}
 
 	protected OrderByComparator getOrderByComparator() {
-		return OrderByComparatorFactoryUtil.create("LayoutSet", "layoutSetId",
-			true, "groupId", true, "companyId", true, "createDate", true,
-			"modifiedDate", true, "privateLayout", true, "logo", true,
+		return OrderByComparatorFactoryUtil.create("LayoutSet", "mvccVersion",
+			true, "layoutSetId", true, "groupId", true, "companyId", true,
+			"createDate", true, "modifiedDate", true, "privateLayout", true,
 			"logoId", true, "themeId", true, "colorSchemeId", true,
 			"wapThemeId", true, "wapColorSchemeId", true, "css", true,
 			"pageCount", true, "settings", true, "layoutSetPrototypeUuid",
@@ -361,6 +402,8 @@ public class LayoutSetPersistenceTest {
 
 		LayoutSet layoutSet = _persistence.create(pk);
 
+		layoutSet.setMvccVersion(ServiceTestUtil.nextLong());
+
 		layoutSet.setGroupId(ServiceTestUtil.nextLong());
 
 		layoutSet.setCompanyId(ServiceTestUtil.nextLong());
@@ -370,8 +413,6 @@ public class LayoutSetPersistenceTest {
 		layoutSet.setModifiedDate(ServiceTestUtil.nextDate());
 
 		layoutSet.setPrivateLayout(ServiceTestUtil.randomBoolean());
-
-		layoutSet.setLogo(ServiceTestUtil.randomBoolean());
 
 		layoutSet.setLogoId(ServiceTestUtil.nextLong());
 

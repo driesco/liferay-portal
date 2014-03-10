@@ -433,7 +433,7 @@ public class SetupWizardUtil {
 				user.getUserId(), StringPool.BLANK, StringPool.BLANK,
 				StringPool.BLANK, false, user.getReminderQueryQuestion(),
 				user.getReminderQueryAnswer(), screenName, emailAddress,
-				user.getFacebookId(), user.getOpenId(),
+				user.getFacebookId(), user.getOpenId(), false, null,
 				themeDisplay.getLanguageId(), user.getTimeZoneId(), greeting,
 				user.getComments(), firstName, user.getMiddleName(), lastName,
 				contact.getPrefixId(), contact.getSuffixId(), contact.isMale(),
@@ -464,8 +464,8 @@ public class SetupWizardUtil {
 
 				if (testUser != null) {
 					UserLocalServiceUtil.updateStatus(
-						testUser.getUserId(),
-						WorkflowConstants.STATUS_INACTIVE);
+						testUser.getUserId(), WorkflowConstants.STATUS_INACTIVE,
+						new ServiceContext());
 				}
 			}
 		}

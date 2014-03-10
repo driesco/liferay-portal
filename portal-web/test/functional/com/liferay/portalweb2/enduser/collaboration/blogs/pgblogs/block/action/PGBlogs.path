@@ -90,7 +90,7 @@
 </tr>
 <tr>
 	<td>SUCCESS_MESSAGE_RECYCLE_BIN</td>
-	<td>//form[@id='_33_undoForm']</td>
+	<td>//form[@id='_182_undoForm']</td>
 	<td></td>
 </tr>
 <tr>
@@ -126,13 +126,13 @@
 </tr>
 <!--ENTRY-->
 <tr>
-	<td>ENTRY_DRAFT_STATUS</td>
-	<td>//div[contains(@class,'entry') and contains(@class,'draft')]/div/h3</td>
+	<td>ENTRY_TITLE</td>
+	<td>//div[@class='entry-title' and contains(.,'${key_entryTitle}')]/h2/a</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ENTRY_TITLE</td>
-	<td>//div[@class='entry-title' and contains(.,'${key_entryTitle}')]/h2/a</td>
+	<td>ENTRY_TITLE_GENERIC</td>
+	<td>//div[@class='entry-title']/h2/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -161,8 +161,23 @@
 	<td></td>
 </tr>
 <tr>
-	<td>ENTRY_CONTENT_DRAFT</td>
-	<td>//div[contains(@class,'entry') and contains(@class,'draft') and contains(.,'${key_entryTitle}')]//div[@class='entry-body']/div</td>
+	<td>ENTRY_CONTENT_GENERIC</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'approved')]//div[@class='entry-body']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_CONTENT_ABSTRACT</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'approved') and contains(.,'${key_entryTitle}')]//div[@class='entry-body']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_CONTENT_CKE_EDIT_INLINE</td>
+	<td>//div[@class='entry-body']/div[contains(@class,'cke_editable') and contains(.,'${key_entryContent}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_CONTENT_READ_MORE</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'approved') and contains(.,'${key_entryTitle}')]//div[@class='entry-body']/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -197,7 +212,7 @@
 </tr>
 <tr>
 	<td>ENTRY_EDIT</td>
-	<td>//div[contains(@class,'entry') and contains(@class,'approved') and contains(.,'${key_entryTitle}')]//div[contains(@class,'edit-actions')]//span/a/span[.='Edit']</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'approved') and contains(.,'${key_entryTitle}')]/ul[contains(@class,'edit-actions')]//span/a/span[.='Edit']</td>
 	<td></td>
 </tr>
 <tr>
@@ -237,7 +252,7 @@
 </tr>
 <tr>
 	<td>ENTRY_RECYCLE_BIN</td>
-	<td>//div[contains(@class,'entry') and contains(@class,'approved') and contains(.,'${key_entryTitle}')]//div[contains(@class,'edit-actions')]//span/a/span[.='Move to the Recycle Bin']</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'approved') and contains(.,'${key_entryTitle}')]/ul[contains(@class,'edit-actions')]//span/a/span[.='Move to the Recycle Bin']</td>
 	<td></td>
 </tr>
 <tr>
@@ -253,6 +268,68 @@
 <tr>
 	<td>ENTRY_RECYCLE_BIN_3</td>
 	<td>xpath=(//div[contains(@class,'edit-actions')]//span/a/span[.='Move to the Recycle Bin'])[3]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_YOUR_RATING</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'approved') and contains(.,'${key_entryTitle}')]//div[contains(@id,'ratingStar')]/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_AVERAGE_RATING</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'approved') and contains(.,'${key_entryTitle}')]//div[contains(@class,'liferay-rating-score')]//div[@class='rating-label']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--DRAFT_ENTRY-->
+<tr>
+	<td>DRAFT_ENTRY_STATUS</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'draft')]/div/h3</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DRAFT_ENTRY_TITLE</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'draft')]/div/div[@class='entry-title' and contains(.,'${key_entryTitle}')]/h2/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DRAFT_ENTRY_CONTENT</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'draft') and contains(.,'${key_entryTitle}')]//div[@class='entry-body']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DRAFT_ENTRY_EDIT</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'draft') and contains(.,'${key_entryTitle}')]//div[contains(@class,'edit-actions')]//span/a/span[.='Edit']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--SCHEDULED_ENTRY-->
+<tr>
+	<td>SCHEDULED_ENTRY_STATUS</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'scheduled')]/div/h3</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SCHEDULED_ENTRY_TITLE</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'scheduled')]/div/div[@class='entry-title' and contains(.,'${key_entryTitle}')]/h2/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SCHEDULED_ENTRY_CONTENT</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'scheduled') and contains(.,'${key_entryTitle}')]//div[@class='entry-body']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SCHEDULED_ENTRY_EDIT</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'scheduled') and contains(.,'${key_entryTitle}')]//div[contains(@class,'edit-actions')]//span/a/span[.='Edit']</td>
 	<td></td>
 </tr>
 </tbody>

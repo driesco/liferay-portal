@@ -125,7 +125,7 @@ boolean expired = true;
 												<liferay-ui:icon
 													image="print"
 													label="<%= true %>"
-													message='<%= LanguageUtil.format(pageContext, "print-x-x", new Object[] {"hide-accessible", articleDisplay.getTitle()}) %>'
+													message='<%= LanguageUtil.format(pageContext, "print-x-x", new Object[] {"hide-accessible", HtmlUtil.escape(articleDisplay.getTitle())}, false) %>'
 													url='<%= "javascript:" + renderResponse.getNamespace() + "printPage();" %>'
 												/>
 											</div>
@@ -159,9 +159,9 @@ boolean expired = true;
 											%>
 
 												<liferay-ui:icon
-													image='<%= "../file_system/small/" + extension %>'
+													image='<%= "../file_system/small/" + HtmlUtil.escapeAttribute(extension) %>'
 													label="<%= true %>"
-													message='<%= LanguageUtil.format(pageContext, "x-convert-x-to-x", new Object[] {"hide-accessible", articleDisplay.getTitle(), StringUtil.toUpperCase(extension)}) %>'
+													message='<%= LanguageUtil.format(pageContext, "x-convert-x-to-x", new Object[] {"hide-accessible", HtmlUtil.escape(articleDisplay.getTitle()), StringUtil.toUpperCase(HtmlUtil.escape(extension))}) %>'
 													method="get"
 													url="<%= exportArticleURL.toString() %>"
 												/>
@@ -229,7 +229,7 @@ boolean expired = true;
 								%>
 
 									<div class="alert alert-block">
-										<%= LanguageUtil.format(pageContext, "x-is-expired", title) %>
+										<%= LanguageUtil.format(pageContext, "x-is-expired", HtmlUtil.escape(title)) %>
 									</div>
 
 								<%
@@ -320,7 +320,7 @@ boolean showIconsActions = themeDisplay.isSignedIn() && !layout.isLayoutPrototyp
 				</liferay-portlet:renderURL>
 
 				<%
-				String taglibEditArticleURL = "javascript:Liferay.Util.openWindow({id: '_" + HtmlUtil.escapeJS(portletDisplay.getId()) + "_editAsset', title: '" + latestArticle.getTitle(locale) + "', uri:'" + HtmlUtil.escapeURL(editArticleURL.toString()) + "'});";
+				String taglibEditArticleURL = "javascript:Liferay.Util.openWindow({id: '_" + HtmlUtil.escapeJS(portletDisplay.getId()) + "_editAsset', title: '" + HtmlUtil.escapeJS(HtmlUtil.escape(latestArticle.getTitle(locale))) + "', uri:'" + HtmlUtil.escapeJS(editArticleURL.toString()) + "'});";
 				%>
 
 				<liferay-ui:icon
@@ -343,7 +343,7 @@ boolean showIconsActions = themeDisplay.isSignedIn() && !layout.isLayoutPrototyp
 				</liferay-portlet:renderURL>
 
 				<%
-				String taglibEditTemplateURL = "javascript:Liferay.Util.openWindow({id: '_" + HtmlUtil.escapeJS(portletDisplay.getId()) + "_editAsset', title: '" + ddmTemplate.getName(locale) + "', uri:'" + HtmlUtil.escapeURL(editTemplateURL.toString()) + "'});";
+				String taglibEditTemplateURL = "javascript:Liferay.Util.openWindow({id: '_" + HtmlUtil.escapeJS(portletDisplay.getId()) + "_editAsset', title: '" + HtmlUtil.escapeJS(HtmlUtil.escape(ddmTemplate.getName(locale))) + "', uri:'" + HtmlUtil.escapeJS(editTemplateURL.toString()) + "'});";
 				%>
 
 				<liferay-ui:icon
@@ -377,7 +377,7 @@ boolean showIconsActions = themeDisplay.isSignedIn() && !layout.isLayoutPrototyp
 				</liferay-portlet:renderURL>
 
 				<%
-				String taglibAddArticleURL = "javascript:Liferay.Util.openWindow({id: '_" + HtmlUtil.escapeJS(portletDisplay.getId()) + "_editAsset', title: '" + UnicodeLanguageUtil.get(locale, "new-web-content") + "', uri:'" + HtmlUtil.escapeURL(addArticleURL.toString()) + "'});";
+				String taglibAddArticleURL = "javascript:Liferay.Util.openWindow({id: '_" + HtmlUtil.escapeJS(portletDisplay.getId()) + "_editAsset', title: '" + HtmlUtil.escapeJS(LanguageUtil.get(locale, "new-web-content")) + "', uri:'" + HtmlUtil.escapeJS(addArticleURL.toString()) + "'});";
 				%>
 
 				<liferay-ui:icon

@@ -217,6 +217,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #clonePortlet(String)}
 	 */
+	@Deprecated
 	@Override
 	@Skip
 	public Portlet clonePortlet(long companyId, String portletId) {
@@ -1150,10 +1151,10 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			PortletApp portletApp = portlet.getPortletApp();
 
 			if ((servletContextName != null) && portletApp.isWARFile() &&
-				(portletId.endsWith(
+				portletId.endsWith(
 					PortletConstants.WAR_SEPARATOR +
 						PortalUtil.getJsSafePortletId(servletContextName)) &&
-				 !portletIds.contains(portletId))) {
+				!portletIds.contains(portletId)) {
 
 				undefinedPortletIds.add(portletId);
 			}

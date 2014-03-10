@@ -43,7 +43,8 @@ import java.util.Map;
  * @generated
  */
 @ProviderType
-public interface LayoutModel extends BaseModel<Layout>, StagedGroupedModel {
+public interface LayoutModel extends BaseModel<Layout>, MVCCModel,
+	StagedGroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -63,6 +64,22 @@ public interface LayoutModel extends BaseModel<Layout>, StagedGroupedModel {
 	 * @param primaryKey the primary key of this layout
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this layout.
+	 *
+	 * @return the mvcc version of this layout
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this layout.
+	 *
+	 * @param mvccVersion the mvcc version of this layout
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this layout.
@@ -821,27 +838,6 @@ public interface LayoutModel extends BaseModel<Layout>, StagedGroupedModel {
 	 * @param friendlyURL the friendly u r l of this layout
 	 */
 	public void setFriendlyURL(String friendlyURL);
-
-	/**
-	 * Returns the icon image of this layout.
-	 *
-	 * @return the icon image of this layout
-	 */
-	public boolean getIconImage();
-
-	/**
-	 * Returns <code>true</code> if this layout is icon image.
-	 *
-	 * @return <code>true</code> if this layout is icon image; <code>false</code> otherwise
-	 */
-	public boolean isIconImage();
-
-	/**
-	 * Sets whether this layout is icon image.
-	 *
-	 * @param iconImage the icon image of this layout
-	 */
-	public void setIconImage(boolean iconImage);
 
 	/**
 	 * Returns the icon image ID of this layout.

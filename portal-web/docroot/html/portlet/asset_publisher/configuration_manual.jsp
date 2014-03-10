@@ -17,9 +17,7 @@
 <%@ include file="/html/portlet/asset_publisher/init.jsp" %>
 
 <%
-List<AssetRendererFactory> classTypesAssetRendererFactories = (List<AssetRendererFactory>)request.getAttribute("configuration.jsp-classTypesAssetRendererFactories");
 PortletURL configurationRenderURL = (PortletURL)request.getAttribute("configuration.jsp-configurationRenderURL");
-String redirect = (String)request.getAttribute("configuration.jsp-redirect");
 String rootPortletId = (String)request.getAttribute("configuration.jsp-rootPortletId");
 String selectScope = (String)request.getAttribute("configuration.jsp-selectScope");
 String selectStyle = (String)request.getAttribute("configuration.jsp-selectStyle");
@@ -44,7 +42,7 @@ String eventName = "_" + HtmlUtil.escapeJS(portletResource) + "_selectAsset";
 		<aui:fieldset label="model.resource.com.liferay.portlet.asset">
 
 			<%
-			List<AssetEntry> assetEntries = AssetPublisherUtil.getAssetEntries(renderRequest, portletPreferences, permissionChecker, groupIds, assetEntryXmls, true, enablePermissions);
+			List<AssetEntry> assetEntries = AssetPublisherUtil.getAssetEntries(renderRequest, portletPreferences, permissionChecker, assetPublisherDisplayContext.getGroupIds(), true, assetPublisherDisplayContext.isEnablePermissions());
 			%>
 
 			<liferay-ui:search-container
@@ -70,7 +68,7 @@ String eventName = "_" + HtmlUtil.escapeJS(portletResource) + "_selectAsset";
 					%>
 
 					<liferay-ui:search-container-column-text name="title">
-						<img alt="" src="<%= assetRenderer.getIconPath(renderRequest) %>" /><%= assetRenderer.getTitle(locale) %>
+						<img alt="" src="<%= assetRenderer.getIconPath(renderRequest) %>" /><%= HtmlUtil.escape(assetRenderer.getTitle(locale)) %>
 					</liferay-ui:search-container-column-text>
 
 					<liferay-ui:search-container-column-text
@@ -99,16 +97,14 @@ String eventName = "_" + HtmlUtil.escapeJS(portletResource) + "_selectAsset";
 			</c:if>
 
 			<%
-			classNameIds = availableClassNameIds;
-
-			String portletId = portletResource;
+			long[] groupIds = assetPublisherDisplayContext.getGroupIds();
 
 			for (long groupId : groupIds) {
 			%>
 
 				<div class="select-asset-selector">
 					<div class="lfr-meta-actions edit-controls">
-						<liferay-ui:icon-menu cssClass="select-existing-selector" direction="right" icon='<%= themeDisplay.getPathThemeImages() + "/common/add.png" %>' message='<%= LanguageUtil.format(pageContext, (groupIds.length == 1) ? "select" : "select-in-x", new Object[] {HtmlUtil.escape((GroupLocalServiceUtil.getGroup(groupId)).getDescriptiveName(locale))}) %>' showWhenSingleIcon="<%= true %>">
+						<liferay-ui:icon-menu cssClass="select-existing-selector" direction="right" icon='<%= themeDisplay.getPathThemeImages() + "/common/add.png" %>' message='<%= LanguageUtil.format(pageContext, (groupIds.length == 1) ? "select" : "select-in-x", HtmlUtil.escape((GroupLocalServiceUtil.getGroup(groupId)).getDescriptiveName(locale)), false) %>' showWhenSingleIcon="<%= true %>">
 
 							<%
 							PortletURL assetBrowserURL = PortletURLFactoryUtil.create(request, PortletKeys.ASSET_BROWSER, PortalUtil.getControlPanelPlid(company.getCompanyId()), PortletRequest.RENDER_PHASE);
@@ -131,7 +127,7 @@ String eventName = "_" + HtmlUtil.escapeJS(portletResource) + "_selectAsset";
 
 								data.put("groupid", String.valueOf(groupId));
 								data.put("href", assetBrowserURL.toString());
-								data.put("title", LanguageUtil.format(pageContext, "select-x", curRendererFactory.getTypeName(locale, false)));
+								data.put("title", LanguageUtil.format(pageContext, "select-x", curRendererFactory.getTypeName(locale, false), false));
 
 								String type = curRendererFactory.getTypeName(locale, false);
 
@@ -197,8 +193,7 @@ String eventName = "_" + HtmlUtil.escapeJS(portletResource) + "_selectAsset";
 				{
 					dialog: {
 						constrain: true,
-						modal: true,
-						width: 900
+						modal: true
 					},
 					eventName: '<%= eventName %>',
 					id: '<%= eventName %>' + currentTarget.attr('id'),

@@ -52,6 +52,7 @@ public class AddressWrapper implements Address, ModelWrapper<Address> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("addressId", getAddressId());
 		attributes.put("companyId", getCompanyId());
@@ -77,6 +78,12 @@ public class AddressWrapper implements Address, ModelWrapper<Address> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -210,6 +217,26 @@ public class AddressWrapper implements Address, ModelWrapper<Address> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_address.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this address.
+	*
+	* @return the mvcc version of this address
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _address.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this address.
+	*
+	* @param mvccVersion the mvcc version of this address
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_address.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -795,6 +822,7 @@ public class AddressWrapper implements Address, ModelWrapper<Address> {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Address getWrappedAddress() {
 		return _address;
 	}
@@ -802,6 +830,16 @@ public class AddressWrapper implements Address, ModelWrapper<Address> {
 	@Override
 	public Address getWrappedModel() {
 		return _address;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _address.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _address.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.notifications.UserNotificationDefinition;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -52,6 +53,7 @@ import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.SubscriptionSender;
+import com.liferay.portlet.PortletURLFactoryUtil;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.AssetLinkConstants;
 import com.liferay.portlet.blogs.EntryContentException;
@@ -80,6 +82,8 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.portlet.PortletPreferences;
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletURL;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -385,6 +389,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getCompanyEntries(long,
 	 *             Date, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<BlogsEntry> getCompanyEntries(
 			long companyId, Date displayDate, int status, int start, int end)
@@ -400,6 +405,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getCompanyEntries(long,
 	 *             Date, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<BlogsEntry> getCompanyEntries(
 			long companyId, Date displayDate, int status, int start, int end,
@@ -435,6 +441,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getCompanyEntriesCount(long,
 	 *             Date, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public int getCompanyEntriesCount(
 			long companyId, Date displayDate, int status)
@@ -490,6 +497,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getGroupEntries(long, Date,
 	 *             QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<BlogsEntry> getGroupEntries(
 			long groupId, Date displayDate, int status, int start, int end)
@@ -505,6 +513,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getGroupEntries(long, Date,
 	 *             QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<BlogsEntry> getGroupEntries(
 			long groupId, Date displayDate, int status, int start, int end,
@@ -540,6 +549,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getGroupEntries(long,
 	 *             QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<BlogsEntry> getGroupEntries(
 			long groupId, int status, int start, int end)
@@ -555,6 +565,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getGroupEntries(long,
 	 *             QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<BlogsEntry> getGroupEntries(
 			long groupId, int status, int start, int end, OrderByComparator obc)
@@ -589,6 +600,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getGroupEntriesCount(long,
 	 *             Date, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public int getGroupEntriesCount(long groupId, Date displayDate, int status)
 		throws SystemException {
@@ -617,6 +629,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getGroupEntriesCount(long,
 	 *             QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public int getGroupEntriesCount(long groupId, int status)
 		throws SystemException {
@@ -645,6 +658,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getGroupsEntries(long, long,
 	 *             Date, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<BlogsEntry> getGroupsEntries(
 			long companyId, long groupId, Date displayDate, int status,
@@ -672,6 +686,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getGroupUserEntries(long,
 	 *             long, Date, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<BlogsEntry> getGroupUserEntries(
 			long groupId, long userId, Date displayDate, int status, int start,
@@ -689,6 +704,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getGroupUserEntries(long,
 	 *             long, Date, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<BlogsEntry> getGroupUserEntries(
 			long groupId, long userId, Date displayDate, int status, int start,
@@ -726,6 +742,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #getGroupUserEntriesCount(long, long, Date, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public int getGroupUserEntriesCount(
 			long groupId, long userId, Date displayDate, int status)
@@ -762,6 +779,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getOrganizationEntries(long,
 	 *             Date, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<BlogsEntry> getOrganizationEntries(
 			long organizationId, Date displayDate, int status, int start,
@@ -779,6 +797,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getOrganizationEntries(long,
 	 *             Date, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public List<BlogsEntry> getOrganizationEntries(
 			long organizationId, Date displayDate, int status, int start,
@@ -806,6 +825,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #getOrganizationEntriesCount(long, Date, QueryDefinition)}
 	 */
+	@Deprecated
 	@Override
 	public int getOrganizationEntriesCount(
 			long organizationId, Date displayDate, int status)
@@ -1274,6 +1294,37 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 		return entry;
 	}
 
+	protected String getEntryURL(
+			BlogsEntry entry, ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		HttpServletRequest request = serviceContext.getRequest();
+
+		if (request == null) {
+			return StringPool.BLANK;
+		}
+
+		String layoutURL = getLayoutURL(
+			entry.getGroupId(), PortletKeys.BLOGS, serviceContext);
+
+		if (Validator.isNotNull(layoutURL)) {
+			return layoutURL + Portal.FRIENDLY_URL_SEPARATOR + "blogs" +
+				StringPool.SLASH + entry.getEntryId();
+		}
+
+		long controlPanelPlid = PortalUtil.getControlPanelPlid(
+			serviceContext.getCompanyId());
+
+		PortletURL portletURL = PortletURLFactoryUtil.create(
+			request, PortletKeys.BLOGS_ADMIN, controlPanelPlid,
+			PortletRequest.RENDER_PHASE);
+
+		portletURL.setParameter("struts_action", "/blogs_admin/view_entry");
+		portletURL.setParameter("entryId", String.valueOf(entry.getEntryId()));
+
+		return portletURL.toString();
+	}
+
 	protected String getUniqueUrlTitle(long entryId, long groupId, String title)
 		throws SystemException {
 
@@ -1339,15 +1390,11 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 
 	protected void notifySubscribers(
 			BlogsEntry entry, ServiceContext serviceContext)
-		throws SystemException {
-
-		if (!entry.isApproved()) {
-			return;
-		}
+		throws PortalException, SystemException {
 
 		String layoutFullURL = serviceContext.getLayoutFullURL();
 
-		if (Validator.isNull(layoutFullURL)) {
+		if (!entry.isApproved() || Validator.isNull(layoutFullURL)) {
 			return;
 		}
 
@@ -1376,9 +1423,8 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 			return;
 		}
 
-		String entryURL =
-			layoutFullURL + Portal.FRIENDLY_URL_SEPARATOR + "blogs" +
-				StringPool.SLASH + entry.getEntryId();
+		String entryTitle = entry.getTitle();
+		String entryURL = getEntryURL(entry, serviceContext);
 
 		String fromName = BlogsUtil.getEmailFromName(
 			preferences, entry.getCompanyId());
@@ -1402,16 +1448,35 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 
 		SubscriptionSender subscriptionSender = new SubscriptionSender();
 
+		subscriptionSender.setClassPK(entry.getEntryId());
+		subscriptionSender.setClassName(entry.getModelClassName());
 		subscriptionSender.setCompanyId(entry.getCompanyId());
+		subscriptionSender.setContextAttribute(
+			"[$BLOGS_ENTRY_CONTENT$]", entry.getContent(), false);
 		subscriptionSender.setContextAttributes(
+			"[$BLOGS_ENTRY_DESCRIPTION$]", entry.getDescription(),
 			"[$BLOGS_ENTRY_STATUS_BY_USER_NAME$]", entry.getStatusByUserName(),
-			"[$BLOGS_ENTRY_URL$]", entryURL);
+			"[$BLOGS_ENTRY_TITLE$]", entryTitle, "[$BLOGS_ENTRY_URL$]",
+			entryURL);
 		subscriptionSender.setContextUserPrefix("BLOGS_ENTRY");
+		subscriptionSender.setEntryTitle(entryTitle);
+		subscriptionSender.setEntryURL(entryURL);
 		subscriptionSender.setFrom(fromAddress, fromName);
 		subscriptionSender.setHtmlFormat(true);
 		subscriptionSender.setLocalizedBodyMap(localizedBodyMap);
 		subscriptionSender.setLocalizedSubjectMap(localizedSubjectMap);
 		subscriptionSender.setMailId("blogs_entry", entry.getEntryId());
+
+		int notificationType =
+			UserNotificationDefinition.NOTIFICATION_TYPE_ADD_ENTRY;
+
+		if (serviceContext.isCommandUpdate()) {
+			notificationType =
+				UserNotificationDefinition.NOTIFICATION_TYPE_UPDATE_ENTRY;
+		}
+
+		subscriptionSender.setNotificationType(notificationType);
+
 		subscriptionSender.setPortletId(PortletKeys.BLOGS);
 		subscriptionSender.setReplyToAddress(fromAddress);
 		subscriptionSender.setScopeGroupId(entry.getGroupId());
@@ -1420,6 +1485,9 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 
 		subscriptionSender.addPersistedSubscribers(
 			BlogsEntry.class.getName(), entry.getGroupId());
+
+		subscriptionSender.addPersistedSubscribers(
+			BlogsEntry.class.getName(), entry.getEntryId());
 
 		subscriptionSender.flushNotificationsAsync();
 	}

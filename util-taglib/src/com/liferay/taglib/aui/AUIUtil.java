@@ -14,11 +14,14 @@
 
 package com.liferay.taglib.aui;
 
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Shuyang Zhou
@@ -28,6 +31,7 @@ public class AUIUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public static final String BUTTON_INPUT_PREFIX = "btn-input";
 
 	public static final String BUTTON_PREFIX = "btn";
@@ -37,23 +41,26 @@ public class AUIUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public static final String INPUT_PREFIX = "field-input";
 
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public static final String LABEL_CHOICE_PREFIX = "choice-label";
 
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public static final String LABEL_FIELD_PREFIX = "field-label";
 
 	public static String buildCss(
 		String prefix, boolean disabled, boolean first, boolean last,
 		String cssClass) {
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(prefix);
 
@@ -85,6 +92,7 @@ public class AUIUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link #buildCss(String, boolean,
 	 *             boolean, boolean, String)}
 	 */
+	@Deprecated
 	public static String buildCss(
 			String prefix, String baseTypeCss, boolean disabled, boolean first,
 			boolean last, String cssClass) {
@@ -106,7 +114,7 @@ public class AUIUtil {
 			sb.append("data-");
 			sb.append(dataKey);
 			sb.append("=\"");
-			sb.append(dataValue);
+			sb.append(HtmlUtil.escapeAttribute(dataValue));
 			sb.append("\" ");
 		}
 
@@ -150,11 +158,33 @@ public class AUIUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link #buildLabel(String, boolean,
 	 *             boolean, String)}
 	 */
+	@Deprecated
 	public static String buildLabel(
 		String inlineLabel, boolean showForLabel, String forLabel,
 		boolean choiceField) {
 
 		return buildLabel(StringPool.BLANK, false, showForLabel, forLabel);
+	}
+
+	public static Object getAttribute(
+		HttpServletRequest request, String namespace, String key) {
+
+		Map<String, Object> dynamicAttributes =
+			(Map<String, Object>)request.getAttribute(
+				namespace.concat("dynamicAttributes"));
+		Map<String, Object> scopedAttributes =
+			(Map<String, Object>)request.getAttribute(
+				namespace.concat("scopedAttributes"));
+
+		if (((dynamicAttributes != null) &&
+			 dynamicAttributes.containsKey(key)) ||
+			((scopedAttributes != null) &&
+			 scopedAttributes.containsKey(key))) {
+
+			return request.getAttribute(namespace.concat(key));
+		}
+
+		return null;
 	}
 
 }

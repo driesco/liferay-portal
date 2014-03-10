@@ -14,6 +14,7 @@
 
 package com.liferay.portal.kernel.dao.search;
 
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -82,6 +83,7 @@ public class RowChecker {
 	 *             #getRowCheckBox(HttpServletRequest, boolean, boolean,
 	 *             String)}
 	 */
+	@Deprecated
 	public String getRowCheckBox(
 		boolean checked, boolean disabled, String primaryKey) {
 
@@ -182,7 +184,7 @@ public class RowChecker {
 		String checkBoxRowIds, String checkBoxAllRowIds,
 		String checkBoxPostOnClick) {
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(20);
 
 		sb.append("<input ");
 
@@ -197,7 +199,7 @@ public class RowChecker {
 		sb.append("name=\"");
 		sb.append(name);
 		sb.append("\" type=\"checkbox\" value=\"");
-		sb.append(value);
+		sb.append(HtmlUtil.escapeAttribute(value));
 		sb.append("\" ");
 
 		if (Validator.isNotNull(_allRowIds)) {

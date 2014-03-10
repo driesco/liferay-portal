@@ -48,6 +48,8 @@ public class TestPropsValues extends com.liferay.portal.util.TestPropsValues {
 	public static final String[] FIXED_ISSUES = StringUtil.split(
 		TestPropsUtil.get("fixed.issues"));
 
+	public static final String IGNORE_ERROR = TestPropsUtil.get("ignore.error");
+
 	public static final String OUTPUT_DIR = TestPropsUtil.get("output.dir");
 
 	public static final String PORTAL_URL = TestPropsUtil.get("portal.url");
@@ -72,6 +74,12 @@ public class TestPropsValues extends com.liferay.portal.util.TestPropsValues {
 
 	public static final int SELENIUM_PORT = GetterUtil.getInteger(
 		TestPropsUtil.get("selenium.port"));
+
+	public static final boolean TEAR_DOWN_BEFORE_TEST = GetterUtil.getBoolean(
+		TestPropsUtil.get("tear.down.before.test"));
+
+	public static final boolean TEST_ASSERT_LIFERAY_ERRORS =
+		GetterUtil.getBoolean(TestPropsUtil.get("test.assert.liferay.errors"));
 
 	public static final boolean TEST_ASSSERT_JAVASCRIPT_ERRORS =
 		GetterUtil.getBoolean(

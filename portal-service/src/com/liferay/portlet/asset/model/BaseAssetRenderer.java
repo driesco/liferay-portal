@@ -85,6 +85,7 @@ public abstract class BaseAssetRenderer implements AssetRenderer {
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #getAvailableLanguageIds}
 	 */
+	@Deprecated
 	@Override
 	public String[] getAvailableLocales() {
 		return getAvailableLanguageIds();
@@ -184,7 +185,6 @@ public abstract class BaseAssetRenderer implements AssetRenderer {
 		editPortletURL.setDoAsGroupId(getGroupId());
 
 		editPortletURL.setParameter("redirect", redirectURL.toString());
-		editPortletURL.setParameter("originalRedirect", redirectURL.toString());
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
 
@@ -364,7 +364,7 @@ public abstract class BaseAssetRenderer implements AssetRenderer {
 		sb.append(StringPool.EQUAL);
 		sb.append(primaryKeyParameterValue);
 
-		return sb.toString();
+		return PortalUtil.addPreservedParameters(themeDisplay, sb.toString());
 	}
 
 	private static final String[] _AVAILABLE_LANGUAGE_IDS = new String[0];

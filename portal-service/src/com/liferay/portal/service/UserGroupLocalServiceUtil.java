@@ -734,6 +734,7 @@ public class UserGroupLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #addUserGroup(long, long,
 	String, String, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.UserGroup addUserGroup(long userId,
 		long companyId, java.lang.String name, java.lang.String description)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -782,6 +783,7 @@ public class UserGroupLocalServiceUtil {
 	* @throws SystemException if a system exception occurred
 	* @deprecated As of 6.2.0
 	*/
+	@Deprecated
 	public static void copyUserGroupLayouts(long userGroupId, long userId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -799,6 +801,7 @@ public class UserGroupLocalServiceUtil {
 	* @throws SystemException if a system exception occurred
 	* @deprecated As of 6.1.0
 	*/
+	@Deprecated
 	public static void copyUserGroupLayouts(long userGroupId, long[] userIds)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -815,6 +818,7 @@ public class UserGroupLocalServiceUtil {
 	* @throws SystemException if a system exception occurred
 	* @deprecated As of 6.1.0
 	*/
+	@Deprecated
 	public static void copyUserGroupLayouts(long[] userGroupIds, long userId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -1083,6 +1087,29 @@ public class UserGroupLocalServiceUtil {
 			andOperator);
 	}
 
+	public static com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portal.model.UserGroup> searchUserGroups(
+		long companyId, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		int start, int end, com.liferay.portal.kernel.search.Sort sort)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .searchUserGroups(companyId, keywords, params, start, end,
+			sort);
+	}
+
+	public static com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portal.model.UserGroup> searchUserGroups(
+		long companyId, java.lang.String name, java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andSearch, int start, int end,
+		com.liferay.portal.kernel.search.Sort sort)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .searchUserGroups(companyId, name, description, params,
+			andSearch, start, end, sort);
+	}
+
 	/**
 	* Removes the user groups from the group.
 	*
@@ -1121,6 +1148,7 @@ public class UserGroupLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #updateUserGroup(long, long,
 	String, String, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.UserGroup updateUserGroup(
 		long companyId, long userGroupId, java.lang.String name,
 		java.lang.String description)
@@ -1170,6 +1198,7 @@ public class UserGroupLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(UserGroupLocalService service) {
 	}
 

@@ -580,13 +580,15 @@ Group parentGroup = themeDisplay.getSiteGroup();
 	%>
 
 	<c:if test="<%= Validator.isNotNull(urlViewInContext) %>">
-		<a href="<%= urlViewInContext %>" target="blank"><%= LanguageUtil.format(pageContext, "view-content-in-x", defaultDisplayLayout.getName(locale)) %></a>
+		<a href="<%= urlViewInContext %>" target="blank"><%= LanguageUtil.format(pageContext, "view-content-in-x", defaultDisplayLayout.getName(locale), false) %></a>
 	</c:if>
 </c:if>
 
 <%!
 private String _getLayoutBreadcrumb(Layout layout, Locale locale) throws Exception {
-	StringBundler sb = new StringBundler();
+	List<Layout> ancestors = layout.getAncestors();
+
+	StringBundler sb = new StringBundler(4 * ancestors.size() + 5);
 
 	layout = layout.toEscapedModel();
 
@@ -600,8 +602,6 @@ private String _getLayoutBreadcrumb(Layout layout, Locale locale) throws Excepti
 	sb.append(StringPool.SPACE);
 	sb.append(StringPool.GREATER_THAN);
 	sb.append(StringPool.SPACE);
-
-	List<Layout> ancestors = layout.getAncestors();
 
 	Collections.reverse(ancestors);
 

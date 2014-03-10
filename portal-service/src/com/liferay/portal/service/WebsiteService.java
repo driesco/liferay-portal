@@ -62,9 +62,10 @@ public interface WebsiteService extends BaseService {
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addWebsite( String, long,
+	* @deprecated As of 6.2.0, replaced by {@link #addWebsite(String, long,
 	String, int, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	public com.liferay.portal.model.Website addWebsite(
 		java.lang.String className, long classPK, java.lang.String url,
 		int typeId, boolean primary)

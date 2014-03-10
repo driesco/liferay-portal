@@ -33,7 +33,6 @@ import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ImageLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.util.ClassLoaderUtil;
@@ -76,8 +75,7 @@ import org.junit.runner.RunWith;
  */
 @ExecutionTestListeners(
 	listeners = {
-		MainServletExecutionTestListener.class,
-		EnvironmentExecutionTestListener.class
+		MainServletExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class ConvertDocumentLibraryTest {
@@ -212,8 +210,7 @@ public class ConvertDocumentLibraryTest {
 	protected Image addImage() throws Exception {
 		return ImageLocalServiceUtil.updateImage(
 			CounterLocalServiceUtil.increment(),
-			FileUtil.getBytes(
-				getClass().getResourceAsStream("dependencies/liferay.jpg")));
+			FileUtil.getBytes(getClass(), "dependencies/liferay.jpg"));
 	}
 
 	protected MBMessage addMBMessageAttachment() throws Exception {

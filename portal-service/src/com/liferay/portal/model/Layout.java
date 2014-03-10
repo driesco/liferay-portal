@@ -72,6 +72,9 @@ public interface Layout extends LayoutModel, PersistedModel {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
+	public java.lang.String getDefaultThemeSetting(java.lang.String key,
+		java.lang.String device, boolean inheritLookAndFeel);
+
 	public java.lang.String getFriendlyURL(java.util.Locale locale);
 
 	public java.util.Map<java.util.Locale, java.lang.String> getFriendlyURLMap()
@@ -88,11 +91,16 @@ public interface Layout extends LayoutModel, PersistedModel {
 
 	public java.lang.String getHTMLTitle(java.lang.String localeLanguageId);
 
+	public boolean getIconImage();
+
 	public com.liferay.portal.model.LayoutSet getLayoutSet()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
 	public com.liferay.portal.model.LayoutType getLayoutType();
+
+	public com.liferay.portal.model.Layout getLinkedToLayout()
+		throws com.liferay.portal.kernel.exception.SystemException;
 
 	public long getParentPlid()
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -125,6 +133,9 @@ public interface Layout extends LayoutModel, PersistedModel {
 
 	public java.lang.String getThemeSetting(java.lang.String key,
 		java.lang.String device);
+
+	public java.lang.String getThemeSetting(java.lang.String key,
+		java.lang.String device, boolean inheritLookAndFeel);
 
 	public com.liferay.portal.kernel.util.UnicodeProperties getTypeSettingsProperties();
 
@@ -162,6 +173,8 @@ public interface Layout extends LayoutModel, PersistedModel {
 	public boolean isFirstChild();
 
 	public boolean isFirstParent();
+
+	public boolean isIconImage();
 
 	public boolean isInheritLookAndFeel();
 

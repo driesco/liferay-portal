@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.systemevent.SystemEventHierarchyEntryThreadLocal;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -228,6 +229,7 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 	/**
 	 * @deprecated As of 7.0.0, replaced by {@link #deletePortletFolder}
 	 */
+	@Deprecated
 	@Override
 	public void deleteFolder(long folderId)
 		throws PortalException, SystemException {
@@ -271,6 +273,8 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 		try {
 			DLAppHelperThreadLocal.setEnabled(false);
 
+			SystemEventHierarchyEntryThreadLocal.push(FileEntry.class);
+
 			DLAppLocalServiceUtil.deleteFileEntry(fileEntryId);
 		}
 		catch (NoSuchRepositoryEntryException nsree) {
@@ -280,6 +284,8 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 		}
 		finally {
 			DLAppHelperThreadLocal.setEnabled(dlAppHelperEnabled);
+
+			SystemEventHierarchyEntryThreadLocal.pop(FileEntry.class);
 		}
 	}
 
@@ -303,6 +309,8 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 		try {
 			DLAppHelperThreadLocal.setEnabled(false);
 
+			SystemEventHierarchyEntryThreadLocal.push(Folder.class);
+
 			DLAppLocalServiceUtil.deleteFolder(folderId);
 		}
 		catch (NoSuchRepositoryEntryException nsree) {
@@ -312,6 +320,8 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 		}
 		finally {
 			DLAppHelperThreadLocal.setEnabled(dlAppHelperEnabled);
+
+			SystemEventHierarchyEntryThreadLocal.pop(Folder.class);
 		}
 	}
 
@@ -441,7 +451,7 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 		sb.append(HttpUtil.encodeURL(HtmlUtil.unescape(title)));
 
 		sb.append(StringPool.SLASH);
-		sb.append(fileEntry.getUuid());
+		sb.append(HttpUtil.encodeURL(fileEntry.getUuid()));
 
 		if (themeDisplay != null) {
 			PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();

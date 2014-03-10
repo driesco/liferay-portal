@@ -44,7 +44,7 @@ import java.util.Map;
  */
 @ProviderType
 public interface LayoutRevisionModel extends BaseModel<LayoutRevision>,
-	GroupedModel, WorkflowedModel {
+	GroupedModel, MVCCModel, WorkflowedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -64,6 +64,22 @@ public interface LayoutRevisionModel extends BaseModel<LayoutRevision>,
 	 * @param primaryKey the primary key of this layout revision
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this layout revision.
+	 *
+	 * @return the mvcc version of this layout revision
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this layout revision.
+	 *
+	 * @param mvccVersion the mvcc version of this layout revision
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the layout revision ID of this layout revision.
@@ -826,27 +842,6 @@ public interface LayoutRevisionModel extends BaseModel<LayoutRevision>,
 	public void setTypeSettings(String typeSettings);
 
 	/**
-	 * Returns the icon image of this layout revision.
-	 *
-	 * @return the icon image of this layout revision
-	 */
-	public boolean getIconImage();
-
-	/**
-	 * Returns <code>true</code> if this layout revision is icon image.
-	 *
-	 * @return <code>true</code> if this layout revision is icon image; <code>false</code> otherwise
-	 */
-	public boolean isIconImage();
-
-	/**
-	 * Sets whether this layout revision is icon image.
-	 *
-	 * @param iconImage the icon image of this layout revision
-	 */
-	public void setIconImage(boolean iconImage);
-
-	/**
 	 * Returns the icon image ID of this layout revision.
 	 *
 	 * @return the icon image ID of this layout revision
@@ -1020,6 +1015,7 @@ public interface LayoutRevisionModel extends BaseModel<LayoutRevision>,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	 */
+	@Deprecated
 	@Override
 	public boolean getApproved();
 

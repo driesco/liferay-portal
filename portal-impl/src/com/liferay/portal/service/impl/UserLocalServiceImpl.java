@@ -38,27 +38,25 @@ import com.liferay.portal.UserEmailAddressException;
 import com.liferay.portal.UserIdException;
 import com.liferay.portal.UserLockoutException;
 import com.liferay.portal.UserPasswordException;
-import com.liferay.portal.UserPortraitSizeException;
-import com.liferay.portal.UserPortraitTypeException;
 import com.liferay.portal.UserReminderQueryException;
 import com.liferay.portal.UserScreenNameException;
 import com.liferay.portal.UserSmsException;
 import com.liferay.portal.kernel.dao.shard.ShardCallable;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.image.ImageBag;
-import com.liferay.portal.kernel.image.ImageToolUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
+import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.spring.aop.Skip;
 import com.liferay.portal.kernel.transaction.Propagation;
@@ -130,16 +128,13 @@ import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.SubscriptionSender;
-import com.liferay.portlet.documentlibrary.ImageSizeException;
 import com.liferay.portlet.messageboards.model.MBMessage;
+import com.liferay.portlet.usersadmin.util.UsersAdmin;
 import com.liferay.portlet.usersadmin.util.UsersAdminUtil;
 import com.liferay.util.Encryptor;
 import com.liferay.util.EncryptorException;
 import com.liferay.util.PwdGenerator;
 
-import java.awt.image.RenderedImage;
-
-import java.io.IOException;
 import java.io.Serializable;
 
 import java.util.ArrayList;
@@ -804,20 +799,14 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 
 		PasswordPolicy passwordPolicy = defaultUser.getPasswordPolicy();
 
-		boolean passwordReset = false;
+		if ((passwordPolicy != null) && passwordPolicy.isChangeable() &&
+			passwordPolicy.isChangeRequired()) {
 
-		if (passwordPolicy != null) {
-			if (passwordPolicy.isChangeable() &&
-				passwordPolicy.isChangeRequired()) {
-
-				passwordReset = true;
-			}
-
-			addPasswordPolicyUsers(
-				passwordPolicy.getPasswordPolicyId(), new long[] {userId});
+			user.setPasswordReset(true);
 		}
-
-		user.setPasswordReset(passwordReset);
+		else {
+			user.setPasswordReset(false);
+		}
 
 		user.setDigest(StringPool.BLANK);
 		user.setScreenName(screenName);
@@ -983,6 +972,7 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		}
 
 		workflowServiceContext.setAttribute("autoPassword", autoPassword);
+		workflowServiceContext.setAttribute("passwordUnencrypted", password1);
 		workflowServiceContext.setAttribute("sendEmail", sendEmail);
 
 		WorkflowHandlerRegistryUtil.startWorkflowInstance(
@@ -1605,11 +1595,13 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 	 * the confirmation email.
 	 *
 	 * @param  user the user
-	 * @param  serviceContext the service context to be applied. Can set whether
-	 *         a password should be generated (with the
-	 *         <code>autoPassword</code> attribute) and whether the confirmation
-	 *         email should be sent (with the <code>sendEmail</code> attribute)
-	 *         for the user.
+	 * @param  serviceContext the service context to be applied. You can specify
+	 *         an unencrypted custom password for the user via attribute
+	 *         <code>passwordUnencrypted</code>. You automatically generate a
+	 *         password for the user by setting attribute
+	 *         <code>autoPassword</code> to <code>true</code>. You can send a
+	 *         confirmation email to the user by setting attribute
+	 *         <code>sendEmail</code> to <code>true</code>.
 	 * @throws PortalException if a portal exception occurred
 	 * @throws SystemException if a system exception occurred
 	 */
@@ -1621,7 +1613,8 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		boolean autoPassword = ParamUtil.getBoolean(
 			serviceContext, "autoPassword");
 
-		String password = null;
+		String password = (String)serviceContext.getAttribute(
+			"passwordUnencrypted");
 
 		if (autoPassword) {
 			if (LDAPSettingsUtil.isPasswordPolicyEnabled(user.getCompanyId())) {
@@ -1648,6 +1641,8 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 				password = PwdToolkitUtil.generate(passwordPolicy);
 			}
 
+			serviceContext.setAttribute("passwordUnencrypted", password);
+
 			user.setPassword(PasswordEncryptorUtil.encrypt(password));
 			user.setPasswordUnencrypted(password);
 			user.setPasswordEncrypted(true);
@@ -1660,14 +1655,8 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		}
 
 		if (user.hasCompanyMx()) {
-			String mailPassword = password;
-
-			if (Validator.isNull(mailPassword)) {
-				mailPassword = user.getPasswordUnencrypted();
-			}
-
 			mailService.addUser(
-				user.getCompanyId(), user.getUserId(), mailPassword,
+				user.getCompanyId(), user.getUserId(), password,
 				user.getFirstName(), user.getMiddleName(), user.getLastName(),
 				user.getEmailAddress());
 		}
@@ -1675,13 +1664,13 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		boolean sendEmail = ParamUtil.getBoolean(serviceContext, "sendEmail");
 
 		if (sendEmail) {
-			sendEmail(user, password, serviceContext);
+			notifyUser(user, password, serviceContext);
 		}
 
 		Company company = companyPersistence.findByPrimaryKey(
 			user.getCompanyId());
 
-		if (company.isStrangersVerify() && (serviceContext.getPlid() > 0)) {
+		if (company.isStrangersVerify()) {
 			sendEmailAddressVerification(
 				user, user.getEmailAddress(), serviceContext);
 		}
@@ -1757,15 +1746,7 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 
 		User user = userPersistence.findByPrimaryKey(userId);
 
-		long portraitId = user.getPortraitId();
-
-		if (portraitId > 0) {
-			user.setPortraitId(0);
-
-			userPersistence.update(user);
-
-			imageLocalService.deleteImage(portraitId);
-		}
+		PortalUtil.updateImageId(user, false, null, "portraitId", 0, 0, 0);
 	}
 
 	/**
@@ -2767,6 +2748,7 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #getUserByUuidAndCompanyId(String, long)}
 	 */
+	@Deprecated
 	@Override
 	public User getUserByUuid(String uuid)
 		throws PortalException, SystemException {
@@ -3126,10 +3108,20 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			params.put("keywords", keywords);
 		}
 
-		return search(
-			companyId, firstName, middleName, lastName, fullName, screenName,
-			emailAddress, street, city, zip, region, country, status, params,
-			andOperator, start, end, sort);
+		try {
+			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+				User.class);
+
+			SearchContext searchContext = buildSearchContext(
+				companyId, firstName, middleName, lastName, fullName,
+				screenName, emailAddress, street, city, zip, region, country,
+				status, params, andOperator, start, end, sort);
+
+			return indexer.search(searchContext);
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
 	}
 
 	/**
@@ -3232,10 +3224,20 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			int end, Sort sort)
 		throws SystemException {
 
-		return search(
-			companyId, firstName, middleName, lastName, null, screenName,
-			emailAddress, null, null, null, null, null, status, params,
-			andSearch, start, end, sort);
+		try {
+			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+				User.class);
+
+			SearchContext searchContext = buildSearchContext(
+				companyId, firstName, middleName, lastName, null, screenName,
+				emailAddress, null, null, null, null, null, status, params,
+				andSearch, start, end, sort);
+
+			return indexer.search(searchContext);
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
 	}
 
 	/**
@@ -3295,6 +3297,70 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			emailAddress, status, params, andSearch);
 	}
 
+	@Override
+	public BaseModelSearchResult<User> searchUsers(
+			long companyId, String keywords, int status,
+			LinkedHashMap<String, Object> params, int start, int end, Sort sort)
+		throws PortalException, SystemException {
+
+		String firstName = null;
+		String middleName = null;
+		String lastName = null;
+		String fullName = null;
+		String screenName = null;
+		String emailAddress = null;
+		String street = null;
+		String city = null;
+		String zip = null;
+		String region = null;
+		String country = null;
+		boolean andOperator = false;
+
+		if (Validator.isNotNull(keywords)) {
+			firstName = keywords;
+			middleName = keywords;
+			lastName = keywords;
+			fullName = keywords;
+			screenName = keywords;
+			emailAddress = keywords;
+			street = keywords;
+			city = keywords;
+			zip = keywords;
+			region = keywords;
+			country = keywords;
+		}
+		else {
+			andOperator = true;
+		}
+
+		if (params != null) {
+			params.put("keywords", keywords);
+		}
+
+		SearchContext searchContext = buildSearchContext(
+			companyId, firstName, middleName, lastName, fullName, screenName,
+			emailAddress, street, city, zip, region, country, status, params,
+			andOperator, start, end, sort);
+
+		return searchUsers(searchContext);
+	}
+
+	@Override
+	public BaseModelSearchResult<User> searchUsers(
+			long companyId, String firstName, String middleName,
+			String lastName, String screenName, String emailAddress, int status,
+			LinkedHashMap<String, Object> params, boolean andSearch, int start,
+			int end, Sort sort)
+		throws PortalException, SystemException {
+
+		SearchContext searchContext = buildSearchContext(
+			companyId, firstName, middleName, lastName, null, screenName,
+			emailAddress, null, null, null, null, null, status, params,
+			andSearch, start, end, sort);
+
+		return searchUsers(searchContext);
+	}
+
 	/**
 	 * Sends an email address verification to the user.
 	 *
@@ -3326,12 +3392,19 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			serviceContext.getPortalURL() + serviceContext.getPathMain() +
 				"/portal/verify_email_address?ticketKey=" + ticket.getKey();
 
-		Layout layout = layoutLocalService.getLayout(serviceContext.getPlid());
+		long plid = serviceContext.getPlid();
 
-		Group group = layout.getGroup();
+		if (plid > 0) {
+			Layout layout = layoutLocalService.fetchLayout(plid);
 
-		if (!layout.isPrivateLayout() && !group.isUser()) {
-			verifyEmailAddressURL += "&p_l_id=" + serviceContext.getPlid();
+			if (layout != null) {
+				Group group = layout.getGroup();
+
+				if (!layout.isPrivateLayout() && !group.isUser()) {
+					verifyEmailAddressURL +=
+						"&p_l_id=" + serviceContext.getPlid();
+				}
+			}
 		}
 
 		String fromName = PrefsPropsUtil.getString(
@@ -4258,6 +4331,7 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		}
 
 		workflowServiceContext.setAttribute("autoPassword", autoPassword);
+		workflowServiceContext.setAttribute("passwordUnencrypted", password1);
 		workflowServiceContext.setAttribute("sendEmail", sendEmail);
 
 		WorkflowHandlerRegistryUtil.startWorkflowInstance(
@@ -4559,7 +4633,11 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		user.setPasswordUnencrypted(password1);
 		user.setPasswordEncrypted(true);
 		user.setPasswordReset(passwordReset);
-		user.setPasswordModifiedDate(new Date());
+
+		if (!silentUpdate || (user.getPasswordModifiedDate() == null)) {
+			user.setPasswordModifiedDate(new Date());
+		}
+
 		user.setDigest(StringPool.BLANK);
 		user.setGraceLoginCount(0);
 
@@ -4671,49 +4749,13 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 
 		User user = userPersistence.findByPrimaryKey(userId);
 
-		long imageMaxSize = PrefsPropsUtil.getLong(
-			PropsKeys.USERS_IMAGE_MAX_SIZE);
+		PortalUtil.updateImageId(
+			user, true, bytes, "portraitId",
+			PrefsPropsUtil.getLong(PropsKeys.USERS_IMAGE_MAX_SIZE),
+			PropsValues.USERS_IMAGE_MAX_HEIGHT,
+			PropsValues.USERS_IMAGE_MAX_WIDTH);
 
-		if ((imageMaxSize > 0) &&
-			((bytes == null) || (bytes.length > imageMaxSize))) {
-
-			throw new UserPortraitSizeException();
-		}
-
-		long portraitId = user.getPortraitId();
-
-		if (portraitId <= 0) {
-			portraitId = counterLocalService.increment();
-
-			user.setPortraitId(portraitId);
-		}
-
-		try {
-			ImageBag imageBag = ImageToolUtil.read(bytes);
-
-			RenderedImage renderedImage = imageBag.getRenderedImage();
-
-			if (renderedImage == null) {
-				throw new UserPortraitTypeException();
-			}
-
-			renderedImage = ImageToolUtil.scale(
-				renderedImage, PropsValues.USERS_IMAGE_MAX_HEIGHT,
-				PropsValues.USERS_IMAGE_MAX_WIDTH);
-
-			String contentType = imageBag.getType();
-
-			imageLocalService.updateImage(
-				portraitId,
-				ImageToolUtil.getBytes(renderedImage, contentType));
-		}
-		catch (IOException ioe) {
-			throw new ImageSizeException(ioe);
-		}
-
-		userPersistence.update(user);
-
-		return user;
+		return userPersistence.update(user);
 	}
 
 	/**
@@ -4788,14 +4830,38 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 	/**
 	 * Updates the user's workflow status.
 	 *
+	 * @param      userId the primary key of the user
+	 * @param      status the user's new workflow status
+	 * @return     the user
+	 * @throws     PortalException if a user with the primary key could not be
+	 *             found
+	 * @throws     SystemException if a system exception occurred
+	 * @deprecated As of 7.0.0, replaced by {@link #updateStatus(long, int,
+	 *             ServiceContext)}
+	 */
+	@Deprecated
+	@Override
+	public User updateStatus(long userId, int status)
+		throws PortalException, SystemException {
+
+		return updateStatus(userId, status, new ServiceContext());
+	}
+
+	/**
+	 * Updates the user's workflow status.
+	 *
 	 * @param  userId the primary key of the user
 	 * @param  status the user's new workflow status
+	 * @param  serviceContext the service context to be applied. You can specify
+	 *         an unencrypted custom password (used by an LDAP listener) for the
+	 *         user via attribute <code>passwordUnencrypted</code>.
 	 * @return the user
 	 * @throws PortalException if a user with the primary key could not be found
 	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public User updateStatus(long userId, int status)
+	public User updateStatus(
+			long userId, int status, ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
 		User user = userPersistence.findByPrimaryKey(userId);
@@ -4804,6 +4870,13 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			(user.getStatus() != WorkflowConstants.STATUS_APPROVED)) {
 
 			validateCompanyMaxUsers(user.getCompanyId());
+		}
+
+		String passwordUnencrypted = (String)serviceContext.getAttribute(
+			"passwordUnencrypted");
+
+		if (Validator.isNotNull(passwordUnencrypted)) {
+			user.setPasswordUnencrypted(passwordUnencrypted);
 		}
 
 		user.setStatus(status);
@@ -4832,6 +4905,8 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 	 * @param  emailAddress the user's new email address
 	 * @param  facebookId the user's new Facebook ID
 	 * @param  openId the user's new OpenID
+	 * @param  portrait whether to update the user's portrait image
+	 * @param  portraitBytes the new portrait image data
 	 * @param  languageId the user's new language ID
 	 * @param  timeZoneId the user's new time zone ID
 	 * @param  greeting the user's new greeting
@@ -4878,13 +4953,14 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			String newPassword2, boolean passwordReset,
 			String reminderQueryQuestion, String reminderQueryAnswer,
 			String screenName, String emailAddress, long facebookId,
-			String openId, String languageId, String timeZoneId,
-			String greeting, String comments, String firstName,
-			String middleName, String lastName, int prefixId, int suffixId,
-			boolean male, int birthdayMonth, int birthdayDay, int birthdayYear,
-			String smsSn, String aimSn, String facebookSn, String icqSn,
-			String jabberSn, String msnSn, String mySpaceSn, String skypeSn,
-			String twitterSn, String ymSn, String jobTitle, long[] groupIds,
+			String openId, boolean portrait, byte[] portraitBytes,
+			String languageId, String timeZoneId, String greeting,
+			String comments, String firstName, String middleName,
+			String lastName, int prefixId, int suffixId, boolean male,
+			int birthdayMonth, int birthdayDay, int birthdayYear, String smsSn,
+			String aimSn, String facebookSn, String icqSn, String jabberSn,
+			String msnSn, String mySpaceSn, String skypeSn, String twitterSn,
+			String ymSn, String jobTitle, long[] groupIds,
 			long[] organizationIds, long[] roleIds,
 			List<UserGroupRole> userGroupRoles, long[] userGroupIds,
 			ServiceContext serviceContext)
@@ -4988,6 +5064,13 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		}
 
 		user.setOpenId(openId);
+
+		PortalUtil.updateImageId(
+			user, portrait, portraitBytes, "portraitId",
+			PrefsPropsUtil.getLong(PropsKeys.USERS_IMAGE_MAX_SIZE),
+			PropsValues.USERS_IMAGE_MAX_HEIGHT,
+			PropsValues.USERS_IMAGE_MAX_WIDTH);
+
 		user.setLanguageId(languageId);
 		user.setTimeZoneId(timeZoneId);
 		user.setGreeting(greeting);
@@ -5131,6 +5214,99 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		PermissionCacheUtil.clearCache();
 
 		return user;
+	}
+
+	/**
+	 * Updates the user.
+	 *
+	 * @param      userId the primary key of the user
+	 * @param      oldPassword the user's old password
+	 * @param      newPassword1 the user's new password (optionally
+	 *             <code>null</code>)
+	 * @param      newPassword2 the user's new password confirmation (optionally
+	 *             <code>null</code>)
+	 * @param      passwordReset whether the user should be asked to reset their
+	 *             password the next time they login
+	 * @param      reminderQueryQuestion the user's new password reset question
+	 * @param      reminderQueryAnswer the user's new password reset answer
+	 * @param      screenName the user's new screen name
+	 * @param      emailAddress the user's new email address
+	 * @param      facebookId the user's new Facebook ID
+	 * @param      openId the user's new OpenID
+	 * @param      languageId the user's new language ID
+	 * @param      timeZoneId the user's new time zone ID
+	 * @param      greeting the user's new greeting
+	 * @param      comments the user's new comments
+	 * @param      firstName the user's new first name
+	 * @param      middleName the user's new middle name
+	 * @param      lastName the user's new last name
+	 * @param      prefixId the user's new name prefix ID
+	 * @param      suffixId the user's new name suffix ID
+	 * @param      male whether user is male
+	 * @param      birthdayMonth the user's new birthday month (0-based, meaning
+	 *             0 for January)
+	 * @param      birthdayDay the user's new birthday day
+	 * @param      birthdayYear the user's birthday year
+	 * @param      smsSn the user's new SMS screen name
+	 * @param      aimSn the user's new AIM screen name
+	 * @param      facebookSn the user's new Facebook screen name
+	 * @param      icqSn the user's new ICQ screen name
+	 * @param      jabberSn the user's new Jabber screen name
+	 * @param      msnSn the user's new MSN screen name
+	 * @param      mySpaceSn the user's new MySpace screen name
+	 * @param      skypeSn the user's new Skype screen name
+	 * @param      twitterSn the user's new Twitter screen name
+	 * @param      ymSn the user's new Yahoo! Messenger screen name
+	 * @param      jobTitle the user's new job title
+	 * @param      groupIds the primary keys of the user's groups
+	 * @param      organizationIds the primary keys of the user's organizations
+	 * @param      roleIds the primary keys of the user's roles
+	 * @param      userGroupRoles the user user's group roles
+	 * @param      userGroupIds the primary keys of the user's user groups
+	 * @param      serviceContext the service context to be applied (optionally
+	 *             <code>null</code>). Can set the UUID (with the
+	 *             <code>uuid</code> attribute), asset category IDs, asset tag
+	 *             names, and expando bridge attributes for the user.
+	 * @return     the user
+	 * @throws     PortalException if a user with the primary key could not be
+	 *             found or if the new information was invalid
+	 * @throws     SystemException if a system exception occurred
+	 * @deprecated As of 7.0.0, replaced by {@link #updateUser(long, String,
+	 *             String, String, boolean, String, String, String, String,
+	 *             long, String, String, String, String, String, String, String,
+	 *             String, int, int, boolean, int, int, int, String, String,
+	 *             String, String, String, String, String, String, String,
+	 *             String, String, long[], long[], long[], java.util.List,
+	 *             long[], boolean, byte[], ServiceContext)}
+	 */
+	@Deprecated
+	@Override
+	public User updateUser(
+			long userId, String oldPassword, String newPassword1,
+			String newPassword2, boolean passwordReset,
+			String reminderQueryQuestion, String reminderQueryAnswer,
+			String screenName, String emailAddress, long facebookId,
+			String openId, String languageId, String timeZoneId,
+			String greeting, String comments, String firstName,
+			String middleName, String lastName, int prefixId, int suffixId,
+			boolean male, int birthdayMonth, int birthdayDay, int birthdayYear,
+			String smsSn, String aimSn, String facebookSn, String icqSn,
+			String jabberSn, String msnSn, String mySpaceSn, String skypeSn,
+			String twitterSn, String ymSn, String jobTitle, long[] groupIds,
+			long[] organizationIds, long[] roleIds,
+			List<UserGroupRole> userGroupRoles, long[] userGroupIds,
+			ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		return updateUser(
+			userId, oldPassword, newPassword1, newPassword2, passwordReset,
+			reminderQueryQuestion, reminderQueryAnswer, screenName,
+			emailAddress, facebookId, openId, true, null, languageId,
+			timeZoneId, greeting, comments, firstName, middleName, lastName,
+			prefixId, suffixId, male, birthdayMonth, birthdayDay, birthdayYear,
+			smsSn, aimSn, facebookSn, icqSn, jabberSn, msnSn, mySpaceSn,
+			skypeSn, twitterSn, ymSn, jobTitle, groupIds, organizationIds,
+			roleIds, userGroupRoles, userGroupIds, serviceContext);
 	}
 
 	/**
@@ -5549,6 +5725,63 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		return authResult;
 	}
 
+	protected SearchContext buildSearchContext(
+		long companyId, String firstName, String middleName, String lastName,
+		String fullName, String screenName, String emailAddress, String street,
+		String city, String zip, String region, String country, int status,
+		LinkedHashMap<String, Object> params, boolean andSearch, int start,
+		int end, Sort sort) {
+
+		SearchContext searchContext = new SearchContext();
+
+		searchContext.setAndSearch(andSearch);
+
+		Map<String, Serializable> attributes =
+			new HashMap<String, Serializable>();
+
+		attributes.put("city", city);
+		attributes.put("country", country);
+		attributes.put("emailAddress", emailAddress);
+		attributes.put("firstName", firstName);
+		attributes.put("fullName", fullName);
+		attributes.put("lastName", lastName);
+		attributes.put("middleName", middleName);
+		attributes.put("params", params);
+		attributes.put("region", region);
+		attributes.put("screenName", screenName);
+		attributes.put("street", street);
+		attributes.put("status", status);
+		attributes.put("zip", zip);
+
+		searchContext.setAttributes(attributes);
+
+		searchContext.setCompanyId(companyId);
+		searchContext.setEnd(end);
+
+		if (params != null) {
+			String keywords = (String)params.remove("keywords");
+
+			if (Validator.isNotNull(keywords)) {
+				searchContext.setKeywords(keywords);
+			}
+		}
+
+		QueryConfig queryConfig = new QueryConfig();
+
+		queryConfig.setHighlightEnabled(false);
+		queryConfig.setScoreEnabled(false);
+
+		searchContext.setQueryConfig(queryConfig);
+
+		if (sort != null) {
+			searchContext.setSorts(sort);
+		}
+
+		searchContext.setStart(start);
+
+		return searchContext;
+	}
+
 	protected Date getBirthday(
 			int birthdayMonth, int birthdayDay, int birthdayYear)
 		throws PortalException {
@@ -5582,93 +5815,7 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		return userIds;
 	}
 
-	protected void reindex(final User user) {
-		final Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
-			User.class);
-
-		Callable<Void> callable = new ShardCallable<Void>(
-			user.getCompanyId()) {
-
-			@Override
-			protected Void doCall() throws Exception {
-				indexer.reindex(user);
-
-				return null;
-			}
-
-		};
-
-		TransactionCommitCallbackRegistryUtil.registerCallback(callable);
-	}
-
-	protected Hits search(
-			long companyId, String firstName, String middleName,
-			String lastName, String fullName, String screenName,
-			String emailAddress, String street, String city, String zip,
-			String region, String country, int status,
-			LinkedHashMap<String, Object> params, boolean andSearch, int start,
-			int end, Sort sort)
-		throws SystemException {
-
-		try {
-			SearchContext searchContext = new SearchContext();
-
-			searchContext.setAndSearch(andSearch);
-
-			Map<String, Serializable> attributes =
-				new HashMap<String, Serializable>();
-
-			attributes.put("city", city);
-			attributes.put("country", country);
-			attributes.put("emailAddress", emailAddress);
-			attributes.put("firstName", firstName);
-			attributes.put("fullName", fullName);
-			attributes.put("lastName", lastName);
-			attributes.put("middleName", middleName);
-			attributes.put("params", params);
-			attributes.put("region", region);
-			attributes.put("screenName", screenName);
-			attributes.put("street", street);
-			attributes.put("status", status);
-			attributes.put("zip", zip);
-
-			searchContext.setAttributes(attributes);
-
-			searchContext.setCompanyId(companyId);
-			searchContext.setEnd(end);
-
-			if (params != null) {
-				String keywords = (String)params.remove("keywords");
-
-				if (Validator.isNotNull(keywords)) {
-					searchContext.setKeywords(keywords);
-				}
-			}
-
-			QueryConfig queryConfig = new QueryConfig();
-
-			queryConfig.setHighlightEnabled(false);
-			queryConfig.setScoreEnabled(false);
-
-			searchContext.setQueryConfig(queryConfig);
-
-			if (sort != null) {
-				searchContext.setSorts(sort);
-			}
-
-			searchContext.setStart(start);
-
-			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
-				User.class);
-
-			return indexer.search(searchContext);
-		}
-		catch (Exception e) {
-			throw new SystemException(e);
-		}
-	}
-
-	protected void sendEmail(
+	protected void notifyUser(
 			User user, String password, ServiceContext serviceContext)
 		throws SystemException {
 
@@ -5721,6 +5868,46 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		subscriptionSender.addRuntimeSubscribers(toAddress, toName);
 
 		subscriptionSender.flushNotificationsAsync();
+	}
+
+	protected void reindex(final User user) {
+		final Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+			User.class);
+
+		Callable<Void> callable = new ShardCallable<Void>(
+			user.getCompanyId()) {
+
+			@Override
+			protected Void doCall() throws Exception {
+				indexer.reindex(user);
+
+				return null;
+			}
+
+		};
+
+		TransactionCommitCallbackRegistryUtil.registerCallback(callable);
+	}
+
+	protected BaseModelSearchResult<User> searchUsers(
+			SearchContext searchContext)
+		throws PortalException, SystemException {
+
+		Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(User.class);
+
+		for (int i = 0; i < 10; i++) {
+			Hits hits = indexer.search(
+				searchContext, UsersAdmin.USER_SELECTED_FIELD_NAMES);
+
+			List<User> users = UsersAdminUtil.getUsers(hits);
+
+			if (users != null) {
+				return new BaseModelSearchResult<User>(users, hits.getLength());
+			}
+		}
+
+		throw new SearchException(
+			"Unable to fix the search index after 10 attempts");
 	}
 
 	protected void setEmailAddress(

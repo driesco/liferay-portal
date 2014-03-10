@@ -165,8 +165,14 @@ public class JournalFolderLocalServiceImpl
 
 		// Trash
 
-		trashEntryLocalService.deleteEntry(
-			JournalFolder.class.getName(), folder.getFolderId());
+		if (folder.isInTrashExplicitly()) {
+			trashEntryLocalService.deleteEntry(
+				JournalFolder.class.getName(), folder.getFolderId());
+		}
+		else {
+			trashVersionLocalService.deleteTrashVersion(
+				JournalFolder.class.getName(), folder.getFolderId());
+		}
 
 		return folder;
 	}
@@ -599,6 +605,30 @@ public class JournalFolderLocalServiceImpl
 			folder.getFolderId(),
 			SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
 			extraDataJSONObject.toString(), 0);
+	}
+
+	@Override
+	public void subscribe(long userId, long groupId, long folderId)
+		throws PortalException, SystemException {
+
+		if (folderId == JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			folderId = groupId;
+		}
+
+		subscriptionLocalService.addSubscription(
+			userId, groupId, JournalFolder.class.getName(), folderId);
+	}
+
+	@Override
+	public void unsubscribe(long userId, long groupId, long folderId)
+		throws PortalException, SystemException {
+
+		if (folderId == JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			folderId = groupId;
+		}
+
+		subscriptionLocalService.deleteSubscription(
+			userId, JournalFolder.class.getName(), folderId);
 	}
 
 	@Override

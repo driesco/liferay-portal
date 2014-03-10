@@ -57,6 +57,7 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	* @deprecated As of 6.1.0 {@link #addVocabulary(String, Map, Map, String,
 	ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.asset.model.AssetVocabulary addVocabulary(
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
@@ -95,6 +96,7 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	* @deprecated As of 6.2.0, Replaced by {@link #deleteVocabularies(long[],
 	ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public void deleteVocabularies(long[] vocabularyIds)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -119,6 +121,10 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 		_assetVocabularyService.deleteVocabulary(vocabularyId);
 	}
 
+	/**
+	* @deprecated As of 7.0.0, with no direct replacement
+	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.asset.model.AssetVocabulary> getCompanyVocabularies(
 		long companyId)
@@ -130,16 +136,14 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	@Override
 	public java.util.List<com.liferay.portlet.asset.model.AssetVocabulary> getGroupsVocabularies(
 		long[] groupIds)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.SystemException {
 		return _assetVocabularyService.getGroupsVocabularies(groupIds);
 	}
 
 	@Override
 	public java.util.List<com.liferay.portlet.asset.model.AssetVocabulary> getGroupsVocabularies(
 		long[] groupIds, java.lang.String className)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.SystemException {
 		return _assetVocabularyService.getGroupsVocabularies(groupIds, className);
 	}
 
@@ -179,6 +183,13 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	}
 
 	@Override
+	public java.util.List<com.liferay.portlet.asset.model.AssetVocabulary> getGroupVocabularies(
+		long[] groupIds)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _assetVocabularyService.getGroupVocabularies(groupIds);
+	}
+
+	@Override
 	public int getGroupVocabulariesCount(long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _assetVocabularyService.getGroupVocabulariesCount(groupId);
@@ -188,6 +199,12 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	public int getGroupVocabulariesCount(long groupId, java.lang.String name)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _assetVocabularyService.getGroupVocabulariesCount(groupId, name);
+	}
+
+	@Override
+	public int getGroupVocabulariesCount(long[] groupIds)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _assetVocabularyService.getGroupVocabulariesCount(groupIds);
 	}
 
 	@Override
@@ -214,6 +231,7 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	/**
 	* @deprecated As of 6.2.0, with no direct replacement
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.kernel.json.JSONObject getJSONGroupVocabularies(
 		long groupId, java.lang.String name, int start, int end,
@@ -224,6 +242,11 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 			start, end, obc);
 	}
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link
+	#AssetUtil.filterVocabularyIds(PermissionChecker, long[])}
+	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.asset.model.AssetVocabulary> getVocabularies(
 		long[] vocabularyIds)
@@ -244,6 +267,7 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	* @deprecated As of 6.1.0, {@link #updateVocabulary(long, String, Map, Map,
 	String, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.asset.model.AssetVocabulary updateVocabulary(
 		long vocabularyId,
@@ -273,6 +297,7 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AssetVocabularyService getWrappedAssetVocabularyService() {
 		return _assetVocabularyService;
 	}
@@ -280,6 +305,7 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAssetVocabularyService(
 		AssetVocabularyService assetVocabularyService) {
 		_assetVocabularyService = assetVocabularyService;

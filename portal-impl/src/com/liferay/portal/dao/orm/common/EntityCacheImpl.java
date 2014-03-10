@@ -14,7 +14,7 @@
 
 package com.liferay.portal.dao.orm.common;
 
-import com.liferay.portal.dao.shard.advice.ShardAdvice;
+import com.liferay.portal.cache.ehcache.MVCCEhcachePortalCacheFactory;
 import com.liferay.portal.kernel.cache.CacheRegistryItem;
 import com.liferay.portal.kernel.cache.CacheRegistryUtil;
 import com.liferay.portal.kernel.cache.MultiVMPool;
@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.util.PropsValues;
 
 import java.io.Externalizable;
@@ -45,16 +46,12 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.collections.map.LRUMap;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-
 /**
  * @author Brian Wing Shun Chan
  * @author Shuyang Zhou
  */
 @DoPrivileged
-public class EntityCacheImpl
-	implements BeanFactoryAware, CacheRegistryItem, EntityCache {
+public class EntityCacheImpl implements CacheRegistryItem, EntityCache {
 
 	public static final String CACHE_NAME = EntityCache.class.getName();
 
@@ -72,10 +69,10 @@ public class EntityCacheImpl
 	}
 
 	@Override
-	public void clearCache(String className) {
+	public void clearCache(Class<?> clazz) {
 		clearLocalCache();
 
-		PortalCache<?, ?> portalCache = _getPortalCache(className, true);
+		PortalCache<?, ?> portalCache = _getPortalCache(clazz, true);
 
 		if (portalCache != null) {
 			portalCache.removeAll();
@@ -120,7 +117,7 @@ public class EntityCacheImpl
 
 		if (result == null) {
 			PortalCache<Serializable, Serializable> portalCache =
-				_getPortalCache(clazz.getName(), true);
+				_getPortalCache(clazz, true);
 
 			Serializable cacheKey = _encodeCacheKey(primaryKey);
 
@@ -181,7 +178,7 @@ public class EntityCacheImpl
 
 		if (result == null) {
 			PortalCache<Serializable, Serializable> portalCache =
-				_getPortalCache(clazz.getName(), true);
+				_getPortalCache(clazz, true);
 
 			Serializable cacheKey = _encodeCacheKey(primaryKey);
 
@@ -208,7 +205,7 @@ public class EntityCacheImpl
 						result = ((BaseModel<?>)loadResult).toCacheModel();
 					}
 
-					portalCache.put(cacheKey, result);
+					portalCache.putQuiet(cacheKey, result);
 
 					sessionFactory.closeSession(session);
 				}
@@ -231,6 +228,14 @@ public class EntityCacheImpl
 		boolean entityCacheEnabled, Class<?> clazz, Serializable primaryKey,
 		Serializable result) {
 
+		putResult(entityCacheEnabled, clazz, primaryKey, result, true);
+	}
+
+	@Override
+	public void putResult(
+		boolean entityCacheEnabled, Class<?> clazz, Serializable primaryKey,
+		Serializable result, boolean quiet) {
+
 		if (!PropsValues.VALUE_OBJECT_ENTITY_CACHE_ENABLED ||
 			!entityCacheEnabled || !CacheRegistryUtil.isActive() ||
 			(result == null)) {
@@ -250,11 +255,16 @@ public class EntityCacheImpl
 		}
 
 		PortalCache<Serializable, Serializable> portalCache = _getPortalCache(
-			clazz.getName(), true);
+			clazz, true);
 
 		Serializable cacheKey = _encodeCacheKey(primaryKey);
 
-		portalCache.put(cacheKey, result);
+		if (quiet) {
+			portalCache.putQuiet(cacheKey, result);
+		}
+		else {
+			portalCache.put(cacheKey, result);
+		}
 	}
 
 	@Override
@@ -286,18 +296,11 @@ public class EntityCacheImpl
 		}
 
 		PortalCache<Serializable, Serializable> portalCache = _getPortalCache(
-			clazz.getName(), true);
+			clazz, true);
 
 		Serializable cacheKey = _encodeCacheKey(primaryKey);
 
 		portalCache.remove(cacheKey);
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		if (beanFactory.containsBean(ShardAdvice.class.getName())) {
-			_shardEnabled = true;
-		}
 	}
 
 	public void setMultiVMPool(MultiVMPool multiVMPool) {
@@ -305,7 +308,7 @@ public class EntityCacheImpl
 	}
 
 	private Serializable _encodeCacheKey(Serializable primaryKey) {
-		if (_shardEnabled) {
+		if (ShardUtil.isEnabled()) {
 			return new CacheKey(ShardUtil.getCurrentShardName(), primaryKey);
 		}
 
@@ -315,7 +318,7 @@ public class EntityCacheImpl
 	private Serializable _encodeLocalCacheKey(
 		Class<?> clazz, Serializable primaryKey) {
 
-		if (_shardEnabled) {
+		if (ShardUtil.isEnabled()) {
 			return new ShardLocalCacheKey(
 				ShardUtil.getCurrentShardName(), clazz.getName(), primaryKey);
 		}
@@ -324,7 +327,9 @@ public class EntityCacheImpl
 	}
 
 	private PortalCache<Serializable, Serializable> _getPortalCache(
-		String className, boolean createIfAbsent) {
+		Class<?> clazz, boolean createIfAbsent) {
+
+		String className = clazz.getName();
 
 		PortalCache<Serializable, Serializable> portalCache = _portalCaches.get(
 			className);
@@ -335,6 +340,15 @@ public class EntityCacheImpl
 			portalCache =
 				(PortalCache<Serializable, Serializable>)_multiVMPool.getCache(
 					groupKey, PropsValues.VALUE_OBJECT_ENTITY_BLOCKING_CACHE);
+
+			if (PropsValues.VALUE_OBJECT_MVCC_ENTITY_CACHE_ENABLED &&
+				MVCCModel.class.isAssignableFrom(clazz)) {
+
+				portalCache =
+					(PortalCache<Serializable, Serializable>)
+						MVCCEhcachePortalCacheFactory.
+							createMVCCEhcachePortalCache(portalCache);
+			}
 
 			PortalCache<Serializable, Serializable> previousPortalCache =
 				_portalCaches.putIfAbsent(className, portalCache);
@@ -385,7 +399,6 @@ public class EntityCacheImpl
 		_portalCaches =
 			new ConcurrentHashMap
 				<String, PortalCache<Serializable, Serializable>>();
-	private boolean _shardEnabled;
 
 	private static class CacheKey implements Externalizable {
 

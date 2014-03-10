@@ -24,7 +24,6 @@ import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.dynamicdatalists.RecordSetDDMStructureIdException;
 import com.liferay.portlet.dynamicdatalists.RecordSetDuplicateRecordSetKeyException;
 import com.liferay.portlet.dynamicdatalists.RecordSetNameException;
@@ -103,7 +102,8 @@ public class DDLRecordSetLocalServiceImpl
 
 		// Dynamic data mapping structure link
 
-		long classNameId = PortalUtil.getClassNameId(DDLRecordSet.class);
+		long classNameId = classNameLocalService.getClassNameId(
+			DDLRecordSet.class);
 
 		ddmStructureLinkLocalService.addStructureLink(
 			classNameId, recordSetId, ddmStructureId, serviceContext);
@@ -176,7 +176,7 @@ public class DDLRecordSetLocalServiceImpl
 		DDLRecordSet recordSet = ddlRecordSetPersistence.findByPrimaryKey(
 			recordSetId);
 
-		deleteRecordSet(recordSet);
+		ddlRecordSetLocalService.deleteRecordSet(recordSet);
 	}
 
 	@Override
@@ -186,7 +186,7 @@ public class DDLRecordSetLocalServiceImpl
 		DDLRecordSet recordSet = ddlRecordSetPersistence.findByG_R(
 			groupId, recordSetKey);
 
-		deleteRecordSet(recordSet);
+		ddlRecordSetLocalService.deleteRecordSet(recordSet);
 	}
 
 	@Override
@@ -197,7 +197,7 @@ public class DDLRecordSetLocalServiceImpl
 			groupId);
 
 		for (DDLRecordSet recordSet : recordSets) {
-			deleteRecordSet(recordSet);
+			ddlRecordSetLocalService.deleteRecordSet(recordSet);
 		}
 	}
 

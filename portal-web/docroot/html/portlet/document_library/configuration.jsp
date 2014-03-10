@@ -25,8 +25,6 @@ if (portletResource.equals(PortletKeys.DOCUMENT_LIBRARY)) {
 
 String tabs2 = ParamUtil.getString(request, "tabs2", "display-settings");
 
-String redirect = ParamUtil.getString(request, "redirect");
-
 String emailFromName = ParamUtil.getString(request, "preferences--emailFromName--", DLUtil.getEmailFromName(portletPreferences, company.getCompanyId()));
 String emailFromAddress = ParamUtil.getString(request, "preferences--emailFromAddress--", DLUtil.getEmailFromAddress(portletPreferences, company.getCompanyId()));
 
@@ -71,17 +69,16 @@ catch (NoSuchFolderException nsfe) {
 }
 %>
 
-<liferay-portlet:renderURL portletConfiguration="true" var="portletURL">
+<liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL" />
+
+<liferay-portlet:renderURL portletConfiguration="true" var="configurationRenderURL">
 	<portlet:param name="tabs2" value="<%= tabs2 %>" />
-	<portlet:param name="redirect" value="<%= redirect %>" />
 </liferay-portlet:renderURL>
 
-<liferay-portlet:actionURL portletConfiguration="true" var="configurationURL" />
-
-<aui:form action="<%= configurationURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
+<aui:form action="<%= configurationActionURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
 	<aui:input name="tabs2" type="hidden" value="<%= tabs2 %>" />
-	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+	<aui:input name="redirect" type="hidden" value="<%= configurationRenderURL %>" />
 
 	<%
 	String tabs2Names = "display-settings,email-from,document-added-email,document-updated-email";
@@ -90,15 +87,13 @@ catch (NoSuchFolderException nsfe) {
 	<liferay-ui:tabs
 		names="<%= tabs2Names %>"
 		param="tabs2"
-		url="<%= portletURL %>"
+		url="<%= configurationRenderURL %>"
 	/>
 
 	<liferay-ui:error key="displayViewsInvalid" message="display-style-views-cannot-be-empty" />
 	<liferay-ui:error key="emailFileEntryAddedBody" message="please-enter-a-valid-body" />
-	<liferay-ui:error key="emailFileEntryAddedSignature" message="please-enter-a-valid-signature" />
 	<liferay-ui:error key="emailFileEntryAddedSubject" message="please-enter-a-valid-subject" />
 	<liferay-ui:error key="emailFileEntryUpdatedBody" message="please-enter-a-valid-body" />
-	<liferay-ui:error key="emailFileEntryUpdatedSignature" message="please-enter-a-valid-signature" />
 	<liferay-ui:error key="emailFileEntryUpdatedSubject" message="please-enter-a-valid-subject" />
 	<liferay-ui:error key="emailFromAddress" message="please-enter-a-valid-email-address" />
 	<liferay-ui:error key="emailFromName" message="please-enter-a-valid-name" />
@@ -276,8 +271,10 @@ catch (NoSuchFolderException nsfe) {
 				<aui:input cssClass="lfr-input-text-container" label="address" name="preferences--emailFromAddress--" value="<%= emailFromAddress %>" />
 			</aui:fieldset>
 
-			<div class="definition-of-terms">
-				<h4><liferay-ui:message key="definition-of-terms" /></h4>
+			<aui:fieldset cssClass="definition-of-terms">
+				<legend>
+					<liferay-ui:message key="definition-of-terms" />
+				</legend>
 
 				<dl>
 					<dt>
@@ -329,7 +326,7 @@ catch (NoSuchFolderException nsfe) {
 						<liferay-ui:message key="the-site-name-associated-with-the-document" />
 					</dd>
 				</dl>
-			</div>
+			</aui:fieldset>
 		</c:when>
 		<c:when test='<%= tabs2.startsWith("document-") %>'>
 			<aui:fieldset>
@@ -374,8 +371,10 @@ catch (NoSuchFolderException nsfe) {
 				</aui:field-wrapper>
 			</aui:fieldset>
 
-			<div class="definition-of-terms">
-				<h4><liferay-ui:message key="definition-of-terms" /></h4>
+			<aui:fieldset cssClass="definition-of-terms">
+				<legend>
+					<liferay-ui:message key="definition-of-terms" />
+				</legend>
 
 				<dl>
 					<dt>
@@ -407,6 +406,12 @@ catch (NoSuchFolderException nsfe) {
 					</dt>
 					<dd>
 						<liferay-ui:message key="the-document-type" />
+					</dd>
+					<dt>
+						[$DOCUMENT_URL$]
+					</dt>
+					<dd>
+						<liferay-ui:message key="the-document-url" />
 					</dd>
 					<dt>
 						[$DOCUMENT_USER_ADDRESS$]
@@ -469,7 +474,7 @@ catch (NoSuchFolderException nsfe) {
 						<liferay-ui:message key="the-name-of-the-email-recipient" />
 					</dd>
 				</dl>
-			</div>
+			</aui:fieldset>
 		</c:when>
 	</c:choose>
 	<aui:button-row>

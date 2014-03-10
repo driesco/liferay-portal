@@ -51,6 +51,7 @@ import com.liferay.portal.module.framework.ModuleFrameworkUtilAdapter;
 import com.liferay.portal.security.lang.SecurityManagerUtil;
 import com.liferay.portal.security.permission.PermissionCacheUtil;
 import com.liferay.portal.servlet.filters.cache.CacheUtil;
+import com.liferay.portal.settings.SettingsFactoryUtil;
 import com.liferay.portal.spring.bean.BeanReferenceRefreshUtil;
 import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.InitUtil;
@@ -142,6 +143,13 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 
 		try {
 			PortalLifecycleUtil.reset();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		try {
+			SettingsFactoryUtil.clearCache();
 		}
 		catch (Exception e) {
 			_log.error(e, e);

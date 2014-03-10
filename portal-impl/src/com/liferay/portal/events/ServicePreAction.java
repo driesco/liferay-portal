@@ -428,7 +428,7 @@ public class ServicePreAction extends Action {
 				layout = null;
 			}
 			else if (!isLoginRequest(request) &&
-					 ((!viewableGroup || !viewableSourceGroup) ||
+					 (!viewableGroup || !viewableSourceGroup ||
 					  (!redirectToDefaultLayout &&
 					   !hasAccessPermission(
 						   permissionChecker, layout, doAsGroupId,
@@ -581,7 +581,8 @@ public class ServicePreAction extends Action {
 			boolean customizable = layoutTypePortlet.isCustomizable();
 
 			if (!customizable ||
-				(group.isLayoutPrototype() || group.isLayoutSetPrototype())) {
+				group.isLayoutPrototype() || group.isLayoutSetPrototype() ||
+				group.isStagingGroup()) {
 
 				customizedView = false;
 			}
@@ -664,7 +665,14 @@ public class ServicePreAction extends Action {
 			scopeGroupId = doAsGroupId;
 		}
 
-		long siteGroupId = PortalUtil.getSiteGroupId(scopeGroupId);
+		long siteGroupId = 0;
+
+		if (layout.isTypeControlPanel()) {
+			siteGroupId = PortalUtil.getSiteGroupId(scopeGroupId);
+		}
+		else {
+			siteGroupId = PortalUtil.getSiteGroupId(layout.getGroupId());
+		}
 
 		// Theme and color scheme
 
@@ -735,13 +743,16 @@ public class ServicePreAction extends Action {
 
 		themeDisplay.setRequest(request);
 
-		// Set the CDN host, portal URL, and Facebook application ID first
-		// because other methods (setLookAndFeel) depend on them being set
+		// Set attributes first that other methods (getCDNBaseURL and
+		// setLookAndFeel) depend on
 
 		themeDisplay.setCDNHost(cdnHost);
 		themeDisplay.setCDNDynamicResourcesHost(dynamicResourcesCDNHost);
-		themeDisplay.setPortalURL(portalURL);
 		themeDisplay.setFacebookCanvasPageURL(facebookCanvasPageURL);
+		themeDisplay.setPortalURL(portalURL);
+		themeDisplay.setSecure(request.isSecure());
+		themeDisplay.setServerName(request.getServerName());
+		themeDisplay.setServerPort(request.getServerPort());
 		themeDisplay.setWidget(widget);
 
 		themeDisplay.setCompany(company);
@@ -790,9 +801,6 @@ public class ServicePreAction extends Action {
 		themeDisplay.setRefererGroupId(refererGroupId);
 		themeDisplay.setRefererPlid(refererPlid);
 		themeDisplay.setScopeGroupId(scopeGroupId);
-		themeDisplay.setSecure(request.isSecure());
-		themeDisplay.setServerName(request.getServerName());
-		themeDisplay.setServerPort(request.getServerPort());
 		themeDisplay.setSignedIn(signedIn);
 		themeDisplay.setSiteDefaultLocale(
 			PortalUtil.getSiteDefaultLocale(siteGroupId));
@@ -1957,6 +1965,7 @@ public class ServicePreAction extends Action {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	protected boolean isViewableCommunity(
 			User user, long groupId, boolean privateLayout,
 			PermissionChecker permissionChecker)
@@ -1969,6 +1978,7 @@ public class ServicePreAction extends Action {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	protected boolean isViewableGroup(
 			User user, long groupId, boolean privateLayout, long layoutId,
 			String controlPanelCategory, PermissionChecker permissionChecker)
@@ -2162,24 +2172,29 @@ public class ServicePreAction extends Action {
 
 		// Main Journal article
 
-		long mainJournalArticleId = ParamUtil.getLong(request, "p_j_a_id");
+		String strutsAction = PortalUtil.getStrutsAction(request);
 
-		if (mainJournalArticleId > 0) {
-			try {
-				JournalArticle mainJournalArticle =
-					JournalArticleServiceUtil.getArticle(mainJournalArticleId);
+		if (strutsAction.equals(_PATH_PORTAL_LAYOUT)) {
+			long mainJournalArticleId = ParamUtil.getLong(request, "p_j_a_id");
 
-				AssetEntry layoutAssetEntry =
-					AssetEntryLocalServiceUtil.getEntry(
-						JournalArticle.class.getName(),
-						mainJournalArticle.getResourcePrimKey());
+			if (mainJournalArticleId > 0) {
+				try {
+					JournalArticle mainJournalArticle =
+						JournalArticleServiceUtil.getArticle(
+							mainJournalArticleId);
 
-				request.setAttribute(
-					WebKeys.LAYOUT_ASSET_ENTRY, layoutAssetEntry);
-			}
-			catch (NoSuchArticleException nsae) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(nsae.getMessage());
+					AssetEntry layoutAssetEntry =
+						AssetEntryLocalServiceUtil.getEntry(
+							JournalArticle.class.getName(),
+							mainJournalArticle.getResourcePrimKey());
+
+					request.setAttribute(
+						WebKeys.LAYOUT_ASSET_ENTRY, layoutAssetEntry);
+				}
+				catch (NoSuchArticleException nsae) {
+					if (_log.isWarnEnabled()) {
+						_log.warn(nsae.getMessage());
+					}
 				}
 			}
 		}

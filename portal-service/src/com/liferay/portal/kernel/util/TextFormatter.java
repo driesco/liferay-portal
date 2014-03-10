@@ -151,6 +151,7 @@ public class TextFormatter {
 	 * @deprecated As of 6.2.0, replaced by {@link #formatStorageSize(double,
 	 *             Locale)}
 	 */
+	@Deprecated
 	public static String formatKB(double size, Locale locale) {
 		NumberFormat numberFormat = NumberFormat.getInstance(locale);
 
@@ -164,6 +165,7 @@ public class TextFormatter {
 	 * @deprecated As of 6.2.0, replaced by {@link #formatStorageSize(int,
 	 *             Locale)}
 	 */
+	@Deprecated
 	public static String formatKB(int size, Locale locale) {
 		return formatKB((double)size, locale);
 	}
@@ -211,13 +213,13 @@ public class TextFormatter {
 
 		size = size / _STORAGE_SIZE_DENOMINATOR;
 
-		if (size > _STORAGE_SIZE_DENOMINATOR) {
+		if (size >= _STORAGE_SIZE_DENOMINATOR) {
 			suffix = _STORAGE_SIZE_SUFFIX_MB;
 
 			size = size / _STORAGE_SIZE_DENOMINATOR;
 		}
 
-		if (size > _STORAGE_SIZE_DENOMINATOR) {
+		if (size >= _STORAGE_SIZE_DENOMINATOR) {
 			suffix = _STORAGE_SIZE_SUFFIX_GB;
 
 			size = size / _STORAGE_SIZE_DENOMINATOR;

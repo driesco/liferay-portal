@@ -60,10 +60,11 @@ public class AddressServiceUtil {
 	}
 
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addAddress( String, long,
+	* @deprecated As of 6.2.0, replaced by {@link #addAddress(String, long,
 	String, String, String, String, String, long, long, int,
 	boolean, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.Address addAddress(
 		java.lang.String className, long classPK, java.lang.String street1,
 		java.lang.String street2, java.lang.String street3,
@@ -135,6 +136,7 @@ public class AddressServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(AddressService service) {
 	}
 

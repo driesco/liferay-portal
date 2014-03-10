@@ -259,9 +259,11 @@ public class JournalArticleAssetRenderer
 			String groupFriendlyURL = PortalUtil.getGroupFriendlyURL(
 				group, layout.isPrivateLayout(), themeDisplay);
 
-			return groupFriendlyURL.concat(
-				JournalArticleConstants.CANONICAL_URL_SEPARATOR).concat(
-					_article.getUrlTitle());
+			return PortalUtil.addPreservedParameters(
+				themeDisplay,
+				groupFriendlyURL.concat(
+					JournalArticleConstants.CANONICAL_URL_SEPARATOR).concat(
+						_article.getUrlTitle()));
 		}
 
 		List<Long> hitLayoutIds =
@@ -299,7 +301,7 @@ public class JournalArticleAssetRenderer
 
 	@Override
 	public String getViewInContextMessage() {
-		return "view";
+		return "view[action]";
 	}
 
 	@Override

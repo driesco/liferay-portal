@@ -14,6 +14,8 @@
 
 package com.liferay.portal.util;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -42,6 +44,8 @@ import com.liferay.portlet.expando.model.ExpandoBridge;
 
 import java.io.IOException;
 import java.io.Serializable;
+
+import java.net.InetAddress;
 
 import java.sql.SQLException;
 
@@ -80,6 +84,7 @@ import javax.servlet.jsp.PageContext;
  * @author Eduardo Lundgren
  * @author Juan Fernández
  */
+@ProviderType
 public class PortalUtil {
 
 	/**
@@ -118,6 +123,24 @@ public class PortalUtil {
 		getPortal().addPageTitle(title, request);
 	}
 
+	public static boolean addPortalInetSocketAddressEventListener(
+		PortalInetSocketAddressEventListener
+			portalInetSocketAddressEventListener) {
+
+		return getPortal().addPortalInetSocketAddressEventListener(
+			portalInetSocketAddressEventListener);
+	}
+
+	/**
+	 * Adds the portal port event listener to the portal. The listener will be
+	 * notified whenever the portal port is set.
+	 *
+	 * @param      portalPortEventListener the portal port event listener to add
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #addPortalInetSocketAddressEventListener(
+	 *             PortalInetSocketAddressEventListener)}
+	 */
+	@Deprecated
 	public static void addPortalPortEventListener(
 		PortalPortEventListener portalPortEventListener) {
 
@@ -231,6 +254,7 @@ public class PortalUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             com.liferay.portal.kernel.language.LanguageUtil#getAvailableLocales}
 	 */
+	@Deprecated
 	public static Locale[] getAlternateLocales(HttpServletRequest request)
 		throws PortalException, SystemException {
 
@@ -266,6 +290,7 @@ public class PortalUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletCSRFWhitelistActions}
 	 */
+	@Deprecated
 	public static Set<String> getAuthTokenIgnoreActions() {
 		return getPortal().getAuthTokenIgnoreActions();
 	}
@@ -274,6 +299,7 @@ public class PortalUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletCSRFWhitelist}
 	 */
+	@Deprecated
 	public static Set<String> getAuthTokenIgnorePortlets() {
 		return getPortal().getAuthTokenIgnorePortlets();
 	}
@@ -345,6 +371,7 @@ public class PortalUtil {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getCDNHost(boolean)}
 	 */
+	@Deprecated
 	public static String getCDNHost() {
 		return getPortal().getCDNHost();
 	}
@@ -545,6 +572,7 @@ public class PortalUtil {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link DBFactoryUtil#getDB()}
 	 */
+	@Deprecated
 	public static DB getDB() {
 		return DBFactoryUtil.getDB();
 	}
@@ -953,6 +981,7 @@ public class PortalUtil {
 	 * @deprecated As of 6.1.0, replaced by {@link
 	 *             #getBaseModel(ResourcePermission)}
 	 */
+	@Deprecated
 	public static BaseModel<?> getModel(ResourcePermission resourcePermission)
 		throws PortalException, SystemException {
 
@@ -963,6 +992,7 @@ public class PortalUtil {
 	 * @deprecated As of 6.1.0, replaced by {@link #getBaseModel(String,
 	 *             String)}
 	 */
+	@Deprecated
 	public static BaseModel<?> getModel(String modelName, String primKey)
 		throws PortalException, SystemException {
 
@@ -992,6 +1022,7 @@ public class PortalUtil {
 	/**
 	 * @deprecated As of 6.2.0 renamed to {@link #getSiteGroupId(long)}
 	 */
+	@Deprecated
 	public static long getParentGroupId(long scopeGroupId)
 		throws PortalException, SystemException {
 
@@ -1068,23 +1099,51 @@ public class PortalUtil {
 		return _portal;
 	}
 
+	public static PortalInetSocketAddressEventListener[]
+		getPortalInetSocketAddressEventListeners() {
+
+		return getPortal().getPortalInetSocketAddressEventListeners();
+	}
+
 	public static String getPortalLibDir() {
 		return getPortal().getPortalLibDir();
+	}
+
+	public static InetAddress getPortalLocalInetAddress(boolean secure) {
+		return getPortal().getPortalLocalInetAddress(secure);
+	}
+
+	public static int getPortalLocalPort(boolean secure) {
+		return getPortal().getPortalLocalPort(secure);
 	}
 
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getPortalPort(boolean)}
 	 */
+	@Deprecated
 	public static int getPortalPort() {
 		return getPortal().getPortalPort();
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #getPortalServerPort(boolean)}
+	 */
+	@Deprecated
 	public static int getPortalPort(boolean secure) {
 		return getPortal().getPortalPort(secure);
 	}
 
 	public static Properties getPortalProperties() {
 		return getPortal().getPortalProperties();
+	}
+
+	public static InetAddress getPortalServerInetAddress(boolean secure) {
+		return getPortal().getPortalServerInetAddress(secure);
+	}
+
+	public static int getPortalServerPort(boolean secure) {
+		return getPortal().getPortalServerPort(secure);
 	}
 
 	public static String getPortalURL(HttpServletRequest request) {
@@ -1133,6 +1192,7 @@ public class PortalUtil {
 	 * @deprecated As of 6.2.0 replaced by {@link
 	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletInvocationWhitelist}
 	 */
+	@Deprecated
 	public static Set<String> getPortletAddDefaultResourceCheckWhitelist() {
 		return getPortal().getPortletAddDefaultResourceCheckWhitelist();
 	}
@@ -1141,6 +1201,7 @@ public class PortalUtil {
 	 * @deprecated As of 6.2.0 replaced by {@link
 	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletInvocationWhitelistActions}
 	 */
+	@Deprecated
 	public static Set<String>
 		getPortletAddDefaultResourceCheckWhitelistActions() {
 
@@ -1151,6 +1212,7 @@ public class PortalUtil {
 	 * @deprecated As of 6.1.0, replaced by {@link
 	 *             #getPortletBreadcrumbs(HttpServletRequest)}
 	 */
+	@Deprecated
 	public static List<BreadcrumbEntry> getPortletBreadcrumbList(
 		HttpServletRequest request) {
 
@@ -1591,6 +1653,10 @@ public class PortalUtil {
 		return getPortal().getUserPassword(portletRequest);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static String getUserValue(
 			long userId, String param, String defaultValue)
 		throws SystemException {
@@ -1602,6 +1668,10 @@ public class PortalUtil {
 		throws PortalException, SystemException {
 
 		return getPortal().getValidUserId(companyId, userId);
+	}
+
+	public static String getVirtualHostname(LayoutSet layoutSet) {
+		return getPortal().getVirtualHostname(layoutSet);
 	}
 
 	public static String getVirtualLayoutActualURL(
@@ -1650,8 +1720,9 @@ public class PortalUtil {
 	}
 
 	/**
-	 * @deprecated As of 6.2.0 with no direct replacement
+	 * @deprecated As of 6.2.0, with no direct replacement
 	 */
+	@Deprecated
 	public static boolean isAllowAddPortletDefaultResource(
 			HttpServletRequest request, Portlet portlet)
 		throws PortalException, SystemException {
@@ -1673,6 +1744,7 @@ public class PortalUtil {
 	/**
 	 * @deprecated As of 6.1.0, renamed to {@link #isGroupAdmin(User, long)}
 	 */
+	@Deprecated
 	public static boolean isCommunityAdmin(User user, long groupId)
 		throws Exception {
 
@@ -1682,6 +1754,7 @@ public class PortalUtil {
 	/**
 	 * @deprecated As of 6.1.0, renamed to {@link #isGroupOwner(User, long)}
 	 */
+	@Deprecated
 	public static boolean isCommunityOwner(User user, long groupId)
 		throws Exception {
 
@@ -1809,6 +1882,10 @@ public class PortalUtil {
 		return getPortal().isReservedParameter(name);
 	}
 
+	public static boolean isRightToLeft(HttpServletRequest request) {
+		return getPortal().isRightToLeft(request);
+	}
+
 	public static boolean isRSSFeedsEnabled() {
 		return getPortal().isRSSFeedsEnabled();
 	}
@@ -1841,6 +1918,7 @@ public class PortalUtil {
 	 * @deprecated As of 6.2.0 replaced by {@link
 	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#resetPortletInvocationWhitelist}
 	 */
+	@Deprecated
 	public static Set<String> resetPortletAddDefaultResourceCheckWhitelist() {
 		return getPortal().resetPortletAddDefaultResourceCheckWhitelist();
 	}
@@ -1849,6 +1927,7 @@ public class PortalUtil {
 	 * @deprecated As of 6.2.0 replaced by {@link
 	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#resetPortletInvocationWhitelistActions}
 	 */
+	@Deprecated
 	public static Set<String>
 		resetPortletAddDefaultResourceCheckWhitelistActions() {
 
@@ -1859,6 +1938,7 @@ public class PortalUtil {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link DB#runSQL(String)}
 	 */
+	@Deprecated
 	public static void runSQL(String sql) throws IOException, SQLException {
 		DBFactoryUtil.getDB().runSQL(sql);
 	}
@@ -1945,9 +2025,19 @@ public class PortalUtil {
 		getPortal().setPageTitle(title, request);
 	}
 
+	public static void setPortalInetSocketAddresses(
+		HttpServletRequest request) {
+
+		getPortal().setPortalInetSocketAddresses(request);
+	}
+
 	/**
 	 * Sets the port obtained on the first request to the portal.
+	 *
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #setPortalInetSocketAddresses(HttpServletRequest)}
 	 */
+	@Deprecated
 	public static void setPortalPort(HttpServletRequest request) {
 		getPortal().setPortalPort(request);
 	}
@@ -1968,6 +2058,15 @@ public class PortalUtil {
 
 	public static String transformSQL(String sql) {
 		return getPortal().transformSQL(sql);
+	}
+
+	public static void updateImageId(
+			BaseModel<?> baseModel, boolean image, byte[] bytes,
+			String fieldName, long maxSize, int maxHeight, int maxWidth)
+		throws PortalException, SystemException {
+
+		getPortal().updateImageId(
+			baseModel, image, bytes, fieldName, maxSize, maxHeight, maxWidth);
 	}
 
 	public static PortletMode updatePortletMode(
@@ -1992,6 +2091,20 @@ public class PortalUtil {
 			portletId, user, layout, windowState, request);
 	}
 
+	public boolean removePortalEventListener(
+		PortalInetSocketAddressEventListener
+			portalInetSocketAddressEventListener) {
+
+		return getPortal().removePortalInetSocketAddressEventListener(
+			portalInetSocketAddressEventListener);
+	}
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #removePortalInetSocketAddressEventListener(
+	 *             PortalInetSocketAddressEventListener)}
+	 */
+	@Deprecated
 	public void removePortalPortEventListener(
 		PortalPortEventListener portalPortEventListener) {
 

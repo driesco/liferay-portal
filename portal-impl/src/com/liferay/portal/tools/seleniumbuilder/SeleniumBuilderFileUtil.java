@@ -45,6 +45,9 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
+
 import org.apache.commons.lang.StringEscapeUtils;
 
 /**
@@ -177,6 +180,10 @@ public class SeleniumBuilderFileUtil {
 		}
 
 		return classSuffix;
+	}
+
+	public List<String> getComponentNames() {
+		return _componentNames;
 	}
 
 	public String getHTMLFileName(String fileName) {
@@ -508,6 +515,11 @@ public class SeleniumBuilderFileUtil {
 				prefix + "Invalid " + string1 + " attribute value " + string2 +
 					" in " + suffix);
 		}
+		else if (errorCode == 1017) {
+			throw new IllegalArgumentException(
+				prefix + "Description '" + string1 +
+					"' must end with a '.' in " + suffix);
+		}
 		else if (errorCode == 2000) {
 			throw new IllegalArgumentException(
 				prefix + "Too many child elements in the " + string1 +
@@ -521,6 +533,15 @@ public class SeleniumBuilderFileUtil {
 		else if (errorCode == 2002) {
 			throw new IllegalArgumentException(
 				prefix + "Missing matching " + string1 + ".path for " + suffix);
+		}
+		else if (errorCode == 2003) {
+			throw new IllegalArgumentException(
+				prefix + "Illegal XPath " + string1 + " in " + suffix);
+		}
+		else if (errorCode == 2004) {
+			throw new IllegalArgumentException(
+				prefix + "Description '" + string1 +
+					"' must title convention in " + suffix);
 		}
 		else {
 			throw new IllegalArgumentException(prefix + suffix);
@@ -576,13 +597,20 @@ public class SeleniumBuilderFileUtil {
 		}
 
 		for (Element element : elements) {
-			List<Element> childElements = element.elements();
+			List<Element> descriptionElements = element.elements("description");
 
 			String elementName = element.getName();
 
-			if (childElements.size() > 1) {
+			if (descriptionElements.size() > 1) {
 				throwValidationException(
-					2000, fileName, childElements.get(1), elementName);
+					2000, fileName, descriptionElements.get(1), elementName);
+			}
+
+			List<Element> executeChildElements = element.elements("execute");
+
+			if (executeChildElements.size() > 1) {
+				throwValidationException(
+					2000, fileName, executeChildElements.get(1), elementName);
 			}
 
 			if (elementName.equals("case")) {
@@ -658,7 +686,7 @@ public class SeleniumBuilderFileUtil {
 				}
 
 				validateBlockElement(
-					fileName, element, new String[] {"execute"},
+					fileName, element, new String[] {"description", "execute"},
 					new String[] {"function"}, new String[0], new String[0]);
 			}
 			else {
@@ -727,7 +755,18 @@ public class SeleniumBuilderFileUtil {
 				throwValidationException(1002, fileName, element, elementName);
 			}
 
-			if (elementName.equals("echo") || elementName.equals("fail")) {
+			if (elementName.equals("description")) {
+				validateSimpleElement(
+					fileName, element, new String[] {"message"});
+
+				String message = element.attributeValue("message");
+
+				if (!message.endsWith(".")) {
+					throwValidationException(
+						1017, fileName, commandElement, message);
+				}
+			}
+			else if (elementName.equals("echo") || elementName.equals("fail")) {
 				validateSimpleElement(
 					fileName, element, new String[] {"message"});
 			}
@@ -752,6 +791,9 @@ public class SeleniumBuilderFileUtil {
 			}
 			else if (elementName.equals("property")) {
 				validatePropertyElement(fileName, element);
+			}
+			else if (elementName.equals("take-screenshot")) {
+				validateSimpleElement(fileName, element, new String[0]);
 			}
 			else if (elementName.equals("var")) {
 				validateVarElement(fileName, element);
@@ -1265,7 +1307,8 @@ public class SeleniumBuilderFileUtil {
 				validateBlockElement(
 					fileName, element,
 					new String[] {
-						"echo", "execute", "fail", "for", "if", "var", "while"
+						"description", "echo", "execute", "fail", "for", "if",
+						"take-screenshot", "var", "while",
 					},
 					new String[] {"action", "macro"}, new String[] {"var"},
 					new String[] {
@@ -1352,6 +1395,84 @@ public class SeleniumBuilderFileUtil {
 			String elementName = element.getName();
 
 			throwValidationException(1002, fileName, element, elementName);
+		}
+
+		Element locatorElement = elements.get(1);
+
+		String locator = locatorElement.getText();
+
+		locator = locator.replace("${","");
+		locator = locator.replace("}","");
+		locator = locator.replace("/-/","/");
+
+		if (locator.endsWith("/")) {
+			locator = locator.substring(0, locator.length() - 1);
+		}
+
+		if (!locator.equals("") && !locator.startsWith("link=") &&
+			!locator.contains(".png")) {
+
+			try {
+				XPathFactory xPathFactory = XPathFactory.newInstance();
+
+				XPath xPath = xPathFactory.newXPath();
+
+				xPath.compile(locator);
+			}
+			catch (Exception e) {
+				throwValidationException(2003, fileName, locator);
+			}
+		}
+
+		Element keyElement = elements.get(0);
+
+		String key = keyElement.getText();
+
+		Element descriptionElement = elements.get(2);
+
+		String description = descriptionElement.getText();
+
+		if (!key.equals("") && !key.equals("EXTEND_ACTION_PATH") &&
+			!key.equals("PAGE_NAME") && !description.equals("")) {
+
+			if (description.endsWith(".")) {
+				throwValidationException(2004, fileName, description);
+			}
+
+			Pattern statementPattern = Pattern.compile("[A-Z0-9].*");
+
+			Matcher statmentMatcher = statementPattern.matcher(description);
+
+			if (!statmentMatcher.find()) {
+				throwValidationException(2004, fileName, description);
+			}
+
+			Pattern wordPattern1 = Pattern.compile("[A-Za-z0-9\\-]+");
+
+			Matcher wordMatcher1 = wordPattern1.matcher(description);
+
+			while (wordMatcher1.find()) {
+				String word = wordMatcher1.group();
+
+				if (word.equals("a") || word.equals("and") ||
+					word.equals("as") || word.equals("at") ||
+					word.equals("by") || word.equals("for") ||
+					word.equals("from") || word.equals("in") ||
+					word.equals("of") || word.equals("the") ||
+					word.equals("to")) {
+
+					continue;
+				}
+
+				Pattern wordPattern2 = Pattern.compile(
+					"[A-Z0-9][A-Za-z0-9\\-]*");
+
+				Matcher wordMatcher2 = wordPattern2.matcher(word);
+
+				if (!wordMatcher2.find()) {
+					throwValidationException(2004, fileName, description);
+				}
+			}
 		}
 	}
 
@@ -1446,6 +1567,20 @@ public class SeleniumBuilderFileUtil {
 			}
 		}
 
+		String componentName = rootElement.attributeValue("component-name");
+
+		if (componentName == null) {
+			throwValidationException(
+				1003, fileName, rootElement, "component-name");
+		}
+
+		if ((componentName != null) &&
+			!_componentNames.contains(componentName)) {
+
+			throwValidationException(
+				1006, fileName, rootElement, "component-name");
+		}
+
 		List<Element> elements = rootElement.elements();
 
 		if (elements.isEmpty()) {
@@ -1485,8 +1620,8 @@ public class SeleniumBuilderFileUtil {
 				validateBlockElement(
 					fileName, element,
 					new String[] {
-						"echo", "execute", "fail", "for", "if", "property",
-						"var", "while"
+						"description", "echo", "execute", "fail", "for", "if",
+						"property", "take-screenshot", "var", "while"
 					},
 					new String[] {"action", "macro", "test-case"},
 					new String[] {"var"},
@@ -1515,7 +1650,8 @@ public class SeleniumBuilderFileUtil {
 				validateBlockElement(
 					fileName, element,
 					new String[] {
-						"echo", "execute", "fail", "if", "var", "while"
+						"description", "echo", "execute", "fail", "if",
+						"take-screenshot", "var", "while"
 					},
 					new String[] {"action", "macro", "test-case"},
 					new String[] {"var"},
@@ -1649,12 +1785,6 @@ public class SeleniumBuilderFileUtil {
 							1013, fileName, element, method);
 					}
 				}
-				else {
-					if (statement.matches(".*[\\?\\(\\)\\}\\{].*")) {
-						throwValidationException(
-							1006, fileName, element, "value");
-					}
-				}
 			}
 		}
 
@@ -1682,16 +1812,39 @@ public class SeleniumBuilderFileUtil {
 			"attribute", "line-number", "locator", "locator-key", "name",
 			"path", "value"
 		});
+	private static List<String> _componentNames = ListUtil.fromArray(
+		new String[] {
+			"marketplace", "marketplace-known-issues", "portal-administration",
+			"portal-apis", "portal-application-standards",
+			"portal-authentication", "portal-business-productivity",
+			"portal-calendar", "portal-collaboration", "portal-configuration",
+			"portal-deployment", "portal-known-issues",
+			"portal-document-management", "portal-frameworks",
+			"portal-infrastructure", "portal-integrations", "portal-legacy",
+			"portal-opensocial", "portal-operations", "portal-permissions",
+			"portal-personalization-and-customization",
+			"portal-sample-portlet-plugins", "portal-search", "portal-security",
+			"portal-social-networking", "portal-staging",
+			"portal-theme-development", "portal-tools", "portal-upgrades",
+			"portal-user-interface", "portal-util-misc", "portal-wcm",
+			"portal-web-forms-and-data-lists", "portal-workflow",
+			"social-office-administration", "social-office-dashboard",
+			"social-office-environment", "social-office-known-issues",
+			"social-office-profile", "social-office-site",
+			"social-office-user-bar"
+		});
 	private static List<String> _methodNames = ListUtil.fromArray(
 		new String[] {
-			"getFirstNumber", "increment", "length", "lowercase", "replace"
+			"getFirstNumber", "getIPAddress", "increment", "length",
+			"lowercase", "replace", "uppercase"
 		});
 	private static List<String> _reservedTags = ListUtil.fromArray(
 		new String[] {
 			"and", "case", "command", "condition", "contains", "default",
-			"definition", "echo", "else", "elseif", "equals", "execute", "fail",
-			"for", "if", "isset", "not", "or", "property", "set-up", "td",
-			"tear-down", "then", "tr", "while", "var"
+			"definition", "description", "echo", "else", "elseif", "equals",
+			"execute", "fail", "for", "if", "isset", "not", "or", "property",
+			"set-up", "take-screenshot", "td", "tear-down", "then", "tr",
+			"while", "var"
 		});
 
 	private String _baseDir;

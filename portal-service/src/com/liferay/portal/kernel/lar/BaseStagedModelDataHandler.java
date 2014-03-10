@@ -23,13 +23,24 @@ import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.model.WorkflowedModel;
+import com.liferay.portlet.asset.model.AssetCategory;
+import com.liferay.portlet.asset.service.AssetCategoryLocalServiceUtil;
+import com.liferay.portlet.messageboards.model.MBDiscussion;
+import com.liferay.portlet.messageboards.model.MBMessage;
+import com.liferay.portlet.messageboards.service.MBDiscussionLocalServiceUtil;
+import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
+import com.liferay.portlet.ratings.model.RatingsEntry;
+import com.liferay.portlet.ratings.service.RatingsEntryLocalServiceUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -66,6 +77,10 @@ public abstract class BaseStagedModelDataHandler<T extends StagedModel>
 				"stagedModel", stagedModel, manifestSummary);
 
 			doExportStagedModel(portletDataContext, (T)stagedModel.clone());
+
+			exportAssetCategories(portletDataContext, stagedModel);
+			exportComments(portletDataContext, stagedModel);
+			exportRatings(portletDataContext, stagedModel);
 
 			if (countStagedModel(portletDataContext, stagedModel)) {
 				manifestSummary.incrementModelAdditionCount(
@@ -156,7 +171,12 @@ public abstract class BaseStagedModelDataHandler<T extends StagedModel>
 				restoreStagedModel(portletDataContext, stagedModel);
 			}
 
+			importAssetCategories(portletDataContext, stagedModel);
+
 			doImportStagedModel(portletDataContext, stagedModel);
+
+			importComments(portletDataContext, stagedModel);
+			importRatings(portletDataContext, stagedModel);
 
 			manifestSummary.incrementModelAdditionCount(
 				stagedModel.getStagedModelType());
@@ -235,6 +255,172 @@ public abstract class BaseStagedModelDataHandler<T extends StagedModel>
 		throws Exception {
 
 		throw new UnsupportedOperationException();
+	}
+
+	protected void exportAssetCategories(
+			PortletDataContext portletDataContext, T stagedModel)
+		throws PortletDataException, SystemException {
+
+		List<AssetCategory> assetCategories =
+			AssetCategoryLocalServiceUtil.getCategories(
+				ExportImportClassedModelUtil.getClassName(stagedModel),
+				ExportImportClassedModelUtil.getClassPK(stagedModel));
+
+		for (AssetCategory assetCategory : assetCategories) {
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, stagedModel, assetCategory,
+				PortletDataContext.REFERENCE_TYPE_WEAK);
+		}
+	}
+
+	protected void exportComments(
+			PortletDataContext portletDataContext, T stagedModel)
+		throws PortletDataException, SystemException {
+
+		if (!MapUtil.getBoolean(
+				portletDataContext.getParameterMap(),
+				PortletDataHandlerKeys.PORTLET_DATA_ALL) &&
+			!MapUtil.getBoolean(
+				portletDataContext.getParameterMap(),
+				PortletDataHandlerKeys.COMMENTS)) {
+
+			return;
+		}
+
+		MBDiscussion mbDiscussion =
+			MBDiscussionLocalServiceUtil.fetchDiscussion(
+				ExportImportClassedModelUtil.getClassName(stagedModel),
+				ExportImportClassedModelUtil.getClassPK(stagedModel));
+
+		if (mbDiscussion == null) {
+			return;
+		}
+
+		List<MBMessage> mbMessages =
+			MBMessageLocalServiceUtil.getThreadMessages(
+				mbDiscussion.getThreadId(), WorkflowConstants.STATUS_APPROVED);
+
+		if (mbMessages.isEmpty()) {
+			return;
+		}
+
+		MBMessage firstMBMessage = mbMessages.get(0);
+
+		if ((mbMessages.size() == 1) && firstMBMessage.isRoot()) {
+			return;
+		}
+
+		for (MBMessage mbMessage : mbMessages) {
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, stagedModel, mbMessage,
+				PortletDataContext.REFERENCE_TYPE_WEAK);
+		}
+	}
+
+	protected void exportRatings(
+			PortletDataContext portletDataContext, T stagedModel)
+		throws PortletDataException, SystemException {
+
+		if (!MapUtil.getBoolean(
+				portletDataContext.getParameterMap(),
+				PortletDataHandlerKeys.PORTLET_DATA_ALL) &&
+			!MapUtil.getBoolean(
+				portletDataContext.getParameterMap(),
+				PortletDataHandlerKeys.RATINGS)) {
+
+			return;
+		}
+
+		List<RatingsEntry> ratingsEntries =
+			RatingsEntryLocalServiceUtil.getEntries(
+				ExportImportClassedModelUtil.getClassName(stagedModel),
+				ExportImportClassedModelUtil.getClassPK(stagedModel));
+
+		if (ratingsEntries.size() == 0) {
+			return;
+		}
+
+		for (RatingsEntry ratingsEntry : ratingsEntries) {
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, stagedModel, ratingsEntry,
+				PortletDataContext.REFERENCE_TYPE_WEAK);
+		}
+	}
+
+	protected void importAssetCategories(
+			PortletDataContext portletDataContext, T stagedModel)
+		throws PortletDataException {
+
+		List<Element> referenceElements =
+			portletDataContext.getReferenceElements(
+				stagedModel, AssetCategory.class);
+
+		List<Long> assetCategoryIds = new ArrayList<Long>(
+			referenceElements.size());
+
+		for (Element referenceElement : referenceElements) {
+			long classPK = GetterUtil.getLong(
+				referenceElement.attributeValue("class-pk"));
+
+			StagedModelDataHandlerUtil.importReferenceStagedModel(
+				portletDataContext, stagedModel, AssetCategory.class, classPK);
+
+			assetCategoryIds.add(classPK);
+		}
+
+		Map<Long, Long> assetCategoryIdsMap =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				AssetCategory.class);
+
+		long[] importedAssetCategoryIds = new long[assetCategoryIds.size()];
+
+		for (int i = 0; i < assetCategoryIds.size(); i++) {
+			long categoryId = assetCategoryIds.get(i);
+
+			importedAssetCategoryIds[i] = MapUtil.getLong(
+				assetCategoryIdsMap, categoryId, categoryId);
+		}
+
+		portletDataContext.addAssetCategories(
+			ExportImportClassedModelUtil.getClassName(stagedModel),
+			ExportImportClassedModelUtil.getClassPK(stagedModel),
+			importedAssetCategoryIds);
+	}
+
+	protected void importComments(
+			PortletDataContext portletDataContext, T stagedModel)
+		throws PortalException {
+
+		if (!MapUtil.getBoolean(
+				portletDataContext.getParameterMap(),
+				PortletDataHandlerKeys.PORTLET_DATA_ALL) &&
+			!MapUtil.getBoolean(
+				portletDataContext.getParameterMap(),
+				PortletDataHandlerKeys.COMMENTS)) {
+
+			return;
+		}
+
+		StagedModelDataHandlerUtil.importReferenceStagedModels(
+			portletDataContext, stagedModel, MBMessage.class);
+	}
+
+	protected void importRatings(
+			PortletDataContext portletDataContext, T stagedModel)
+		throws PortalException {
+
+		if (!MapUtil.getBoolean(
+				portletDataContext.getParameterMap(),
+				PortletDataHandlerKeys.PORTLET_DATA_ALL) &&
+			!MapUtil.getBoolean(
+				portletDataContext.getParameterMap(),
+				PortletDataHandlerKeys.RATINGS)) {
+
+			return;
+		}
+
+		StagedModelDataHandlerUtil.importReferenceStagedModels(
+			portletDataContext, stagedModel, RatingsEntry.class);
 	}
 
 	protected void validateExport(

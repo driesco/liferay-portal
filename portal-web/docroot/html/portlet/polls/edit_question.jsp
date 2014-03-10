@@ -56,6 +56,8 @@ boolean deleteChoice = false;
 if (choiceName > 0) {
 	deleteChoice = true;
 }
+
+boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
 %>
 
 <liferay-portlet:actionURL refererPlid="<%= themeDisplay.getRefererPlid() %>" var="editQuestionURL">
@@ -70,11 +72,13 @@ if (choiceName > 0) {
 	<aui:input name="choicesCount" type="hidden" value="<%= choicesCount %>" />
 	<aui:input name="choiceName" type="hidden" value="" />
 
-	<liferay-ui:header
-		backURL="<%= redirect %>"
-		localizeTitle="<%= (question == null) %>"
-		title='<%= (question == null) ? "new-question" : question.getTitle(locale) %>'
-	/>
+	<c:if test="<%= showHeader %>">
+		<liferay-ui:header
+			backURL="<%= redirect %>"
+			localizeTitle="<%= (question == null) %>"
+			title='<%= (question == null) ? "new-poll" : question.getTitle(locale) %>'
+		/>
+	</c:if>
 
 	<liferay-ui:error exception="<%= QuestionChoiceException.class %>" message="please-enter-valid-choices" />
 	<liferay-ui:error exception="<%= QuestionDescriptionException.class %>" message="please-enter-a-valid-description" />
@@ -84,7 +88,7 @@ if (choiceName > 0) {
 	<aui:model-context bean="<%= question %>" model="<%= PollsQuestion.class %>" />
 
 	<aui:fieldset>
-		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="title" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) || windowState.equals(LiferayWindowState.POP_UP) %>" name="title" />
 
 		<aui:input label="polls-question" name="description" />
 
@@ -109,6 +113,9 @@ if (choiceName > 0) {
 
 				if ((question != null) && ((i - 1) < choices.size())) {
 					choice = (PollsChoice)choices.get(i - 1);
+				}
+				else {
+					choice = new PollsChoiceImpl();
 				}
 			%>
 
@@ -181,6 +188,6 @@ if (question != null) {
 	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), currentURL);
 }
 else {
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-question"), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-poll"), currentURL);
 }
 %>

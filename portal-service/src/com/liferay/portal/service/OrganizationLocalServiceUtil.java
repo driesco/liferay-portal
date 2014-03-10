@@ -653,6 +653,7 @@ public class OrganizationLocalServiceUtil {
 	String, String, long, long, int, String, boolean,
 	ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.Organization addOrganization(
 		long userId, long parentOrganizationId, java.lang.String name,
 		java.lang.String type, boolean recursable, long regionId,
@@ -740,7 +741,7 @@ public class OrganizationLocalServiceUtil {
 	}
 
 	/**
-	* Deletes the logo of the organization.
+	* Deletes the organization's logo.
 	*
 	* @param organizationId the primary key of the organization
 	* @throws PortalException if an organization or parent organization with
@@ -1466,6 +1467,33 @@ public class OrganizationLocalServiceUtil {
 			street, city, zip, regionId, countryId, params, andOperator);
 	}
 
+	public static com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portal.model.Organization> searchOrganizations(
+		long companyId, long parentOrganizationId, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		int start, int end, com.liferay.portal.kernel.search.Sort sort)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .searchOrganizations(companyId, parentOrganizationId,
+			keywords, params, start, end, sort);
+	}
+
+	public static com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portal.model.Organization> searchOrganizations(
+		long companyId, long parentOrganizationId, java.lang.String name,
+		java.lang.String type, java.lang.String street, java.lang.String city,
+		java.lang.String zip, java.lang.String region,
+		java.lang.String country,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andSearch, int start, int end,
+		com.liferay.portal.kernel.search.Sort sort)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .searchOrganizations(companyId, parentOrganizationId, name,
+			type, street, city, zip, region, country, params, andSearch, start,
+			end, sort);
+	}
+
 	/**
 	* Removes the organizations from the group.
 	*
@@ -1543,8 +1571,9 @@ public class OrganizationLocalServiceUtil {
 	* @throws SystemException if a system exception occurred
 	* @deprecated As of 6.2.0, replaced by {@link #updateOrganization(long,
 	long, long, String, String, long, long, int, String, boolean,
-	ServiceContext)}
+	byte[], boolean, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.Organization updateOrganization(
 		long companyId, long organizationId, long parentOrganizationId,
 		java.lang.String name, java.lang.String type, boolean recursable,
@@ -1571,6 +1600,8 @@ public class OrganizationLocalServiceUtil {
 	* @param countryId the primary key of the organization's country
 	* @param statusId the organization's workflow status
 	* @param comments the comments about the organization
+	* @param logo whether to update the ogranization's logo
+	* @param logoBytes the new logo image data
 	* @param site whether the organization is to be associated with a main
 	site
 	* @param serviceContext the service context to be applied (optionally
@@ -1583,6 +1614,49 @@ public class OrganizationLocalServiceUtil {
 	invalid
 	* @throws SystemException if a system exception occurred
 	*/
+	public static com.liferay.portal.model.Organization updateOrganization(
+		long companyId, long organizationId, long parentOrganizationId,
+		java.lang.String name, java.lang.String type, long regionId,
+		long countryId, int statusId, java.lang.String comments, boolean logo,
+		byte[] logoBytes, boolean site,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .updateOrganization(companyId, organizationId,
+			parentOrganizationId, name, type, regionId, countryId, statusId,
+			comments, logo, logoBytes, site, serviceContext);
+	}
+
+	/**
+	* Updates the organization.
+	*
+	* @param companyId the primary key of the organization's company
+	* @param organizationId the primary key of the organization
+	* @param parentOrganizationId the primary key of organization's parent
+	organization
+	* @param name the organization's name
+	* @param type the organization's type
+	* @param regionId the primary key of the organization's region
+	* @param countryId the primary key of the organization's country
+	* @param statusId the organization's workflow status
+	* @param comments the comments about the organization
+	* @param site whether the organization is to be associated with a main
+	site
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set asset category IDs and asset tag
+	names for the organization, and merge expando bridge
+	attributes for the organization.
+	* @return the organization
+	* @throws PortalException if an organization or parent organization
+	with the primary key could not be found or if the new
+	information was invalid
+	* @throws SystemException if a system exception occurred
+	* @deprecated As of 7.0.0, replaced by {@link #updateOrganization(long,
+	long, long, String, String, long, long, int, String, boolean,
+	boolean, byte[], ServiceContext)}
+	*/
+	@Deprecated
 	public static com.liferay.portal.model.Organization updateOrganization(
 		long companyId, long organizationId, long parentOrganizationId,
 		java.lang.String name, java.lang.String type, long regionId,
@@ -1610,6 +1684,7 @@ public class OrganizationLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(OrganizationLocalService service) {
 	}
 

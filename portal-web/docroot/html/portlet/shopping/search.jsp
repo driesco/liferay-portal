@@ -76,7 +76,7 @@ String keywords = ParamUtil.getString(request, "keywords");
 	headerNames.add("price");
 	headerNames.add(StringPool.BLANK);
 
-	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>"));
+	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false));
 
 	int total = ShoppingItemLocalServiceUtil.searchCount(scopeGroupId, categoryIdsArray, keywords);
 
@@ -103,7 +103,7 @@ String keywords = ParamUtil.getString(request, "keywords");
 
 		// SKU and small image
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(10);
 
 		if (item.isSmallImage()) {
 			sb.append("<br />");

@@ -64,6 +64,7 @@ import com.liferay.portal.pop.POPServerUtil;
 import com.liferay.portal.security.permission.ResourceActionsUtil;
 import com.liferay.portal.service.PortletLocalServiceUtil;
 import com.liferay.portal.service.ResourceActionLocalServiceUtil;
+import com.liferay.portal.settings.SettingsFactoryUtil;
 import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.util.PropsValues;
@@ -480,6 +481,8 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		JavadocManagerUtil.load(servletContextName, classLoader);
 
 		DirectServletRegistryUtil.clearServlets();
+
+		SettingsFactoryUtil.clearCache();
 
 		_portlets.put(servletContextName, portlets);
 

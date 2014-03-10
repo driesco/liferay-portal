@@ -14,7 +14,6 @@
 
 package com.liferay.portal.dao.orm.common;
 
-import com.liferay.portal.dao.shard.advice.ShardAdvice;
 import com.liferay.portal.kernel.cache.CacheRegistryItem;
 import com.liferay.portal.kernel.cache.CacheRegistryUtil;
 import com.liferay.portal.kernel.cache.MultiVMPool;
@@ -41,16 +40,12 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.collections.map.LRUMap;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-
 /**
  * @author Brian Wing Shun Chan
  * @author Shuyang Zhou
  */
 @DoPrivileged
-public class FinderCacheImpl
-	implements BeanFactoryAware, CacheRegistryItem, FinderCache {
+public class FinderCacheImpl implements CacheRegistryItem, FinderCache {
 
 	public static final String CACHE_NAME = FinderCache.class.getName();
 
@@ -110,7 +105,7 @@ public class FinderCacheImpl
 		if (_localCacheAvailable) {
 			localCache = _localCache.get();
 
-			localCacheKey = finderPath.encodeLocalCacheKey(_shardEnabled, args);
+			localCacheKey = finderPath.encodeLocalCacheKey(args);
 
 			primaryKey = localCache.get(localCacheKey);
 		}
@@ -119,8 +114,7 @@ public class FinderCacheImpl
 			PortalCache<Serializable, Serializable> portalCache =
 				_getPortalCache(finderPath.getCacheName(), true);
 
-			Serializable cacheKey = finderPath.encodeCacheKey(
-				_shardEnabled, args);
+			Serializable cacheKey = finderPath.encodeCacheKey(args);
 
 			primaryKey = portalCache.get(cacheKey);
 
@@ -145,6 +139,13 @@ public class FinderCacheImpl
 
 	@Override
 	public void putResult(FinderPath finderPath, Object[] args, Object result) {
+		putResult(finderPath, args, result, true);
+	}
+
+	@Override
+	public void putResult(
+		FinderPath finderPath, Object[] args, Object result, boolean quiet) {
+
 		if (!PropsValues.VALUE_OBJECT_FINDER_CACHE_ENABLED ||
 			!finderPath.isFinderCacheEnabled() ||
 			!CacheRegistryUtil.isActive() ||
@@ -158,8 +159,7 @@ public class FinderCacheImpl
 		if (_localCacheAvailable) {
 			Map<Serializable, Serializable> localCache = _localCache.get();
 
-			Serializable localCacheKey = finderPath.encodeLocalCacheKey(
-				_shardEnabled, args);
+			Serializable localCacheKey = finderPath.encodeLocalCacheKey(args);
 
 			localCache.put(localCacheKey, primaryKey);
 		}
@@ -167,9 +167,14 @@ public class FinderCacheImpl
 		PortalCache<Serializable, Serializable> portalCache = _getPortalCache(
 			finderPath.getCacheName(), true);
 
-		Serializable cacheKey = finderPath.encodeCacheKey(_shardEnabled, args);
+		Serializable cacheKey = finderPath.encodeCacheKey(args);
 
-		portalCache.put(cacheKey, primaryKey);
+		if (quiet) {
+			portalCache.putQuiet(cacheKey, primaryKey);
+		}
+		else {
+			portalCache.put(cacheKey, primaryKey);
+		}
 	}
 
 	@Override
@@ -193,8 +198,7 @@ public class FinderCacheImpl
 		if (_localCacheAvailable) {
 			Map<Serializable, Serializable> localCache = _localCache.get();
 
-			Serializable localCacheKey = finderPath.encodeLocalCacheKey(
-				_shardEnabled, args);
+			Serializable localCacheKey = finderPath.encodeLocalCacheKey(args);
 
 			localCache.remove(localCacheKey);
 		}
@@ -202,16 +206,9 @@ public class FinderCacheImpl
 		PortalCache<Serializable, Serializable> portalCache = _getPortalCache(
 			finderPath.getCacheName(), true);
 
-		Serializable cacheKey = finderPath.encodeCacheKey(_shardEnabled, args);
+		Serializable cacheKey = finderPath.encodeCacheKey(args);
 
 		portalCache.remove(cacheKey);
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		if (beanFactory.containsBean(ShardAdvice.class.getName())) {
-			_shardEnabled = true;
-		}
 	}
 
 	public void setMultiVMPool(MultiVMPool multiVMPool) {
@@ -259,6 +256,10 @@ public class FinderCacheImpl
 			for (Serializable curPrimaryKey : cachedList) {
 				Serializable result = _primaryKeyToResult(
 					finderPath, sessionFactory, curPrimaryKey);
+
+				if (result == null) {
+					return null;
+				}
 
 				list.add(result);
 			}
@@ -328,6 +329,5 @@ public class FinderCacheImpl
 		_portalCaches =
 			new ConcurrentHashMap
 				<String, PortalCache<Serializable, Serializable>>();
-	private boolean _shardEnabled;
 
 }

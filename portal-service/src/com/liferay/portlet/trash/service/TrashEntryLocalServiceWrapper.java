@@ -503,9 +503,19 @@ public class TrashEntryLocalServiceWrapper implements TrashEntryLocalService,
 			keywords, start, end, sort);
 	}
 
+	@Override
+	public com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portlet.trash.model.TrashEntry> searchTrashEntries(
+		long companyId, long groupId, long userId, java.lang.String keywords,
+		int start, int end, com.liferay.portal.kernel.search.Sort sort)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _trashEntryLocalService.searchTrashEntries(companyId, groupId,
+			userId, keywords, start, end, sort);
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public TrashEntryLocalService getWrappedTrashEntryLocalService() {
 		return _trashEntryLocalService;
 	}
@@ -513,6 +523,7 @@ public class TrashEntryLocalServiceWrapper implements TrashEntryLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedTrashEntryLocalService(
 		TrashEntryLocalService trashEntryLocalService) {
 		_trashEntryLocalService = trashEntryLocalService;

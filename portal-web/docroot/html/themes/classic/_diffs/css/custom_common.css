@@ -25,6 +25,12 @@
 		}
 	}
 
+	legend {
+		color: #8D8D8D;
+		font-size: 18px;
+		font-weight: 200;
+	}
+
 	.alert {
 		word-wrap: break-word;
 	}
@@ -139,6 +145,10 @@
 		}
 	}
 
+	.lfr-search .control-group {
+		margin-bottom: 0;
+	}
+
 	@include respond-to(phone) {
 		.form-search .input-append {
 			.btn {
@@ -240,7 +250,6 @@
 
 					&.active, &.open {
 						> .dropdown-toggle {
-							background-color: transparent;
 							color: #FFF;
 
 							@include respond-to(phone, tablet) {
@@ -276,10 +285,14 @@
 				.btn-navbar {
 					color: #FFF;
 
+					&.active, &.open {
+						background-color: #3EA9DB;
+					}
+
 					.user-avatar-image {
-					    position: relative;
-					    top: 2px;
-					    width: 28px;
+						position: relative;
+						top: 2px;
+						width: 28px;
 				    }
 				}
 
@@ -295,6 +308,12 @@
 							}
 						}
 
+						@include respond-to(phone, tablet) {
+							&.nav-account-controls > li > a .nav-item-icon {
+								margin-top: 0;
+							}
+						}
+
 						> li {
 							> a {
 								color: #FFF;
@@ -306,10 +325,6 @@
 
 								&:focus, &:hover {
 									color: #FFF;
-								}
-
-																[class^="icon-"], [class*=" icon-"] {
-									margin-top: 3px;
 								}
 							}
 
@@ -348,11 +363,6 @@
 							ul.dropdown-menu, .site-administration-menu {
 								border-width: 0;
 								margin: 0;
-								right: auto;
-
-								@include respond-to(phone, tablet) {
-									margin-top: 3px;
-								}
 
 								> li > a {
 									color: #FFF;
@@ -392,13 +402,6 @@
 								&:after, &:before {
 									border-width: 0;
 								}
-							}
-						}
-
-						li.dropdown.user-avatar {
-							.dropdown-menu {
-								left: auto;
-								right: 0;
 							}
 						}
 					}
@@ -487,12 +490,18 @@
 	/* ---------- Breadcrumbs ---------- */
 
 	.breadcrumb {
-		@include ellipsis;
-
 		padding: 3px 15px 2px;
 
 		li {
-			display: inline;
+			a {
+				display: inline-block;
+
+				@include ellipsis;
+
+				line-height: normal;
+				max-width: 300px;
+				vertical-align: text-bottom;
+			}
 
 			span.divider {
 				color: #999;
@@ -514,31 +523,28 @@
 			display: none;
 		}
 
-		@include respond-to(phone, tablet) {
-			padding-left: 5px;
-			padding-right: 5px;
+		&.breadcrumb-horizontal {
+			@include respond-to(phone, tablet) {
+				padding-left: 5px;
+				padding-right: 5px;
 
-			li {
-				display: none;
+				li {
+					display: none;
 
-				&.only, &.first, &.last, &.current-parent {
-					display: inline-block;
-				}
-
-				&.breadcrumb-truncate {
-					&.only, &.first a, &.last a, &.active, &.current-parent a {
+					&.only, &.first, &.last, &.current-parent {
 						display: inline-block;
-						max-width: 65px;
-						overflow: hidden;
-						text-overflow: ellipsis;
-						vertical-align: bottom;
-						white-space: nowrap;
 					}
 
-					&.current-parent:before {
-						color: #999;
-						content: " ... / ";
-						font-weight: bold;
+					&.breadcrumb-truncate {
+						&.only, &.first a, &.last a, &.active, &.current-parent a {
+							max-width: 65px;
+						}
+
+						&.current-parent:before {
+							color: #999;
+							content: ' ... / ';
+							font-weight: bold;
+						}
 					}
 				}
 			}
@@ -770,7 +776,7 @@
 					@include user-select(none);
 
 					.accordion-toggle {
-						background: #F2F2F2 url(../images/arrows/13_left.png) no-repeat 100% -20px;
+						background: #F2F2F2 url(../images/arrows/13_right.png) no-repeat 100% -20px;
 					}
 				}
 
@@ -847,6 +853,17 @@
 		}
 	}
 
+	.yui3-aclist-list {
+		.yui3-aclist-item-active {
+			background-color: #0AF;
+		}
+
+		.yui3-aclist-item-hover {
+			background-color: #EEE;
+			color: inherit;
+		}
+	}
+
 	/* ---------- Extras ---------- */
 
 	$prefixes: ("-webkit-","-moz-", "-o-", "");
@@ -857,6 +874,17 @@
 			color: #FFF;
 
 			@include text-shadow(-1px -1px rgba(0, 0, 0, 0.3));
+		}
+	}
+
+	@mixin user-avatar-circle() {
+		@include border-radius(50%);
+		@include box-shadow(0 0 0 2px #5594E0);
+	}
+
+	@include respond-to(phone, tablet) {
+		#navigation.open .navbar-inner .nav-collapse li a {
+			@include border-radius(0);
 		}
 	}
 
@@ -904,6 +932,10 @@
 		@include box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6));
 	}
 
+	.taglib-user-display.display-style-3 .user-profile-image {
+		@include user-avatar-circle();
+	}
+
 	.dockbar {
 		.nav {
 			> li {
@@ -915,14 +947,17 @@
 			li.dropdown {
 				.dropdown-menu {
 					@include border-radius(0);
+
+					> li > a {
+						@include border-radius(0);
+					}
 				}
 			}
 		}
 
 		.container .btn, .nav li.dropdown.user-avatar {
 			.user-avatar-image {
-				@include border-radius(50%);
-				@include box-shadow(0 0 0 2px #5594E0);
+				@include user-avatar-circle();
 			}
 		}
 	}

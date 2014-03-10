@@ -90,8 +90,8 @@ public class BackgroundTaskMessageListener extends BaseMessageListener {
 
 			BackgroundTaskStatusMessageTranslator
 				backgroundTaskStatusMessageTranslator =
-				backgroundTaskExecutor.
-					getBackgroundTaskStatusMessageTranslator();
+					backgroundTaskExecutor.
+						getBackgroundTaskStatusMessageTranslator();
 
 			if (backgroundTaskStatusMessageTranslator != null) {
 				backgroundTaskStatusMessageListener =
@@ -103,6 +103,9 @@ public class BackgroundTaskMessageListener extends BaseMessageListener {
 					DestinationNames.BACKGROUND_TASK_STATUS,
 					backgroundTaskStatusMessageListener);
 			}
+
+			backgroundTask = BackgroundTaskLocalServiceUtil.fetchBackgroundTask(
+				backgroundTask.getBackgroundTaskId());
 
 			BackgroundTaskResult backgroundTaskResult =
 				backgroundTaskExecutor.execute(backgroundTask);
@@ -123,7 +126,8 @@ public class BackgroundTaskMessageListener extends BaseMessageListener {
 
 			if (_log.isInfoEnabled()) {
 				if (statusMessage != null) {
-					statusMessage.concat(StackTraceUtil.getStackTrace(e));
+					statusMessage = statusMessage.concat(
+						StackTraceUtil.getStackTrace(e));
 				}
 				else {
 					statusMessage = StackTraceUtil.getStackTrace(e);

@@ -122,6 +122,10 @@ public class WikiUtil {
 			new UnsyncStringReader(targetContent));
 	}
 
+	public static String escapeName(String name) {
+		return StringUtil.replace(name, _UNESCAPED_CHARS, _ESCAPED_CHARS);
+	}
+
 	public static List<WikiPage> filterOrphans(List<WikiPage> pages)
 		throws PortalException {
 
@@ -226,21 +230,6 @@ public class WikiUtil {
 		}
 	}
 
-	public static String getEmailPageAddedSignature(
-		PortletPreferences preferences) {
-
-		String emailPageAddedSignature = preferences.getValue(
-			"emailPageAddedSignature", StringPool.BLANK);
-
-		if (Validator.isNotNull(emailPageAddedSignature)) {
-			return emailPageAddedSignature;
-		}
-		else {
-			return ContentUtil.get(
-				PropsUtil.get(PropsKeys.WIKI_EMAIL_PAGE_ADDED_SIGNATURE));
-		}
-	}
-
 	public static String getEmailPageAddedSubject(
 		PortletPreferences preferences) {
 
@@ -283,21 +272,6 @@ public class WikiUtil {
 		else {
 			return GetterUtil.getBoolean(
 				PropsUtil.get(PropsKeys.WIKI_EMAIL_PAGE_UPDATED_ENABLED));
-		}
-	}
-
-	public static String getEmailPageUpdatedSignature(
-		PortletPreferences preferences) {
-
-		String emailPageUpdatedSignature = preferences.getValue(
-			"emailPageUpdatedSignature", StringPool.BLANK);
-
-		if (Validator.isNotNull(emailPageUpdatedSignature)) {
-			return emailPageUpdatedSignature;
-		}
-		else {
-			return ContentUtil.get(
-				PropsUtil.get(PropsKeys.WIKI_EMAIL_PAGE_UPDATED_SIGNATURE));
 		}
 	}
 
@@ -412,7 +386,7 @@ public class WikiUtil {
 		PortletURL curEditPageURL = PortletURLUtil.clone(
 			editPageURL, renderResponse);
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(themeDisplay.getPathMain());
 		sb.append("/wiki/get_page_attachment?p_l_id=");
@@ -545,6 +519,10 @@ public class WikiUtil {
 		content = content.replaceAll("</div>", "</div>\n");
 
 		return content;
+	}
+
+	public static String unescapeName(String name) {
+		return StringUtil.replace(name, _ESCAPED_CHARS, _UNESCAPED_CHARS);
 	}
 
 	public static boolean validate(long nodeId, String content, String format)
@@ -731,6 +709,14 @@ public class WikiUtil {
 
 		return _getEngine(format).validate(nodeId, content);
 	}
+
+	private static final String[] _ESCAPED_CHARS = new String[] {
+		"<PLUS>", "<QUESTION>", "<SLASH>"
+	};
+
+	private static final String[] _UNESCAPED_CHARS = new String[] {
+		StringPool.PLUS, StringPool.QUESTION, StringPool.SLASH
+	};
 
 	private static Log _log = LogFactoryUtil.getLog(WikiUtil.class);
 

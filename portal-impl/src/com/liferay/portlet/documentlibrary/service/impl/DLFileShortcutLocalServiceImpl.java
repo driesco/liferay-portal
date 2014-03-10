@@ -95,11 +95,8 @@ public class DLFileShortcutLocalServiceImpl
 		// Folder
 
 		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
-
-			dlFolder.setLastPostDate(fileShortcut.getModifiedDate());
-
-			dlFolderPersistence.update(dlFolder);
+			dlFolderLocalService.updateLastPostDate(
+				folderId, fileShortcut.getModifiedDate());
 		}
 
 		// Asset
@@ -189,8 +186,16 @@ public class DLFileShortcutLocalServiceImpl
 
 		// Trash
 
-		trashEntryLocalService.deleteEntry(
-			DLFileShortcut.class.getName(), fileShortcut.getFileShortcutId());
+		if (fileShortcut.isInTrashExplicitly()) {
+			trashEntryLocalService.deleteEntry(
+				DLFileShortcut.class.getName(),
+				fileShortcut.getFileShortcutId());
+		}
+		else {
+			trashVersionLocalService.deleteTrashVersion(
+				DLFileShortcut.class.getName(),
+				fileShortcut.getFileShortcutId());
+		}
 	}
 
 	@Override
@@ -351,11 +356,8 @@ public class DLFileShortcutLocalServiceImpl
 		// Folder
 
 		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
-
-			dlFolder.setLastPostDate(fileShortcut.getModifiedDate());
-
-			dlFolderPersistence.update(dlFolder);
+			dlFolderLocalService.updateLastPostDate(
+				folderId, fileShortcut.getModifiedDate());
 		}
 
 		// Asset

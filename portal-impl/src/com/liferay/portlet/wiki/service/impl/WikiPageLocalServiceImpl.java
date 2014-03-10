@@ -18,12 +18,14 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.notifications.UserNotificationDefinition;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.systemevent.SystemEventHierarchyEntryThreadLocal;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
@@ -68,7 +70,6 @@ import com.liferay.portlet.trash.model.TrashVersion;
 import com.liferay.portlet.trash.util.TrashUtil;
 import com.liferay.portlet.wiki.DuplicatePageException;
 import com.liferay.portlet.wiki.NoSuchPageException;
-import com.liferay.portlet.wiki.NoSuchPageResourceException;
 import com.liferay.portlet.wiki.PageContentException;
 import com.liferay.portlet.wiki.PageTitleException;
 import com.liferay.portlet.wiki.PageVersionException;
@@ -475,6 +476,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0 replaced by {@link #discardDraft(long, String,
 	 *             double)}
 	 */
+	@Deprecated
 	@Override
 	public void deletePage(long nodeId, String title, double version)
 		throws PortalException, SystemException {
@@ -484,7 +486,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 	@Override
 	@SystemEvent(
-		action = SystemEventConstants.ACTION_SKIP,
+		action = SystemEventConstants.ACTION_SKIP, send = false,
 		type = SystemEventConstants.TYPE_DELETE)
 	public void deletePage(WikiPage page)
 		throws PortalException, SystemException {
@@ -503,9 +505,12 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 				wikiPagePersistence.update(childrenPage);
 			}
 			else {
-				deletePage(childrenPage);
+				wikiPageLocalService.deletePage(childrenPage);
 			}
 		}
+
+		List<WikiPage> versionPages = wikiPagePersistence.findByN_T(
+			page.getNodeId(), page.getTitle());
 
 		wikiPagePersistence.removeByN_T(page.getNodeId(), page.getTitle());
 
@@ -521,11 +526,12 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		// Resource
 
-		try {
-			wikiPageResourceLocalService.deletePageResource(
+		WikiPageResource pageResource =
+			wikiPageResourceLocalService.fetchPageResource(
 				page.getNodeId(), page.getTitle());
-		}
-		catch (NoSuchPageResourceException nspre) {
+
+		if (pageResource != null) {
+			wikiPageResourceLocalService.deleteWikiPageResource(pageResource);
 		}
 
 		// Attachments
@@ -544,12 +550,18 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		// Asset
 
-		List<WikiPage> versionPages = wikiPagePersistence.findByN_T(
-			page.getNodeId(), page.getTitle());
+		SystemEventHierarchyEntryThreadLocal.pop(
+			page.getModelClass(), page.getPageId());
 
-		for (WikiPage versionPage : versionPages) {
-			assetEntryLocalService.deleteEntry(
-				WikiPage.class.getName(), versionPage.getPrimaryKey());
+		try {
+			for (WikiPage versionPage : versionPages) {
+				assetEntryLocalService.deleteEntry(
+					WikiPage.class.getName(), versionPage.getPrimaryKey());
+			}
+		}
+		finally {
+			SystemEventHierarchyEntryThreadLocal.push(
+				page.getModelClass(), page.getPageId());
 		}
 
 		assetEntryLocalService.deleteEntry(
@@ -567,10 +579,18 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		// Trash
 
 		if (page.isInTrash()) {
-			page.setTitle(TrashUtil.getOriginalTitle(page.getTitle()));
+			if (page.isInTrashExplicitly()) {
+				page.setTitle(TrashUtil.getOriginalTitle(page.getTitle()));
 
-			trashEntryLocalService.deleteEntry(
-				WikiPage.class.getName(), page.getResourcePrimKey());
+				trashEntryLocalService.deleteEntry(
+					WikiPage.class.getName(), page.getResourcePrimKey());
+			}
+			else {
+				for (WikiPage versionPage : versionPages) {
+					trashVersionLocalService.deleteTrashVersion(
+						WikiPage.class.getName(), versionPage.getPageId());
+				}
+			}
 		}
 
 		// Indexer
@@ -586,16 +606,25 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		// All versions
 
-		List<WikiPage> pages = wikiPagePersistence.findByN_T(
-			page.getNodeId(), page.getTitle());
-
-		for (WikiPage curPage : pages) {
+		for (WikiPage versionPage : versionPages) {
 
 			// Workflow
 
 			workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
-				curPage.getCompanyId(), curPage.getGroupId(),
-				WikiPage.class.getName(), curPage.getPageId());
+				versionPage.getCompanyId(), versionPage.getGroupId(),
+				WikiPage.class.getName(), versionPage.getPageId());
+		}
+
+		if (pageResource != null) {
+			JSONObject extraDataJSONObject = JSONFactoryUtil.createJSONObject();
+
+			extraDataJSONObject.put("version", page.getVersion());
+
+			systemEventLocalService.addSystemEvent(
+				0, page.getGroupId(), page.getModelClassName(),
+				page.getPrimaryKey(), pageResource.getUuid(), null,
+				SystemEventConstants.TYPE_DELETE,
+				extraDataJSONObject.toString());
 		}
 	}
 
@@ -641,14 +670,14 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			nodeId, true, StringPool.BLANK);
 
 		for (WikiPage page : pages) {
-			deletePage(page);
+			wikiPageLocalService.deletePage(page);
 		}
 
 		pages = wikiPagePersistence.findByN_H_P(
 			nodeId, false, StringPool.BLANK);
 
 		for (WikiPage page : pages) {
-			deletePage(page);
+			wikiPageLocalService.deletePage(page);
 		}
 	}
 
@@ -1232,6 +1261,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getRecentChanges(long, long,
 	 *             int, int)}
 	 */
+	@Deprecated
 	@Override
 	public List<WikiPage> getRecentChanges(long nodeId, int start, int end)
 		throws PortalException, SystemException {
@@ -1258,6 +1288,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getRecentChangesCount(long,
 	 *             long)}
 	 */
+	@Deprecated
 	@Override
 	public int getRecentChangesCount(long nodeId)
 		throws PortalException, SystemException {
@@ -1344,6 +1375,12 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		for (WikiPage page : versionPages) {
 			page.setTitle(newTitle);
+
+			if (Validator.isNotNull(page.getRedirectTitle())) {
+				page.setRedirectTitle(StringPool.BLANK);
+
+				page.setSummary(StringPool.BLANK);
+			}
 
 			wikiPagePersistence.update(page);
 		}
@@ -1895,6 +1932,8 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			newVersion = MathUtil.format(oldVersion + 0.1, 1, 1);
 
 			page = wikiPagePersistence.create(pageId);
+
+			page.setUuid(serviceContext.getUuid());
 		}
 
 		page.setResourcePrimKey(resourcePrimKey);
@@ -2072,8 +2111,16 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 						userId, assetEntry.getEntryId(), assetLinkEntryIds,
 						AssetLinkConstants.TYPE_RELATED);
 
-					assetEntryLocalService.deleteEntry(
-						draftAssetEntry.getEntryId());
+					SystemEventHierarchyEntryThreadLocal.push(WikiPage.class);
+
+					try {
+						assetEntryLocalService.deleteEntry(
+							draftAssetEntry.getEntryId());
+					}
+					finally {
+						SystemEventHierarchyEntryThreadLocal.pop(
+							WikiPage.class);
+					}
 				}
 			}
 
@@ -2206,10 +2253,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			return StringPool.BLANK;
 		}
 
-		if (Validator.isNotNull(serviceContext.getLayoutFullURL())) {
-			return StringPool.BLANK;
-		}
-
 		HttpServletRequest request = serviceContext.getRequest();
 
 		if (request == null) {
@@ -2251,10 +2294,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			WikiNode node, WikiPage page, ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
-		if (Validator.isNotNull(serviceContext.getLayoutFullURL())) {
-			return StringPool.BLANK;
-		}
-
 		HttpServletRequest request = serviceContext.getRequest();
 
 		if (request == null) {
@@ -2267,7 +2306,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		if (Validator.isNotNull(layoutFullURL)) {
 			return layoutFullURL + Portal.FRIENDLY_URL_SEPARATOR + "wiki/" +
 				node.getNodeId() + StringPool.SLASH +
-					HttpUtil.encodeURL(page.getTitle());
+					HttpUtil.encodeURL(WikiUtil.escapeName(page.getTitle()));
 		}
 		else {
 			long controlPanelPlid = PortalUtil.getControlPanelPlid(
@@ -2366,6 +2405,12 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			boolean update)
 		throws PortalException, SystemException {
 
+		String layoutFullURL = serviceContext.getLayoutFullURL();
+
+		if (!page.isApproved() || Validator.isNull(layoutFullURL)) {
+			return;
+		}
+
 		PortletPreferences preferences = null;
 
 		String rootPortletId = serviceContext.getRootPortletId();
@@ -2422,6 +2467,9 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			pageContent = WikiUtil.processContent(pageContent);
 		}
 
+		String pageTitle = page.getTitle();
+		String pageURL = getPageURL(node, page, serviceContext);
+
 		String fromName = WikiUtil.getEmailFromName(
 			preferences, page.getCompanyId());
 		String fromAddress = WikiUtil.getEmailFromAddress(
@@ -2429,44 +2477,51 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		String subject = null;
 		String body = null;
-		String signature = null;
 
 		if (update) {
 			subject = WikiUtil.getEmailPageUpdatedSubject(preferences);
 			body = WikiUtil.getEmailPageUpdatedBody(preferences);
-			signature = WikiUtil.getEmailPageUpdatedSignature(preferences);
 		}
 		else {
 			subject = WikiUtil.getEmailPageAddedSubject(preferences);
 			body = WikiUtil.getEmailPageAddedBody(preferences);
-			signature = WikiUtil.getEmailPageAddedSignature(preferences);
-		}
-
-		if (Validator.isNotNull(signature)) {
-			body += "\n" + signature;
 		}
 
 		SubscriptionSender subscriptionSender = new SubscriptionSender();
 
 		subscriptionSender.setBody(body);
+		subscriptionSender.setClassName(page.getModelClassName());
+		subscriptionSender.setClassPK(page.getPageId());
 		subscriptionSender.setCompanyId(page.getCompanyId());
 		subscriptionSender.setContextAttributes(
 			"[$DIFFS_URL$]",
 			getDiffsURL(node, page, previousVersionPage, serviceContext),
 			"[$NODE_NAME$]", node.getName(), "[$PAGE_DATE_UPDATE$]",
 			page.getModifiedDate(), "[$PAGE_ID$]", page.getPageId(),
-			"[$PAGE_SUMMARY$]", page.getSummary(), "[$PAGE_TITLE$]",
-			page.getTitle(), "[$PAGE_URL$]",
-			getPageURL(node, page, serviceContext));
+			"[$PAGE_SUMMARY$]", page.getSummary(), "[$PAGE_TITLE$]", pageTitle,
+			"[$PAGE_URL$]", pageURL);
 		subscriptionSender.setContextAttribute(
 			"[$PAGE_CONTENT$]", pageContent, false);
 		subscriptionSender.setContextAttribute(
 			"[$PAGE_DIFFS$]", replaceStyles(pageDiffs), false);
 		subscriptionSender.setContextUserPrefix("PAGE");
+		subscriptionSender.setEntryTitle(pageTitle);
+		subscriptionSender.setEntryURL(pageURL);
 		subscriptionSender.setFrom(fromAddress, fromName);
 		subscriptionSender.setHtmlFormat(true);
 		subscriptionSender.setMailId(
 			"wiki_page", page.getNodeId(), page.getPageId());
+
+		int notificationType =
+			UserNotificationDefinition.NOTIFICATION_TYPE_ADD_ENTRY;
+
+		if (serviceContext.isCommandUpdate()) {
+			notificationType =
+				UserNotificationDefinition.NOTIFICATION_TYPE_UPDATE_ENTRY;
+		}
+
+		subscriptionSender.setNotificationType(notificationType);
+
 		subscriptionSender.setPortletId(PortletKeys.WIKI);
 		subscriptionSender.setReplyToAddress(fromAddress);
 		subscriptionSender.setScopeGroupId(node.getGroupId());
@@ -2476,6 +2531,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		subscriptionSender.addPersistedSubscribers(
 			WikiNode.class.getName(), node.getNodeId());
+
 		subscriptionSender.addPersistedSubscribers(
 			WikiPage.class.getName(), page.getResourcePrimKey());
 

@@ -12,6 +12,12 @@
 			max-width: none;
 		}
 	}
+
+	@include respond-to(phone) {
+		.selector-button {
+			width: auto;
+		}
+	}
 }
 
 .taglib-search-iterator-page-iterator-top {
@@ -77,8 +83,10 @@
 			display: inline;
 		}
 
-		@include respond-to(phone, tablet) {
-			.lfr-pagination-delta-selector {
+		.lfr-pagination-delta-selector {
+			float: none;
+
+			@include respond-to(phone, tablet) {
 				display: none;
 			}
 		}

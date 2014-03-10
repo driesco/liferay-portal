@@ -266,8 +266,14 @@ public class AssetPublisherImpl implements AssetPublisher {
 		for (String customUserAttributeName : customUserAttributeNames) {
 			ExpandoBridge userCustomAttributes = user.getExpandoBridge();
 
-			Serializable userCustomFieldValue =
-				userCustomAttributes.getAttribute(customUserAttributeName);
+			Serializable userCustomFieldValue = null;
+
+			try {
+				userCustomFieldValue = userCustomAttributes.getAttribute(
+					customUserAttributeName);
+			}
+			catch (Exception e) {
+			}
 
 			if (userCustomFieldValue == null) {
 				continue;
@@ -316,6 +322,39 @@ public class AssetPublisherImpl implements AssetPublisher {
 		};
 
 		actionableDynamicQuery.performActions();
+	}
+
+	@Override
+	public long[] getAssetCategoryIds(PortletPreferences portletPreferences)
+		throws Exception {
+
+		long[] assetCategoryIds = new long[0];
+
+		for (int i = 0; true; i++) {
+			String[] queryValues = portletPreferences.getValues(
+				"queryValues" + i, null);
+
+			if (ArrayUtil.isEmpty(queryValues)) {
+				break;
+			}
+
+			boolean queryContains = GetterUtil.getBoolean(
+				portletPreferences.getValue(
+					"queryContains" + i, StringPool.BLANK));
+			boolean queryAndOperator = GetterUtil.getBoolean(
+				portletPreferences.getValue(
+					"queryAndOperator" + i, StringPool.BLANK));
+			String queryName = portletPreferences.getValue(
+				"queryName" + i, StringPool.BLANK);
+
+			if (Validator.equals(queryName, "assetCategories") &&
+				queryContains && queryAndOperator) {
+
+				assetCategoryIds = GetterUtil.getLongValues(queryValues);
+			}
+		}
+
+		return assetCategoryIds;
 	}
 
 	@Override
@@ -404,43 +443,11 @@ public class AssetPublisherImpl implements AssetPublisher {
 			PortletRequest portletRequest,
 			PortletPreferences portletPreferences,
 			PermissionChecker permissionChecker, long[] groupIds,
-			long[] allCategoryIds, String[] assetEntryXmls,
-			String[] allTagNames, boolean deleteMissingAssetEntries,
-			boolean checkPermission)
+			boolean deleteMissingAssetEntries, boolean checkPermission)
 		throws Exception {
 
-		List<AssetEntry> assetEntries = getAssetEntries(
-			portletRequest, portletPreferences, permissionChecker, groupIds,
-			assetEntryXmls, deleteMissingAssetEntries, checkPermission);
-
-		if (assetEntries.isEmpty() ||
-			(ArrayUtil.isEmpty(allCategoryIds) &&
-			 ArrayUtil.isEmpty(allTagNames))) {
-
-			return assetEntries;
-		}
-
-		if (!ArrayUtil.isEmpty(allCategoryIds)) {
-			assetEntries = _filterAssetCategoriesAssetEntries(
-				assetEntries, allCategoryIds);
-		}
-
-		if (!ArrayUtil.isEmpty(allTagNames)) {
-			assetEntries = _filterAssetTagNamesAssetEntries(
-				assetEntries, allTagNames);
-		}
-
-		return assetEntries;
-	}
-
-	@Override
-	public List<AssetEntry> getAssetEntries(
-			PortletRequest portletRequest,
-			PortletPreferences portletPreferences,
-			PermissionChecker permissionChecker, long[] groupIds,
-			String[] assetEntryXmls, boolean deleteMissingAssetEntries,
-			boolean checkPermission)
-		throws Exception {
+		String[] assetEntryXmls = portletPreferences.getValues(
+			"assetEntryXml", new String[0]);
 
 		List<AssetEntry> assetEntries = new ArrayList<AssetEntry>();
 
@@ -516,6 +523,83 @@ public class AssetPublisherImpl implements AssetPublisher {
 		}
 
 		return assetEntries;
+	}
+
+	@Override
+	public List<AssetEntry> getAssetEntries(
+			PortletRequest portletRequest,
+			PortletPreferences portletPreferences,
+			PermissionChecker permissionChecker, long[] groupIds,
+			long[] allCategoryIds, String[] allTagNames,
+			boolean deleteMissingAssetEntries, boolean checkPermission)
+		throws Exception {
+
+		List<AssetEntry> assetEntries = getAssetEntries(
+			portletRequest, portletPreferences, permissionChecker, groupIds,
+			deleteMissingAssetEntries, checkPermission);
+
+		if (assetEntries.isEmpty() ||
+			(ArrayUtil.isEmpty(allCategoryIds) &&
+			 ArrayUtil.isEmpty(allTagNames))) {
+
+			return assetEntries;
+		}
+
+		if (!ArrayUtil.isEmpty(allCategoryIds)) {
+			assetEntries = _filterAssetCategoriesAssetEntries(
+				assetEntries, allCategoryIds);
+		}
+
+		if (!ArrayUtil.isEmpty(allTagNames)) {
+			assetEntries = _filterAssetTagNamesAssetEntries(
+				assetEntries, allTagNames);
+		}
+
+		return assetEntries;
+	}
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             AssetPublisherImpl#getAssetEntries(PortletRequest,
+	 *             PortletPreferences, PermissionChecker, long[], long[],
+	 *             String[], boolean , boolean)}
+	 */
+	@Deprecated
+	@Override
+	public List<AssetEntry> getAssetEntries(
+			PortletRequest portletRequest,
+			PortletPreferences portletPreferences,
+			PermissionChecker permissionChecker, long[] groupIds,
+			long[] allCategoryIds, String[] assetEntryXmls,
+			String[] allTagNames, boolean deleteMissingAssetEntries,
+			boolean checkPermission)
+		throws Exception {
+
+		return getAssetEntries(
+			portletRequest, portletPreferences, permissionChecker, groupIds,
+			allCategoryIds, allTagNames, deleteMissingAssetEntries,
+			checkPermission);
+	}
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             AssetPublisherImpl#getAssetEntries(PortletRequest,
+	 *             PortletPreferences, PermissionChecker, long[], boolean,
+	 *             boolean)}
+	 */
+	@Deprecated
+	@Override
+	public List<AssetEntry> getAssetEntries(
+			PortletRequest portletRequest,
+			PortletPreferences portletPreferences,
+			PermissionChecker permissionChecker, long[] groupIds,
+			String[] assetEntryXmls, boolean deleteMissingAssetEntries,
+			boolean checkPermission)
+		throws Exception {
+
+		return getAssetEntries(
+			portletRequest, portletPreferences, permissionChecker, groupIds,
+			deleteMissingAssetEntries, checkPermission);
 	}
 
 	@Override
@@ -840,7 +924,15 @@ public class AssetPublisherImpl implements AssetPublisher {
 				return siteGroupId;
 			}
 
-			return GetterUtil.getLong(scopeIdSuffix);
+			long scopeGroupId = GetterUtil.getLong(scopeIdSuffix);
+
+			Group scopeGroup = GroupLocalServiceUtil.fetchGroup(scopeGroupId);
+
+			if (scopeGroup == null) {
+				throw new PrincipalException();
+			}
+
+			return scopeGroupId;
 		}
 		else if (scopeId.startsWith(SCOPE_ID_LAYOUT_UUID_PREFIX)) {
 			String layoutUuid = scopeId.substring(

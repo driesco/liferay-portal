@@ -53,6 +53,7 @@ public class WorkflowInstanceLinkWrapper implements WorkflowInstanceLink,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("workflowInstanceLinkId", getWorkflowInstanceLinkId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -69,6 +70,12 @@ public class WorkflowInstanceLinkWrapper implements WorkflowInstanceLink,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long workflowInstanceLinkId = (Long)attributes.get(
 				"workflowInstanceLinkId");
 
@@ -149,6 +156,26 @@ public class WorkflowInstanceLinkWrapper implements WorkflowInstanceLink,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_workflowInstanceLink.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this workflow instance link.
+	*
+	* @return the mvcc version of this workflow instance link
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _workflowInstanceLink.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this workflow instance link.
+	*
+	* @param mvccVersion the mvcc version of this workflow instance link
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_workflowInstanceLink.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -516,6 +543,7 @@ public class WorkflowInstanceLinkWrapper implements WorkflowInstanceLink,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public WorkflowInstanceLink getWrappedWorkflowInstanceLink() {
 		return _workflowInstanceLink;
 	}
@@ -523,6 +551,16 @@ public class WorkflowInstanceLinkWrapper implements WorkflowInstanceLink,
 	@Override
 	public WorkflowInstanceLink getWrappedModel() {
 		return _workflowInstanceLink;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _workflowInstanceLink.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _workflowInstanceLink.isFinderCacheEnabled();
 	}
 
 	@Override

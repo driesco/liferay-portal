@@ -29,11 +29,14 @@ import java.util.Map;
  */
 public class Field implements Serializable {
 
+	public static final String ASSET_CATEGORY_ID = "assetCategoryId";
+
 	public static final String ASSET_CATEGORY_IDS = "assetCategoryIds";
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #ASSET_CATEGORY_TITLES}
 	 */
+	@Deprecated
 	public static final String ASSET_CATEGORY_NAMES = "assetCategoryNames";
 
 	public static final String ASSET_CATEGORY_TITLES = "assetCategoryTitles";
@@ -41,6 +44,10 @@ public class Field implements Serializable {
 	public static final String ASSET_TAG_IDS = "assetTagIds";
 
 	public static final String ASSET_TAG_NAMES = "assetTagNames";
+
+	public static final String ASSET_VOCABULARY_ID = "assetVocabularyId";
+
+	public static final String ASSET_VOCABULARY_IDS = "assetVocabularyIds";
 
 	public static final String CATEGORY_ID = "categoryId";
 
@@ -89,6 +96,7 @@ public class Field implements Serializable {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #MODIFIED_DATE}
 	 */
+	@Deprecated
 	public static final String MODIFIED = "modified";
 
 	public static final String MODIFIED_DATE = "modified";
@@ -170,6 +178,7 @@ public class Field implements Serializable {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public Field(String name, String value, boolean tokenized) {
 		this(name, value);
 
@@ -184,6 +193,7 @@ public class Field implements Serializable {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public Field(String name, String[] values, boolean tokenized) {
 		this(name, values);
 
@@ -193,6 +203,7 @@ public class Field implements Serializable {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public Field(String name, String[] values, boolean tokenized, float boost) {
 		this(name, values);
 

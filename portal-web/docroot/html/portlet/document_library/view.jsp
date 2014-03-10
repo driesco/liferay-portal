@@ -193,10 +193,31 @@ if (!defaultFolderView && (folder != null) && portletName.equals(PortletKeys.DOC
 <aui:script use="liferay-document-library">
 	<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" varImpl="mainURL" />
 
+	<%
+	String[] escapedEntryColumns = new String[entryColumns.length];
+
+	for (int i = 0; i < entryColumns.length; i++) {
+		escapedEntryColumns[i] = HtmlUtil.escapeJS(entryColumns[i]);
+	}
+
+	String[] escapedDisplayViews = new String[displayViews.length];
+
+	for (int i = 0; i < displayViews.length; i++) {
+		escapedDisplayViews[i] = HtmlUtil.escapeJS(displayViews[i]);
+	}
+	%>
+
 	new Liferay.Portlet.DocumentLibrary(
 		{
-			columnNames: ['<%= StringUtil.merge(entryColumns, "','") %>'],
+			columnNames: ['<%= StringUtil.merge(escapedEntryColumns, "','") %>'],
 			displayStyle: '<%= HtmlUtil.escapeJS(displayStyle) %>',
+
+			<%
+			DecimalFormatSymbols decimalFormatSymbols = DecimalFormatSymbols.getInstance(locale);
+			%>
+
+			decimalSeparator: '<%= decimalFormatSymbols.getDecimalSeparator() %>',
+
 			folders: {
 				defaultParams: {
 					p_p_id: <%= HtmlUtil.escapeJS(portletId) %>,
@@ -254,7 +275,7 @@ if (!defaultFolderView && (folder != null) && portletName.equals(PortletKeys.DOC
 
 					,{
 						id: '<%= mountFolder.getRepositoryId() %>',
-						name: '<%= mountFolder.getName() %>'
+						name: '<%= HtmlUtil.escapeJS(mountFolder.getName()) %>'
 					}
 
 				<%
@@ -264,7 +285,7 @@ if (!defaultFolderView && (folder != null) && portletName.equals(PortletKeys.DOC
 			],
 			rowIds: '<%= RowChecker.ROW_IDS %>',
 			select: {
-				displayViews: ['<%= StringUtil.merge(displayViews, "','") %>']
+				displayViews: ['<%= StringUtil.merge(escapedDisplayViews, "','") %>']
 			},
 			syncMessageDisabled: <%= !PropsValues.DL_SHOW_LIFERAY_SYNC_MESSAGE %>,
 			syncMessageSuppressed: <%= !GetterUtil.getBoolean(SessionClicks.get(request, liferayPortletResponse.getNamespace() + "show-sync-message", "true")) %>,

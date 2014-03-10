@@ -125,6 +125,14 @@ public abstract class BaseAlloyControllerImpl implements AlloyController {
 
 	@Override
 	public void execute() throws Exception {
+		Method method = getMethod(actionPath);
+
+		if (method == null) {
+			if (log.isDebugEnabled()) {
+				log.debug("No method found for action " + actionPath);
+			}
+		}
+
 		if (permissioned &&
 			!AlloyPermission.contains(
 				themeDisplay.getPermissionChecker(),
@@ -133,14 +141,8 @@ public abstract class BaseAlloyControllerImpl implements AlloyController {
 
 			renderError(
 				"you-do-not-have-permission-to-access-the-requested-resource");
-		}
 
-		Method method = getMethod(actionPath);
-
-		if (method == null) {
-			if (log.isDebugEnabled()) {
-				log.debug("No method found for action " + actionPath);
-			}
+			method = null;
 		}
 
 		if (lifecycle.equals(PortletRequest.ACTION_PHASE)) {
@@ -187,7 +189,9 @@ public abstract class BaseAlloyControllerImpl implements AlloyController {
 	}
 
 	@Override
-	public void updateModel(BaseModel<?> baseModel) throws Exception {
+	public void updateModel(BaseModel<?> baseModel, Object... properties)
+		throws Exception {
+
 		BeanPropertiesUtil.setProperties(baseModel, request);
 
 		if (baseModel.isNew()) {
@@ -198,10 +202,32 @@ public abstract class BaseAlloyControllerImpl implements AlloyController {
 		updateGroupedModel(baseModel);
 		updateAttachedModel(baseModel);
 
+		if ((properties.length % 2) != 0) {
+			throw new IllegalArgumentException(
+				"Properties length is not an even number");
+		}
+
+		for (int i = 0; i < properties.length; i += 2) {
+			String propertyName = String.valueOf(properties[i]);
+			Object propertyValue = properties[i + 1];
+
+			BeanPropertiesUtil.setProperty(
+				baseModel, propertyName, propertyValue);
+		}
+
 		if (baseModel instanceof PersistedModel) {
 			PersistedModel persistedModel = (PersistedModel)baseModel;
 
-			persistedModel.persist();
+			try {
+				persistedModel.persist();
+			}
+			catch (Exception e) {
+				log.error(e, e);
+
+				renderError("an-unexpected-system-error-occurred");
+
+				return;
+			}
 		}
 
 		if ((indexer != null) &&
@@ -759,11 +785,14 @@ public abstract class BaseAlloyControllerImpl implements AlloyController {
 
 		Class<?> indexerClass = Class.forName(indexerClassName);
 
-		try {
-			indexerClass.getField(Field.GROUP_ID);
-		}
-		catch (Exception e) {
+		if (!GroupedModel.class.isAssignableFrom(indexerClass)) {
 			searchContext.setGroupIds(null);
+		}
+		else if (searchContext.getAttribute(Field.GROUP_ID) != null) {
+			long groupId = GetterUtil.getLong(
+				searchContext.getAttribute(Field.GROUP_ID));
+
+			searchContext.setGroupIds(new long[] {groupId});
 		}
 
 		if (Validator.isNotNull(keywords)) {
@@ -780,7 +809,8 @@ public abstract class BaseAlloyControllerImpl implements AlloyController {
 
 		alloySearchResult.setHits(hits);
 
-		alloySearchResult.setPortletURL(portletURL);
+		alloySearchResult.setPortletURL(
+			portletURL, searchContext.getAttributes());
 
 		alloySearchResult.afterPropertiesSet();
 

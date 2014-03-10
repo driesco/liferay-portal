@@ -51,6 +51,7 @@ public class LockWrapper implements Lock, ModelWrapper<Lock> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("lockId", getLockId());
 		attributes.put("companyId", getCompanyId());
@@ -68,6 +69,12 @@ public class LockWrapper implements Lock, ModelWrapper<Lock> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -153,6 +160,26 @@ public class LockWrapper implements Lock, ModelWrapper<Lock> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_lock.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this lock.
+	*
+	* @return the mvcc version of this lock
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _lock.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this lock.
+	*
+	* @param mvccVersion the mvcc version of this lock
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_lock.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -548,6 +575,7 @@ public class LockWrapper implements Lock, ModelWrapper<Lock> {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Lock getWrappedLock() {
 		return _lock;
 	}
@@ -555,6 +583,16 @@ public class LockWrapper implements Lock, ModelWrapper<Lock> {
 	@Override
 	public Lock getWrappedModel() {
 		return _lock;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _lock.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _lock.isFinderCacheEnabled();
 	}
 
 	@Override

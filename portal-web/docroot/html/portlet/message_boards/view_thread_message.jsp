@@ -40,7 +40,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 				</c:when>
 				<c:otherwise>
 					<liferay-ui:user-display
-						displayStyle="<%= 2 %>"
+						displayStyle="2"
 						userId="<%= message.getUserId() %>"
 						userName="<%= HtmlUtil.escape(message.getUserName()) %>"
 					>
@@ -49,7 +49,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 						MBStatsUser statsUser = MBStatsUserLocalServiceUtil.getStatsUser(scopeGroupId, message.getUserId());
 
 						int posts = statsUser.getMessageCount();
-						String[] ranks = MBUtil.getUserRank(portletPreferences, themeDisplay.getLanguageId(), statsUser);
+						String[] ranks = MBUtil.getUserRank(mbSettings, themeDisplay.getLanguageId(), statsUser);
 						%>
 
 						<c:if test="<%= Validator.isNotNull(ranks[1]) %>">
@@ -192,7 +192,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 						String author = parentMessage.isAnonymous() ? LanguageUtil.get(pageContext, "anonymous") : HtmlUtil.escape(PortalUtil.getUserName(parentMessage.getUserId(), parentMessage.getUserName()));
 						%>
 
-						<%= LanguageUtil.format(pageContext, "posted-as-a-reply-to", author) %>
+						<%= LanguageUtil.format(pageContext, "posted-as-a-reply-to", author, false) %>
 					</c:if>
 				</div>
 
@@ -370,7 +370,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 										<liferay-ui:icon
 											image="delete_attachment"
 											label="<%= true %>"
-											message='<%= LanguageUtil.format(pageContext, (deletedAttachmentsFileEntriesCount == 1) ? "x-recently-removed-attachment" : "x-recently-removed-attachments", deletedAttachmentsFileEntriesCount) %>'
+											message='<%= LanguageUtil.format(pageContext, (deletedAttachmentsFileEntriesCount == 1) ? "x-recently-removed-attachment" : "x-recently-removed-attachments", deletedAttachmentsFileEntriesCount, false) %>'
 											url="<%= viewTrashAttachmentsURL %>"
 										/>
 									</li>

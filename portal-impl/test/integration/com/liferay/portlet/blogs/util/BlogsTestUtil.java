@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.blogs.util;
 
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
@@ -25,6 +26,8 @@ import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
 
 import java.io.InputStream;
+
+import org.junit.Assert;
 
 /**
  * @author Zsolt Berentey
@@ -39,13 +42,37 @@ public class BlogsTestUtil {
 	}
 
 	public static BlogsEntry addEntry(
+			long userId, Group group, boolean approved, boolean smallImage)
+		throws Exception {
+
+		return addEntry(userId, group, "Title", approved, smallImage);
+	}
+
+	public static BlogsEntry addEntry(
 			long userId, Group group, String title, boolean approved)
 		throws Exception {
 
 		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
 			group.getGroupId());
 
+		serviceContext.setCommand(Constants.ADD);
+		serviceContext.setLayoutFullURL("http://localhost");
+
 		return addEntry(userId, title, approved, serviceContext);
+	}
+
+	public static BlogsEntry addEntry(
+			long userId, Group group, String title, boolean approved,
+			boolean smallImage)
+		throws Exception {
+
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			group.getGroupId());
+
+		serviceContext.setCommand(Constants.ADD);
+		serviceContext.setLayoutFullURL("http://localhost");
+
+		return addEntry(userId, title, approved, smallImage, serviceContext);
 	}
 
 	public static BlogsEntry addEntry(
@@ -58,7 +85,17 @@ public class BlogsTestUtil {
 	}
 
 	public static BlogsEntry addEntry(
-			long userId, String title, boolean approved,
+			long userId, long groupId, String title, boolean approved,
+			boolean smallImage)
+		throws Exception {
+
+		Group group = GroupLocalServiceUtil.getGroup(groupId);
+
+		return addEntry(userId, group, title, approved, smallImage);
+	}
+
+	public static BlogsEntry addEntry(
+			long userId, String title, boolean approved, boolean smallImage,
 			ServiceContext serviceContext)
 		throws Exception {
 
@@ -77,10 +114,15 @@ public class BlogsTestUtil {
 			boolean allowPingbacks = true;
 			boolean allowTrackbacks = true;
 			String[] trackbacks = new String[0];
-			boolean smallImage = false;
+			InputStream smallImageInputStream = null;
 			String smallImageURL = StringPool.BLANK;
 			String smallImageFileName = StringPool.BLANK;
-			InputStream smallImageInputStream = null;
+
+			if (smallImage) {
+				smallImageFileName = "image.jpg";
+				smallImageInputStream = BlogsTestUtil.class.getResourceAsStream(
+					"com/liferay/portal/util/dependencies/test.jpg");
+			}
 
 			serviceContext = (ServiceContext)serviceContext.clone();
 
@@ -105,6 +147,33 @@ public class BlogsTestUtil {
 		finally {
 			WorkflowThreadLocal.setEnabled(workflowEnabled);
 		}
+	}
+
+	public static BlogsEntry addEntry(
+			long userId, String title, boolean approved,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		return addEntry(userId, title, approved, false, serviceContext);
+	}
+
+	public static void assertEquals(
+		BlogsEntry blogsEntry, BlogsEntry blogEntryOther) {
+
+		Assert.assertEquals(blogsEntry.getUserId(), blogEntryOther.getUserId());
+		Assert.assertEquals(blogsEntry.getTitle(), blogEntryOther.getTitle());
+		Assert.assertEquals(
+			blogsEntry.getDescription(), blogEntryOther.getDescription());
+		Assert.assertEquals(
+			blogsEntry.getContent(), blogEntryOther.getContent());
+		Assert.assertEquals(
+			blogsEntry.getDisplayDate(), blogEntryOther.getDisplayDate());
+		Assert.assertEquals(
+			blogsEntry.isAllowPingbacks(), blogEntryOther.isAllowPingbacks());
+		Assert.assertEquals(
+			blogsEntry.isAllowTrackbacks(), blogEntryOther.isAllowTrackbacks());
+		Assert.assertEquals(
+			blogsEntry.isSmallImage(), blogEntryOther.isSmallImage());
 	}
 
 }

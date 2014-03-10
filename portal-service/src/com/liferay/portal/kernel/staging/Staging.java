@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.staging;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -45,6 +47,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * @author Raymond Augé
  */
+@ProviderType
 public interface Staging {
 
 	public String buildRemoteURL(
@@ -94,6 +97,7 @@ public interface Staging {
 	 *             com.liferay.portal.service.StagingLocalService#disableStaging(
 	 *             Group, ServiceContext)}
 	 */
+	@Deprecated
 	public void disableStaging(
 			Group scopeGroup, Group liveGroup, ServiceContext serviceContext)
 		throws Exception;
@@ -103,6 +107,7 @@ public interface Staging {
 	 *             com.liferay.portal.service.StagingLocalService#disableStaging(
 	 *             Group, ServiceContext)}
 	 */
+	@Deprecated
 	public void disableStaging(Group liveGroup, ServiceContext serviceContext)
 		throws Exception;
 
@@ -111,6 +116,7 @@ public interface Staging {
 	 *             com.liferay.portal.service.StagingLocalService#disableStaging(
 	 *             PortletRequest, Group, ServiceContext)}
 	 */
+	@Deprecated
 	public void disableStaging(
 			PortletRequest portletRequest, Group scopeGroup, Group liveGroup,
 			ServiceContext serviceContext)
@@ -121,6 +127,7 @@ public interface Staging {
 	 *             com.liferay.portal.service.StagingLocalService#disableStaging(
 	 *             PortletRequest, Group, ServiceContext)}
 	 */
+	@Deprecated
 	public void disableStaging(
 			PortletRequest portletRequest, Group liveGroup,
 			ServiceContext serviceContext)
@@ -131,6 +138,7 @@ public interface Staging {
 	 *             com.liferay.portal.service.StagingLocalService#enableLocalStaging(
 	 *             long, Group, boolean, boolean, ServiceContext)}
 	 */
+	@Deprecated
 	public void enableLocalStaging(
 			long userId, Group scopeGroup, Group liveGroup,
 			boolean branchingPublic, boolean branchingPrivate,
@@ -143,6 +151,7 @@ public interface Staging {
 	 *             long, Group, boolean, boolean, String, int, String, boolean,
 	 *             long, ServiceContext)}
 	 */
+	@Deprecated
 	public void enableRemoteStaging(
 			long userId, Group scopeGroup, Group liveGroup,
 			boolean branchingPublic, boolean branchingPrivate,
@@ -164,6 +173,12 @@ public interface Staging {
 	public long getLiveGroupId(long groupId)
 		throws PortalException, SystemException;
 
+	/**
+	 * @deprecated As of 7.0.0, moved to {@link
+	 *             com.liferay.portal.kernel.lar.ExportImportHelperUtil#getMissingParentLayouts(
+	 *             Layout, long)}
+	 */
+	@Deprecated
 	public List<Layout> getMissingParentLayouts(Layout layout, long liveGroupId)
 		throws Exception;
 
@@ -267,6 +282,8 @@ public interface Staging {
 	public void setRecentLayoutSetBranchId(
 			User user, long layoutSetId, long layoutSetBranchId)
 		throws SystemException;
+
+	public String stripProtocolFromRemoteAddress(String remoteAddress);
 
 	public void unlockGroup(long groupId) throws SystemException;
 

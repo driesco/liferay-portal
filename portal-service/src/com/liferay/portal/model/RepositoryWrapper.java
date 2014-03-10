@@ -52,6 +52,7 @@ public class RepositoryWrapper implements Repository, ModelWrapper<Repository> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("repositoryId", getRepositoryId());
 		attributes.put("groupId", getGroupId());
@@ -72,6 +73,12 @@ public class RepositoryWrapper implements Repository, ModelWrapper<Repository> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -175,6 +182,26 @@ public class RepositoryWrapper implements Repository, ModelWrapper<Repository> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_repository.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this repository.
+	*
+	* @return the mvcc version of this repository
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _repository.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this repository.
+	*
+	* @param mvccVersion the mvcc version of this repository
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_repository.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -636,6 +663,7 @@ public class RepositoryWrapper implements Repository, ModelWrapper<Repository> {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Repository getWrappedRepository() {
 		return _repository;
 	}
@@ -643,6 +671,16 @@ public class RepositoryWrapper implements Repository, ModelWrapper<Repository> {
 	@Override
 	public Repository getWrappedModel() {
 		return _repository;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _repository.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _repository.isFinderCacheEnabled();
 	}
 
 	@Override

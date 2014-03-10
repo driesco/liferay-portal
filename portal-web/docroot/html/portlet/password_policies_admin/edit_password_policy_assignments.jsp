@@ -114,7 +114,7 @@ portletURL.setParameter("tabs3", tabs3);
 						name="name"
 					>
 
-						<%= HtmlUtil.escape(user2.getFullName()) %>
+						<%= user2.getFullName() %>
 
 						<%
 						PasswordPolicyRel passwordPolicyRel = PasswordPolicyRelLocalServiceUtil.fetchPasswordPolicyRel(User.class.getName(), user.getUserId());
@@ -135,13 +135,13 @@ portletURL.setParameter("tabs3", tabs3);
 								<portlet:param name="passwordPolicyId" value="<%= String.valueOf(curPasswordPolicy.getPasswordPolicyId()) %>" />
 							</portlet:renderURL>
 
-							<liferay-ui:icon-help message='<%= LanguageUtil.format(pageContext, "this-user-is-already-assigned-to-password-policy-x", new Object[] {assignMembersURL, curPasswordPolicy.getName()}) %>' />
+							<liferay-ui:icon-help message='<%= LanguageUtil.format(pageContext, "this-user-is-already-assigned-to-password-policy-x", new Object[] {assignMembersURL, curPasswordPolicy.getName()}, false) %>' />
 						</c:if>
 					</liferay-ui:search-container-column-text>
 
 					<liferay-ui:search-container-column-text
 						name="screen-name"
-						value="<%= HtmlUtil.escape(user2.getScreenName()) %>"
+						value="<%= user2.getScreenName() %>"
 					/>
 				</liferay-ui:search-container-row>
 
@@ -229,7 +229,7 @@ portletURL.setParameter("tabs3", tabs3);
 								<portlet:param name="passwordPolicyId" value="<%= String.valueOf(curPasswordPolicy.getPasswordPolicyId()) %>" />
 							</portlet:renderURL>
 
-							<liferay-ui:icon-help message='<%= LanguageUtil.format(pageContext, "this-organization-is-already-assigned-to-password-policy-x", new Object[] {assignMembersURL, curPasswordPolicy.getName()}) %>' />
+							<liferay-ui:icon-help message='<%= LanguageUtil.format(pageContext, "this-organization-is-already-assigned-to-password-policy-x", new Object[] {assignMembersURL, curPasswordPolicy.getName()}, false) %>' />
 						</c:if>
 					</liferay-ui:search-container-column-text>
 

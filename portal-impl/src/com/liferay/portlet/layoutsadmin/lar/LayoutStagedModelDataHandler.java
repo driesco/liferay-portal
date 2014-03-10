@@ -484,13 +484,12 @@ public class LayoutStagedModelDataHandler
 		importedLayout.setFriendlyURL(
 			getUniqueFriendlyURL(
 				portletDataContext, importedLayout, friendlyURL));
-		importedLayout.setIconImage(false);
 
-		if (layout.isIconImage()) {
+		if (layout.getIconImageId() > 0) {
 			importLayoutIconImage(
 				portletDataContext, importedLayout, layoutElement);
 		}
-		else {
+		else if (importedLayout.getIconImageId() > 0) {
 			ImageLocalServiceUtil.deleteImage(importedLayout.getIconImageId());
 		}
 
@@ -519,6 +518,8 @@ public class LayoutStagedModelDataHandler
 				Layout.class);
 
 		layoutPlids.put(layout.getPlid(), importedLayout.getPlid());
+
+		importAssets(portletDataContext, layout, importedLayout);
 
 		importLayoutFriendlyURLs(portletDataContext, layout);
 
@@ -770,6 +771,22 @@ public class LayoutStagedModelDataHandler
 		return friendlyURL;
 	}
 
+	protected void importAssets(
+			PortletDataContext portletDataContext, Layout layout,
+			Layout importedLayout)
+		throws Exception {
+
+		long userId = portletDataContext.getUserId(layout.getUserUuid());
+
+		long[] assetCategoryIds = portletDataContext.getAssetCategoryIds(
+			Layout.class, layout.getPlid());
+		String[] assetTagNames = portletDataContext.getAssetTagNames(
+			Layout.class, layout.getPlid());
+
+		LayoutLocalServiceUtil.updateAsset(
+			userId, importedLayout, assetCategoryIds, assetTagNames);
+	}
+
 	protected void importJournalArticle(
 			PortletDataContext portletDataContext, Layout layout)
 		throws Exception {
@@ -838,8 +855,6 @@ public class LayoutStagedModelDataHandler
 			iconImagePath);
 
 		if (ArrayUtil.isNotEmpty(iconBytes)) {
-			importedLayout.setIconImage(true);
-
 			if (importedLayout.getIconImageId() == 0) {
 				long iconImageId = CounterLocalServiceUtil.increment();
 
@@ -1163,7 +1178,8 @@ public class LayoutStagedModelDataHandler
 					boolean[] importPortletControls =
 						ExportImportHelperUtil.getImportPortletControls(
 							portletDataContext.getCompanyId(), portletId,
-							portletDataContext.getParameterMap(), null);
+							portletDataContext.getParameterMap(), null,
+							portletDataContext.getManifestSummary());
 
 					importPortletSetup = importPortletControls[2];
 				}

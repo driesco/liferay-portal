@@ -17,6 +17,7 @@ import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.ResourcedModel;
 import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.model.TypedModel;
@@ -80,6 +81,12 @@ public interface ${entity.name}Model extends
 		, GroupedModel
 
 		<#assign overrideColumnNames = overrideColumnNames + ["companyId", "createDate", "groupId", "modifiedDate", "userId", "userName", "userUuid"]>
+	</#if>
+
+	<#if entity.isMvccEnabled()>
+		, MVCCModel
+
+		<#assign overrideColumnNames = overrideColumnNames + ["mvccVersion"]>
 	</#if>
 
 	<#if entity.isResourcedModel()>
@@ -401,6 +408,7 @@ public interface ${entity.name}Model extends
 		/**
 		 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 		 */
+		@Deprecated
 		@Override
 		public boolean getApproved();
 

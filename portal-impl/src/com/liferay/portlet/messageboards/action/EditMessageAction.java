@@ -17,8 +17,11 @@ package com.liferay.portlet.messageboards.action;
 import com.liferay.portal.kernel.captcha.CaptchaMaxChallengesException;
 import com.liferay.portal.kernel.captcha.CaptchaTextException;
 import com.liferay.portal.kernel.captcha.CaptchaUtil;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.upload.UploadException;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -41,6 +44,7 @@ import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.ActionResponseImpl;
 import com.liferay.portlet.asset.AssetCategoryException;
 import com.liferay.portlet.asset.AssetTagException;
+import com.liferay.portlet.documentlibrary.DuplicateFileException;
 import com.liferay.portlet.documentlibrary.FileExtensionException;
 import com.liferay.portlet.documentlibrary.FileNameException;
 import com.liferay.portlet.documentlibrary.FileSizeException;
@@ -68,6 +72,7 @@ import javax.portlet.PortletPreferences;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
+import javax.portlet.WindowState;
 
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -89,10 +94,23 @@ public class EditMessageAction extends PortletAction {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
-		try {
-			MBMessage message = null;
+		MBMessage message = null;
 
-			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
+		try {
+			UploadException uploadException =
+				(UploadException)actionRequest.getAttribute(
+					WebKeys.UPLOAD_EXCEPTION);
+
+			if (uploadException != null) {
+				if (uploadException.isExceededSizeLimit()) {
+					throw new FileSizeException(uploadException.getCause());
+				}
+
+				throw new PortalException(uploadException.getCause());
+			}
+			else if (cmd.equals(Constants.ADD) ||
+					 cmd.equals(Constants.UPDATE)) {
+
 				message = updateMessage(actionRequest, actionResponse);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
@@ -112,10 +130,22 @@ public class EditMessageAction extends PortletAction {
 			}
 
 			if (Validator.isNotNull(cmd)) {
-				String redirect = getRedirect(
-					actionRequest, actionResponse, message);
+				WindowState windowState = actionRequest.getWindowState();
 
-				sendRedirect(actionRequest, actionResponse, redirect);
+				if (!windowState.equals(LiferayWindowState.POP_UP)) {
+					String redirect = getRedirect(
+						actionRequest, actionResponse, message);
+
+					sendRedirect(actionRequest, actionResponse, redirect);
+				}
+				else {
+					String redirect = PortalUtil.escapeRedirect(
+						ParamUtil.getString(actionRequest, "redirect"));
+
+					if (Validator.isNotNull(redirect)) {
+						actionResponse.sendRedirect(redirect);
+					}
+				}
 			}
 		}
 		catch (Exception e) {
@@ -129,6 +159,7 @@ public class EditMessageAction extends PortletAction {
 			}
 			else if (e instanceof CaptchaMaxChallengesException ||
 					 e instanceof CaptchaTextException ||
+					 e instanceof DuplicateFileException ||
 					 e instanceof FileExtensionException ||
 					 e instanceof FileNameException ||
 					 e instanceof FileSizeException ||
@@ -136,6 +167,17 @@ public class EditMessageAction extends PortletAction {
 					 e instanceof MessageBodyException ||
 					 e instanceof MessageSubjectException ||
 					 e instanceof SanitizerException) {
+
+				UploadException uploadException =
+					(UploadException)actionRequest.getAttribute(
+						WebKeys.UPLOAD_EXCEPTION);
+
+				if (uploadException != null) {
+					String uploadExceptionRedirect = ParamUtil.getString(
+						actionRequest, "uploadExceptionRedirect");
+
+					actionResponse.sendRedirect(uploadExceptionRedirect);
+				}
 
 				SessionErrors.add(actionRequest, e.getClass());
 			}

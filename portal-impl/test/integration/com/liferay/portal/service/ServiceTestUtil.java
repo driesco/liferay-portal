@@ -46,7 +46,6 @@ import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.security.permission.ResourceActionsUtil;
 import com.liferay.portal.tools.DBUpgrader;
-import com.liferay.portal.util.InitUtil;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsUtil;
@@ -77,6 +76,7 @@ public class ServiceTestUtil {
 	/**
 	 * @deprecated As of 7.0.0
 	 */
+	@Deprecated
 	public static void addResourcePermission(
 			Role role, String resourceName, int scope, String primKey,
 			String actionId)
@@ -89,6 +89,7 @@ public class ServiceTestUtil {
 	/**
 	 * @deprecated As of 7.0.0
 	 */
+	@Deprecated
 	public static void addResourcePermission(
 			String roleName, String resourceName, int scope, String primKey,
 			String actionId)
@@ -101,6 +102,7 @@ public class ServiceTestUtil {
 	/**
 	 * @deprecated As of 7.0.0
 	 */
+	@Deprecated
 	public static Role addRole(String roleName, int roleType) throws Exception {
 		return RoleTestUtil.addRole(roleName, roleType);
 	}
@@ -108,6 +110,7 @@ public class ServiceTestUtil {
 	/**
 	 * @deprecated As of 7.0.0
 	 */
+	@Deprecated
 	public static Role addRole(
 			String roleName, int roleType, String resourceName, int scope,
 			String primKey, String actionId)
@@ -164,12 +167,6 @@ public class ServiceTestUtil {
 	}
 
 	public static void initPermissions() {
-		if (System.getProperty("external-properties") == null) {
-			System.setProperty("external-properties", "portal-test.properties");
-		}
-
-		InitUtil.initWithSpring();
-
 		try {
 			PortalInstances.addCompanyId(TestPropsValues.getCompanyId());
 
@@ -181,7 +178,6 @@ public class ServiceTestUtil {
 	}
 
 	public static void initServices() {
-		InitUtil.initWithSpring();
 
 		// JCR
 

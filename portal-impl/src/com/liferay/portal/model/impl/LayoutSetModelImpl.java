@@ -62,13 +62,13 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	 */
 	public static final String TABLE_NAME = "LayoutSet";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "layoutSetId", Types.BIGINT },
 			{ "groupId", Types.BIGINT },
 			{ "companyId", Types.BIGINT },
 			{ "createDate", Types.TIMESTAMP },
 			{ "modifiedDate", Types.TIMESTAMP },
 			{ "privateLayout", Types.BOOLEAN },
-			{ "logo", Types.BOOLEAN },
 			{ "logoId", Types.BIGINT },
 			{ "themeId", Types.VARCHAR },
 			{ "colorSchemeId", Types.VARCHAR },
@@ -80,7 +80,7 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 			{ "layoutSetPrototypeUuid", Types.VARCHAR },
 			{ "layoutSetPrototypeLinkEnabled", Types.BOOLEAN }
 		};
-	public static final String TABLE_SQL_CREATE = "create table LayoutSet (layoutSetId LONG not null primary key,groupId LONG,companyId LONG,createDate DATE null,modifiedDate DATE null,privateLayout BOOLEAN,logo BOOLEAN,logoId LONG,themeId VARCHAR(75) null,colorSchemeId VARCHAR(75) null,wapThemeId VARCHAR(75) null,wapColorSchemeId VARCHAR(75) null,css TEXT null,pageCount INTEGER,settings_ TEXT null,layoutSetPrototypeUuid VARCHAR(75) null,layoutSetPrototypeLinkEnabled BOOLEAN)";
+	public static final String TABLE_SQL_CREATE = "create table LayoutSet (mvccVersion LONG default 0,layoutSetId LONG not null primary key,groupId LONG,companyId LONG,createDate DATE null,modifiedDate DATE null,privateLayout BOOLEAN,logoId LONG,themeId VARCHAR(75) null,colorSchemeId VARCHAR(75) null,wapThemeId VARCHAR(75) null,wapColorSchemeId VARCHAR(75) null,css TEXT null,pageCount INTEGER,settings_ TEXT null,layoutSetPrototypeUuid VARCHAR(75) null,layoutSetPrototypeLinkEnabled BOOLEAN)";
 	public static final String TABLE_SQL_DROP = "drop table LayoutSet";
 	public static final String ORDER_BY_JPQL = " ORDER BY layoutSet.layoutSetId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY LayoutSet.layoutSetId ASC";
@@ -114,13 +114,13 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 
 		LayoutSet model = new LayoutSetImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setLayoutSetId(soapModel.getLayoutSetId());
 		model.setGroupId(soapModel.getGroupId());
 		model.setCompanyId(soapModel.getCompanyId());
 		model.setCreateDate(soapModel.getCreateDate());
 		model.setModifiedDate(soapModel.getModifiedDate());
 		model.setPrivateLayout(soapModel.getPrivateLayout());
-		model.setLogo(soapModel.getLogo());
 		model.setLogoId(soapModel.getLogoId());
 		model.setThemeId(soapModel.getThemeId());
 		model.setColorSchemeId(soapModel.getColorSchemeId());
@@ -195,13 +195,13 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("layoutSetId", getLayoutSetId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("privateLayout", getPrivateLayout());
-		attributes.put("logo", getLogo());
 		attributes.put("logoId", getLogoId());
 		attributes.put("themeId", getThemeId());
 		attributes.put("colorSchemeId", getColorSchemeId());
@@ -214,11 +214,20 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 		attributes.put("layoutSetPrototypeLinkEnabled",
 			getLayoutSetPrototypeLinkEnabled());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long layoutSetId = (Long)attributes.get("layoutSetId");
 
 		if (layoutSetId != null) {
@@ -253,12 +262,6 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 
 		if (privateLayout != null) {
 			setPrivateLayout(privateLayout);
-		}
-
-		Boolean logo = (Boolean)attributes.get("logo");
-
-		if (logo != null) {
-			setLogo(logo);
 		}
 
 		Long logoId = (Long)attributes.get("logoId");
@@ -322,6 +325,17 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 		if (layoutSetPrototypeLinkEnabled != null) {
 			setLayoutSetPrototypeLinkEnabled(layoutSetPrototypeLinkEnabled);
 		}
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@JSON
@@ -417,22 +431,6 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 
 	public boolean getOriginalPrivateLayout() {
 		return _originalPrivateLayout;
-	}
-
-	@JSON
-	@Override
-	public boolean getLogo() {
-		return _logo;
-	}
-
-	@Override
-	public boolean isLogo() {
-		return _logo;
-	}
-
-	@Override
-	public void setLogo(boolean logo) {
-		_logo = logo;
 	}
 
 	@JSON
@@ -634,13 +632,13 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	public Object clone() {
 		LayoutSetImpl layoutSetImpl = new LayoutSetImpl();
 
+		layoutSetImpl.setMvccVersion(getMvccVersion());
 		layoutSetImpl.setLayoutSetId(getLayoutSetId());
 		layoutSetImpl.setGroupId(getGroupId());
 		layoutSetImpl.setCompanyId(getCompanyId());
 		layoutSetImpl.setCreateDate(getCreateDate());
 		layoutSetImpl.setModifiedDate(getModifiedDate());
 		layoutSetImpl.setPrivateLayout(getPrivateLayout());
-		layoutSetImpl.setLogo(getLogo());
 		layoutSetImpl.setLogoId(getLogoId());
 		layoutSetImpl.setThemeId(getThemeId());
 		layoutSetImpl.setColorSchemeId(getColorSchemeId());
@@ -700,6 +698,16 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		LayoutSetModelImpl layoutSetModelImpl = this;
 
@@ -721,6 +729,8 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	@Override
 	public CacheModel<LayoutSet> toCacheModel() {
 		LayoutSetCacheModel layoutSetCacheModel = new LayoutSetCacheModel();
+
+		layoutSetCacheModel.mvccVersion = getMvccVersion();
 
 		layoutSetCacheModel.layoutSetId = getLayoutSetId();
 
@@ -747,8 +757,6 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 		}
 
 		layoutSetCacheModel.privateLayout = getPrivateLayout();
-
-		layoutSetCacheModel.logo = getLogo();
 
 		layoutSetCacheModel.logoId = getLogoId();
 
@@ -822,7 +830,9 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	public String toString() {
 		StringBundler sb = new StringBundler(35);
 
-		sb.append("{layoutSetId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", layoutSetId=");
 		sb.append(getLayoutSetId());
 		sb.append(", groupId=");
 		sb.append(getGroupId());
@@ -834,8 +844,6 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 		sb.append(getModifiedDate());
 		sb.append(", privateLayout=");
 		sb.append(getPrivateLayout());
-		sb.append(", logo=");
-		sb.append(getLogo());
 		sb.append(", logoId=");
 		sb.append(getLogoId());
 		sb.append(", themeId=");
@@ -870,6 +878,10 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 		sb.append("</model-name>");
 
 		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
+		sb.append(
 			"<column><column-name>layoutSetId</column-name><column-value><![CDATA[");
 		sb.append(getLayoutSetId());
 		sb.append("]]></column-value></column>");
@@ -892,10 +904,6 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 		sb.append(
 			"<column><column-name>privateLayout</column-name><column-value><![CDATA[");
 		sb.append(getPrivateLayout());
-		sb.append("]]></column-value></column>");
-		sb.append(
-			"<column><column-name>logo</column-name><column-value><![CDATA[");
-		sb.append(getLogo());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>logoId</column-name><column-value><![CDATA[");
@@ -947,6 +955,7 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			LayoutSet.class
 		};
+	private long _mvccVersion;
 	private long _layoutSetId;
 	private long _groupId;
 	private long _originalGroupId;
@@ -957,7 +966,6 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	private boolean _privateLayout;
 	private boolean _originalPrivateLayout;
 	private boolean _setOriginalPrivateLayout;
-	private boolean _logo;
 	private long _logoId;
 	private String _themeId;
 	private String _colorSchemeId;

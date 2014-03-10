@@ -87,6 +87,25 @@ public abstract class BaseAssetRendererFactory implements AssetRendererFactory {
 	}
 
 	@Override
+	public Tuple getClassTypeFieldName(
+			long classTypeId, String fieldName, Locale locale)
+		throws Exception {
+
+		List<Tuple> classTypeFieldNames = getClassTypeFieldNames(
+			classTypeId, locale, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		for (Tuple classTypeFieldName : classTypeFieldNames) {
+			String curFieldName = (String)classTypeFieldName.getObject(1);
+
+			if (fieldName.equals(curFieldName)) {
+				return classTypeFieldName;
+			}
+		}
+
+		return null;
+	}
+
+	@Override
 	public List<Tuple> getClassTypeFieldNames(
 			long classTypeId, Locale locale, int start, int end)
 		throws Exception {
@@ -144,6 +163,14 @@ public abstract class BaseAssetRendererFactory implements AssetRendererFactory {
 		throws PortalException, SystemException {
 
 		return null;
+	}
+
+	@Override
+	public boolean hasAddPermission(
+			PermissionChecker permissionChecker, long groupId, long classTypeId)
+		throws Exception {
+
+		return false;
 	}
 
 	@Override

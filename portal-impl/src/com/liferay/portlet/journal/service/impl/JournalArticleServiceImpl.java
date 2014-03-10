@@ -29,7 +29,7 @@ import com.liferay.portlet.journal.model.JournalArticleConstants;
 import com.liferay.portlet.journal.model.JournalFolderConstants;
 import com.liferay.portlet.journal.service.base.JournalArticleServiceBaseImpl;
 import com.liferay.portlet.journal.service.permission.JournalArticlePermission;
-import com.liferay.portlet.journal.service.permission.JournalPermission;
+import com.liferay.portlet.journal.service.permission.JournalFolderPermission;
 
 import java.io.File;
 import java.io.Serializable;
@@ -152,8 +152,8 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 			String articleURL, ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
-		JournalPermission.check(
-			getPermissionChecker(), groupId, ActionKeys.ADD_ARTICLE);
+		JournalFolderPermission.check(
+			getPermissionChecker(), groupId, folderId, ActionKeys.ADD_ARTICLE);
 
 		return journalArticleLocalService.addArticle(
 			getUserId(), groupId, folderId, classNameId, classPK, articleId,
@@ -263,8 +263,8 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
-		JournalPermission.check(
-			getPermissionChecker(), groupId, ActionKeys.ADD_ARTICLE);
+		JournalFolderPermission.check(
+			getPermissionChecker(), groupId, folderId, ActionKeys.ADD_ARTICLE);
 
 		return journalArticleLocalService.addArticle(
 			getUserId(), groupId, folderId, classNameId, classPK, articleId,
@@ -300,8 +300,12 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 			boolean autoArticleId, double version)
 		throws PortalException, SystemException {
 
-		JournalPermission.check(
-			getPermissionChecker(), groupId, ActionKeys.ADD_ARTICLE);
+		JournalArticle article = journalArticleLocalService.getArticle(
+			groupId, oldArticleId);
+
+		JournalFolderPermission.check(
+			getPermissionChecker(), groupId, article.getFolderId(),
+			ActionKeys.ADD_ARTICLE);
 
 		return journalArticleLocalService.copyArticle(
 			getUserId(), groupId, oldArticleId, newArticleId, autoArticleId,
@@ -1817,47 +1821,6 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 	}
 
 	/**
-	 * Subscribes the user to notifications for the web content article matching
-	 * the group, notifying him the instant versions of the article are created,
-	 * deleted, or modified.
-	 *
-	 * @param  groupId the primary key of the group
-	 * @throws PortalException if the user did not have permission to subscribe
-	 *         to the web content article or if a matching user or group could
-	 *         not be found
-	 * @throws SystemException if a system exception occurred
-	 */
-	@Override
-	public void subscribe(long groupId)
-		throws PortalException, SystemException {
-
-		JournalPermission.check(
-			getPermissionChecker(), groupId, ActionKeys.SUBSCRIBE);
-
-		journalArticleLocalService.subscribe(getUserId(), groupId);
-	}
-
-	/**
-	 * Unsubscribes the user from notifications for the web content article
-	 * matching the group.
-	 *
-	 * @param  groupId the primary key of the group
-	 * @throws PortalException if the user did not have permission to subscribe
-	 *         to the web content article or if a matching user or subscription
-	 *         could not be found
-	 * @throws SystemException if a system exception occurred
-	 */
-	@Override
-	public void unsubscribe(long groupId)
-		throws PortalException, SystemException {
-
-		JournalPermission.check(
-			getPermissionChecker(), groupId, ActionKeys.SUBSCRIBE);
-
-		journalArticleLocalService.unsubscribe(getUserId(), groupId);
-	}
-
-	/**
 	 * Updates the web content article matching the version, replacing its
 	 * folder, title, description, content, and layout UUID.
 	 *
@@ -2071,6 +2034,7 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 	 *             #updateArticleTranslation(long, String, double, Locale,
 	 *             String, String, String, Map, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public JournalArticle updateArticleTranslation(
 			long groupId, String articleId, double version, Locale locale,

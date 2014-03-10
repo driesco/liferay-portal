@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.kernel.xml.Document;
+import com.liferay.portal.settings.Settings;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,6 +57,7 @@ public class LocalizationUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #getAvailableLanguageIds(String)}
 	 */
+	@Deprecated
 	public static String[] getAvailableLocales(String xml) {
 		return getAvailableLanguageIds(xml);
 	}
@@ -80,6 +82,7 @@ public class LocalizationUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #getDefaultLanguageId(String)}
 	 */
+	@Deprecated
 	public static String getDefaultLocale(String xml) {
 		return getDefaultLanguageId(xml);
 	}
@@ -156,6 +159,7 @@ public class LocalizationUtil {
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #getLocalizationMap}
 	 */
+	@Deprecated
 	public static Map<Locale, String> getLocalizedParameter(
 		PortletRequest portletRequest, String parameter) {
 
@@ -218,6 +222,32 @@ public class LocalizationUtil {
 
 		return getLocalization().getPreferencesValues(
 			preferences, key, languageId, useDefault);
+	}
+
+	public static String getSettingsValue(
+		Settings settings, String key, String languageId) {
+
+		return getLocalization().getSettingsValue(settings, key, languageId);
+	}
+
+	public static String getSettingsValue(
+		Settings settings, String key, String languageId, boolean useDefault) {
+
+		return getLocalization().getSettingsValue(
+			settings, key, languageId, useDefault);
+	}
+
+	public static String[] getSettingsValues(
+		Settings settings, String key, String languageId) {
+
+		return getLocalization().getSettingsValues(settings, key, languageId);
+	}
+
+	public static String[] getSettingsValues(
+		Settings settings, String key, String languageId, boolean useDefault) {
+
+		return getLocalization().getSettingsValues(
+			settings, key, languageId, useDefault);
 	}
 
 	public static String removeLocalization(

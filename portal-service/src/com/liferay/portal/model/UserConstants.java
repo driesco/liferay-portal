@@ -14,10 +14,13 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.DigesterUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -28,6 +31,7 @@ import com.liferay.portal.webserver.WebServerServletTokenUtil;
 /**
  * @author Amos Fong
  */
+@ProviderType
 public class UserConstants {
 
 	public static final int FULL_NAME_MAX_LENGTH = 75;
@@ -41,6 +45,8 @@ public class UserConstants {
 
 	public static final String LIST_VIEW_TREE = "tree";
 
+	public static final long USER_ID_DEFAULT = 0;
+
 	public static final String USERS_EMAIL_ADDRESS_AUTO_SUFFIX = PropsUtil.get(
 		PropsKeys.USERS_EMAIL_ADDRESS_AUTO_SUFFIX);
 
@@ -48,6 +54,7 @@ public class UserConstants {
 	 * @deprecated As of 7.0.0 replaced by {@link #getPortraitURL(String,
 	 *             boolean, long, String)}
 	 */
+	@Deprecated
 	public static String getPortraitURL(
 		String imagePath, boolean male, long portraitId) {
 
@@ -102,7 +109,7 @@ public class UserConstants {
 				PropsUtil.get(PropsKeys.USERS_IMAGE_CHECK_TOKEN))) {
 
 			sb.append("&img_id_token=");
-			sb.append(DigesterUtil.digest(userUuid));
+			sb.append(HttpUtil.encodeURL(DigesterUtil.digest(userUuid)));
 		}
 
 		sb.append("&t=");

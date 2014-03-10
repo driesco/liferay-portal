@@ -48,8 +48,10 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.TrashedModel;
+import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
@@ -387,6 +389,9 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 			attributes.put("${column.name}", get${column.methodName}());
 		</#list>
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
@@ -628,12 +633,18 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		<#if column.userUuid>
 			@Override
 			public String get${column.methodUserUuidName}() throws SystemException {
-				return PortalUtil.getUserValue(get${column.methodName}(), "uuid", _${column.userUuidName});
+				try {
+					User user = UserLocalServiceUtil.getUserById(get${column.methodName}());
+
+					return user.getUuid();
+				}
+				catch (PortalException pe) {
+					return StringPool.BLANK;
+				}
 			}
 
 			@Override
 			public void set${column.methodUserUuidName}(String ${column.userUuidName}) {
-				_${column.userUuidName} = ${column.userUuidName};
 			}
 		</#if>
 
@@ -849,6 +860,7 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		/**
 		 * @deprecated As of 6.1.0, replaced by {@link #isApproved}
 		 */
+		@Deprecated
 		@Override
 		public boolean getApproved() {
 			return isApproved();
@@ -1167,6 +1179,16 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		<#list entity.regularColList as column>
 			<#if column.isFinderPath() || ((parentPKColumn != "") && (parentPKColumn.name == column.name)) || ((column.type == "Blob") && column.lazy)>
@@ -1296,10 +1318,6 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 
 			<#if column.localized>
 				private String _${column.name}CurrentLanguageId;
-			</#if>
-
-			<#if column.userUuid>
-				private String _${column.userUuidName};
 			</#if>
 
 			<#if column.isFinderPath() || ((parentPKColumn != "") && (parentPKColumn.name == column.name))>

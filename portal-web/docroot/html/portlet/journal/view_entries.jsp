@@ -210,12 +210,72 @@ request.setAttribute("view_entries.jsp-entryStart", String.valueOf(searchContain
 request.setAttribute("view_entries.jsp-entryEnd", String.valueOf(searchContainer.getEnd()));
 %>
 
+<div class="subscribe-action">
+	<c:if test="<%= JournalPermission.contains(permissionChecker, scopeGroupId, ActionKeys.SUBSCRIBE) && JournalUtil.getEmailArticleAnyEventEnabled(portletPreferences) %>">
+
+		<%
+		boolean subscribed = false;
+		boolean unsubscribable = true;
+
+		subscribed = JournalUtil.isSubscribedToFolder(themeDisplay.getCompanyId(), scopeGroupId, user.getUserId(), folderId);
+
+		if (subscribed) {
+			if (!JournalUtil.isSubscribedToFolder(themeDisplay.getCompanyId(), scopeGroupId, user.getUserId(), folderId, false)) {
+				unsubscribable = false;
+			}
+		}
+		%>
+
+		<c:choose>
+			<c:when test="<%= subscribed %>">
+				<c:choose>
+					<c:when test="<%= unsubscribable %>">
+						<portlet:actionURL var="unsubscribeURL">
+							<portlet:param name="struts_action" value="/journal/edit_folder" />
+							<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.UNSUBSCRIBE %>" />
+							<portlet:param name="redirect" value="<%= currentURL %>" />
+							<portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" />
+						</portlet:actionURL>
+
+						<liferay-ui:icon
+							image="unsubscribe"
+							label="<%= true %>"
+							url="<%= unsubscribeURL %>"
+						/>
+					</c:when>
+					<c:otherwise>
+						<liferay-ui:icon
+							image="unsubscribe"
+							label="<%= true %>"
+							message="subscribed-to-a-parent-folder"
+						/>
+					</c:otherwise>
+				</c:choose>
+			</c:when>
+			<c:otherwise>
+				<portlet:actionURL var="subscribeURL">
+					<portlet:param name="struts_action" value="/journal/edit_folder" />
+					<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.SUBSCRIBE %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
+					<portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" />
+				</portlet:actionURL>
+
+				<liferay-ui:icon
+					image="subscribe"
+					label="<%= true %>"
+					url="<%= subscribeURL %>"
+				/>
+			</c:otherwise>
+		</c:choose>
+	</c:if>
+</div>
+
 <c:if test="<%= results.isEmpty() %>">
 	<div class="entries-empty alert alert-info">
 		<c:choose>
 			<c:when test="<%= Validator.isNotNull(displayTerms.getStructureId()) %>">
 				<c:if test="<%= total == 0 %>">
-					<liferay-ui:message arguments="<%= HtmlUtil.escape(ddmStructureName) %>" key="there-is-no-web-content-with-structure-x" />
+					<liferay-ui:message arguments="<%= HtmlUtil.escape(ddmStructureName) %>" key="there-is-no-web-content-with-structure-x" translateArguments="<%= false %>" />
 				</c:if>
 			</c:when>
 			<c:otherwise>
@@ -334,7 +394,7 @@ for (int i = 0; i < results.size(); i++) {
 										</dt>
 
 										<dd>
-											<%= group.getDescriptiveName(locale) %>
+											<%= HtmlUtil.escape(group.getDescriptiveName(locale)) %>
 										</dd>
 									</c:if>
 								</dl>

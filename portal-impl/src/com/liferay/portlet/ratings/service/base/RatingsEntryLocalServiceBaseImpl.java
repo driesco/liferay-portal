@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.model.PersistedModel;
 import com.liferay.portal.service.BaseLocalServiceImpl;
 import com.liferay.portal.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.service.persistence.ClassNamePersistence;
 import com.liferay.portal.service.persistence.UserFinder;
 import com.liferay.portal.service.persistence.UserPersistence;
 import com.liferay.portal.util.PortalUtil;
@@ -233,6 +234,20 @@ public abstract class RatingsEntryLocalServiceBaseImpl
 	}
 
 	/**
+	 * Returns the ratings entry with the matching UUID and company.
+	 *
+	 * @param uuid the ratings entry's UUID
+	 * @param  companyId the primary key of the company
+	 * @return the matching ratings entry, or <code>null</code> if a matching ratings entry could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public RatingsEntry fetchRatingsEntryByUuidAndCompanyId(String uuid,
+		long companyId) throws SystemException {
+		return ratingsEntryPersistence.fetchByUuid_C_First(uuid, companyId, null);
+	}
+
+	/**
 	 * Returns the ratings entry with the primary key.
 	 *
 	 * @param entryId the primary key of the ratings entry
@@ -250,6 +265,21 @@ public abstract class RatingsEntryLocalServiceBaseImpl
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException, SystemException {
 		return ratingsEntryPersistence.findByPrimaryKey(primaryKeyObj);
+	}
+
+	/**
+	 * Returns the ratings entry with the matching UUID and company.
+	 *
+	 * @param uuid the ratings entry's UUID
+	 * @param  companyId the primary key of the company
+	 * @return the matching ratings entry
+	 * @throws PortalException if a matching ratings entry could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public RatingsEntry getRatingsEntryByUuidAndCompanyId(String uuid,
+		long companyId) throws PortalException, SystemException {
+		return ratingsEntryPersistence.findByUuid_C_First(uuid, companyId, null);
 	}
 
 	/**
@@ -443,6 +473,63 @@ public abstract class RatingsEntryLocalServiceBaseImpl
 	public void setCounterLocalService(
 		com.liferay.counter.service.CounterLocalService counterLocalService) {
 		this.counterLocalService = counterLocalService;
+	}
+
+	/**
+	 * Returns the class name local service.
+	 *
+	 * @return the class name local service
+	 */
+	public com.liferay.portal.service.ClassNameLocalService getClassNameLocalService() {
+		return classNameLocalService;
+	}
+
+	/**
+	 * Sets the class name local service.
+	 *
+	 * @param classNameLocalService the class name local service
+	 */
+	public void setClassNameLocalService(
+		com.liferay.portal.service.ClassNameLocalService classNameLocalService) {
+		this.classNameLocalService = classNameLocalService;
+	}
+
+	/**
+	 * Returns the class name remote service.
+	 *
+	 * @return the class name remote service
+	 */
+	public com.liferay.portal.service.ClassNameService getClassNameService() {
+		return classNameService;
+	}
+
+	/**
+	 * Sets the class name remote service.
+	 *
+	 * @param classNameService the class name remote service
+	 */
+	public void setClassNameService(
+		com.liferay.portal.service.ClassNameService classNameService) {
+		this.classNameService = classNameService;
+	}
+
+	/**
+	 * Returns the class name persistence.
+	 *
+	 * @return the class name persistence
+	 */
+	public ClassNamePersistence getClassNamePersistence() {
+		return classNamePersistence;
+	}
+
+	/**
+	 * Sets the class name persistence.
+	 *
+	 * @param classNamePersistence the class name persistence
+	 */
+	public void setClassNamePersistence(
+		ClassNamePersistence classNamePersistence) {
+		this.classNamePersistence = classNamePersistence;
 	}
 
 	/**
@@ -899,6 +986,12 @@ public abstract class RatingsEntryLocalServiceBaseImpl
 	protected RatingsStatsFinder ratingsStatsFinder;
 	@BeanReference(type = com.liferay.counter.service.CounterLocalService.class)
 	protected com.liferay.counter.service.CounterLocalService counterLocalService;
+	@BeanReference(type = com.liferay.portal.service.ClassNameLocalService.class)
+	protected com.liferay.portal.service.ClassNameLocalService classNameLocalService;
+	@BeanReference(type = com.liferay.portal.service.ClassNameService.class)
+	protected com.liferay.portal.service.ClassNameService classNameService;
+	@BeanReference(type = ClassNamePersistence.class)
+	protected ClassNamePersistence classNamePersistence;
 	@BeanReference(type = com.liferay.portal.service.ResourceLocalService.class)
 	protected com.liferay.portal.service.ResourceLocalService resourceLocalService;
 	@BeanReference(type = com.liferay.portal.service.UserLocalService.class)

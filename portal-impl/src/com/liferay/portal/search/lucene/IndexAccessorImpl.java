@@ -16,6 +16,11 @@ package com.liferay.portal.search.lucene;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.nio.intraband.RegistrationReference;
+import com.liferay.portal.kernel.nio.intraband.rpc.IntrabandRPCUtil;
+import com.liferay.portal.kernel.process.ProcessCallable;
+import com.liferay.portal.kernel.resiliency.mpi.MPIHelperUtil;
+import com.liferay.portal.kernel.resiliency.spi.SPI;
 import com.liferay.portal.kernel.resiliency.spi.SPIUtil;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.util.FileUtil;
@@ -30,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -73,11 +79,30 @@ public class IndexAccessorImpl implements IndexAccessor {
 	public IndexAccessorImpl(long companyId) {
 		_companyId = companyId;
 
-		if (!SPIUtil.isSPI()) {
-			_checkLuceneDir();
-			_initIndexWriter();
-			_initCommitScheduler();
+		try {
+			if (!SPIUtil.isSPI()) {
+				_checkLuceneDir();
+				_initIndexWriter();
+				_initCommitScheduler();
+
+				_indexSearcherManager = new IndexSearcherManager(_indexWriter);
+			}
+			else {
+				_indexSearcherManager = new IndexSearcherManager(
+					getLuceneDir());
+			}
 		}
+		catch (IOException ioe) {
+			_log.error(
+				"Unable to initialize index searcher manager for company " +
+					_companyId,
+				ioe);
+		}
+	}
+
+	@Override
+	public IndexSearcher acquireIndexSearcher() throws IOException {
+		return _indexSearcherManager.acquire();
 	}
 
 	@Override
@@ -112,6 +137,7 @@ public class IndexAccessorImpl implements IndexAccessor {
 		}
 
 		try {
+			_indexSearcherManager.close();
 			_indexWriter.close();
 		}
 		catch (Exception e) {
@@ -146,7 +172,13 @@ public class IndexAccessorImpl implements IndexAccessor {
 
 	@Override
 	public void dumpIndex(OutputStream outputStream) throws IOException {
-		_dumpIndexDeletionPolicy.dump(outputStream, _indexWriter, _commitLock);
+		try {
+			_dumpIndexDeletionPolicy.dump(
+				outputStream, _indexWriter, _commitLock);
+		}
+		finally {
+			_indexSearcherManager.invalidate();
+		}
 	}
 
 	@Override
@@ -181,6 +213,11 @@ public class IndexAccessorImpl implements IndexAccessor {
 			throw new RuntimeException(
 				"Invalid store type " + PropsValues.LUCENE_STORE_TYPE);
 		}
+	}
+
+	@Override
+	public void invalidate() {
+		_indexSearcherManager.invalidate();
 	}
 
 	@Override
@@ -227,6 +264,13 @@ public class IndexAccessorImpl implements IndexAccessor {
 	}
 
 	@Override
+	public void releaseIndexSearcher(IndexSearcher indexSearcher)
+		throws IOException {
+
+		_indexSearcherManager.release(indexSearcher);
+	}
+
+	@Override
 	public void updateDocument(Term term, Document document)
 		throws IOException {
 
@@ -239,6 +283,25 @@ public class IndexAccessorImpl implements IndexAccessor {
 		}
 
 		_write(term, document);
+	}
+
+	private static void _invalidate(long companyId) {
+		for (SPI spi : MPIHelperUtil.getSPIs()) {
+			try {
+				RegistrationReference registrationReference =
+					spi.getRegistrationReference();
+
+				IntrabandRPCUtil.execute(
+					registrationReference,
+					new InvalidateProcessCallable(companyId));
+			}
+			catch (Exception e) {
+				_log.error(
+					"Unable to invalidate SPI " + spi + " for company " +
+						companyId,
+					e);
+			}
+		}
 	}
 
 	private void _checkLuceneDir() {
@@ -272,7 +335,7 @@ public class IndexAccessorImpl implements IndexAccessor {
 		try {
 			_indexWriter.deleteAll();
 
-			_indexWriter.commit();
+			_doCommit();
 		}
 		catch (Exception e) {
 			if (_log.isWarnEnabled()) {
@@ -312,6 +375,10 @@ public class IndexAccessorImpl implements IndexAccessor {
 			}
 			finally {
 				_commitLock.unlock();
+
+				_indexSearcherManager.invalidate();
+
+				_invalidate(_companyId);
 			}
 		}
 
@@ -457,7 +524,7 @@ public class IndexAccessorImpl implements IndexAccessor {
 					_log.debug("Creating missing index");
 				}
 
-				_doCommit();
+				_indexWriter.commit();
 			}
 		}
 		catch (Exception e) {
@@ -495,8 +562,34 @@ public class IndexAccessorImpl implements IndexAccessor {
 	private long _companyId;
 	private DumpIndexDeletionPolicy _dumpIndexDeletionPolicy =
 		new DumpIndexDeletionPolicy();
+	private IndexSearcherManager _indexSearcherManager;
 	private IndexWriter _indexWriter;
 	private Map<String, Directory> _ramDirectories =
 		new ConcurrentHashMap<String, Directory>();
+
+	private static class InvalidateProcessCallable
+		implements ProcessCallable<Serializable> {
+
+		public InvalidateProcessCallable(long companyId) {
+			_companyId = companyId;
+		}
+
+		@Override
+		public Serializable call() {
+			IndexAccessor indexAccessor = LuceneHelperUtil.getIndexAccessor(
+				_companyId);
+
+			indexAccessor.invalidate();
+
+			_invalidate(_companyId);
+
+			return null;
+		}
+
+		private static final long serialVersionUID = 1L;
+
+		private final long _companyId;
+
+	}
 
 }

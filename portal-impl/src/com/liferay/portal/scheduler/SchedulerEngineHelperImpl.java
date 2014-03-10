@@ -126,14 +126,14 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 
 		try {
 			AuditMessage auditMessage = new AuditMessage(
-				SchedulerEngine.AUDIT_ACTION, CompanyConstants.SYSTEM, 0,
+				SchedulerEngine.SCHEDULER, CompanyConstants.SYSTEM, 0,
 				StringPool.BLANK, SchedulerEngine.class.getName(), "0",
 				triggerState.toString(), new Date(),
 				JSONFactoryUtil.createJSONObject(
 					JSONFactoryUtil.serialize(message)));
 
 			auditMessage.setServerName(InetAddressUtil.getLocalHostName());
-			auditMessage.setServerPort(PortalUtil.getPortalPort(false));
+			auditMessage.setServerPort(PortalUtil.getPortalLocalPort(false));
 
 			AuditRouterUtil.route(auditMessage);
 		}

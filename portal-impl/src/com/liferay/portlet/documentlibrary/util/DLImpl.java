@@ -356,12 +356,12 @@ public class DLImpl implements DL {
 		sb.append(StringPool.SPACE);
 
 		for (Folder curFolder : folders) {
-			sb.append(StringPool.RAQUO);
+			sb.append(StringPool.RAQUO_CHAR);
 			sb.append(StringPool.SPACE);
 			sb.append(curFolder.getName());
 		}
 
-		sb.append(StringPool.RAQUO);
+		sb.append(StringPool.RAQUO_CHAR);
 		sb.append(StringPool.SPACE);
 		sb.append(folder.getName());
 
@@ -748,6 +748,7 @@ public class DLImpl implements DL {
 	 * @deprecated As of 6.2.0, replaced by {@link #getPreviewURL(FileEntry,
 	 *             FileVersion, ThemeDisplay, String, boolean, boolean)}
 	 */
+	@Deprecated
 	@Override
 	public String getPreviewURL(
 		FileEntry fileEntry, FileVersion fileVersion, ThemeDisplay themeDisplay,
@@ -786,7 +787,7 @@ public class DLImpl implements DL {
 		sb.append(HttpUtil.encodeURL(HtmlUtil.unescape(title)));
 
 		sb.append(StringPool.SLASH);
-		sb.append(fileEntry.getUuid());
+		sb.append(HttpUtil.encodeURL(fileEntry.getUuid()));
 
 		if (appendVersion) {
 			sb.append("?version=");
@@ -1129,18 +1130,7 @@ public class DLImpl implements DL {
 
 	@Override
 	public boolean isOfficeExtension(String extension) {
-		if (StringUtil.equalsIgnoreCase(extension, "doc") ||
-			StringUtil.equalsIgnoreCase(extension, "docx") ||
-			StringUtil.equalsIgnoreCase(extension, "dot") ||
-			StringUtil.equalsIgnoreCase(extension, "ppt") ||
-			StringUtil.equalsIgnoreCase(extension, "pptx") ||
-			StringUtil.equalsIgnoreCase(extension, "xls") ||
-			StringUtil.equalsIgnoreCase(extension, "xlsx")) {
-
-			return true;
-		}
-
-		return false;
+		return ArrayUtil.contains(_MICROSOFT_OFFICE_EXTENSIONS, extension);
 	}
 
 	@Override
@@ -1178,13 +1168,13 @@ public class DLImpl implements DL {
 		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 			Folder folder = DLAppLocalServiceUtil.getFolder(folderId);
 
+			ancestorFolderIds.add(folderId);
+
 			if (recursive) {
-				ancestorFolderIds = folder.getAncestorFolderIds();
+				ancestorFolderIds.addAll(folder.getAncestorFolderIds());
 
 				ancestorFolderIds.add(groupId);
 			}
-
-			ancestorFolderIds.add(0, folderId);
 		}
 		else {
 			ancestorFolderIds.add(groupId);
@@ -1266,6 +1256,20 @@ public class DLImpl implements DL {
 	private static final String _DEFAULT_GENERIC_NAME = "default";
 
 	private static final long _DIVISOR = 256;
+
+	private static final String[] _MICROSOFT_OFFICE_EXTENSIONS = {
+		"accda", "accdb", "accdc", "accde", "accdp", "accdr", "accdt", "accdu",
+		"acl", "ade", "adp", "asd", "cnv", "crtx", "doc", "docm", "docx", "dot",
+		"dotm", "dotx", "grv", "iaf", "laccdb", "maf", "mam", "maq", "mar",
+		"mat", "mda", "mdb", "mde", "mdt", "mdw", "mpd", "mpp", "mpt", "oab",
+		"obi", "oft", "olm", "one", "onepkg", "ops", "ost", "pa", "pip", "pot",
+		"potm", "potx", "ppa", "ppam", "pps", "ppsm", "ppsx", "ppt", "pptm",
+		"pptx", "prf", "pst", "pub", "puz", "rpmsg", "sldm", "sldx", "slk",
+		"snp", "svd", "thmx", "vdx", "vrge08message", "vsd", "vss", "vst",
+		"vsx", "vtx", "wbk", "wll", "xar", "xl", "xla", "xlam", "xlb", "xlc",
+		"xll", "xlm", "xls", "xlsb", "xlsm", "xlsx", "xlt", "xltm", "xltx",
+		"xlw", "xsf", "xsn"
+	};
 
 	private static final String _STRUCTURE_KEY_PREFIX = "AUTO_";
 

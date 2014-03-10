@@ -8,6 +8,8 @@
 	<#assign selenium = "liferaySelenium">
 </#if>
 
+<#assign variableContext = variableContextStack.peek()>
+
 <#assign elements = blockElement.elements()>
 
 <#assign void = elementsStack.push(elements)>
@@ -21,15 +23,33 @@
 
 	${selenium}.sendLogger(${lineId} + "${lineNumber}", "pending");
 
-	<#if name == "echo">
+	<#if name =="description">
+		<#assign variableContext = variableContextStack.peek()>
+
 		<#assign message = element.attributeValue("message")>
 
-		${selenium}.echo(RuntimeVariables.evaluateVariable("${message}", commandScopeVariables));
+		${selenium}.sendMacroDescriptionLogger(RuntimeVariables.evaluateVariable("${seleniumBuilderFileUtil.escapeJava(message)}", ${variableContext}));
+
+		<#assign lineNumber = element.attributeValue("line-number")>
+
+		${selenium}.sendLogger(${lineId} + "${lineNumber}", "pass");
+	<#elseif name == "echo">
+		<#assign variableContext = variableContextStack.peek()>
+
+		<#assign message = element.attributeValue("message")>
+
+		<#assign actionElement = element>
+
+		<#include "action_log_element.ftl">
+
+		${selenium}.echo(RuntimeVariables.evaluateVariable("${seleniumBuilderFileUtil.escapeJava(message)}", ${variableContext}));
 
 		<#assign lineNumber = element.attributeValue("line-number")>
 
 		${selenium}.sendLogger(${lineId} + "${lineNumber}", "pass");
 	<#elseif name == "execute">
+		<#assign variableContext = variableContextStack.peek()>
+
 		<#if element.attributeValue("action")??>
 			<#assign action = element.attributeValue("action")>
 
@@ -54,16 +74,6 @@
 			</#if>
 
 			<#include "action_log_element.ftl">
-
-			<#if !(action?contains("#confirm")) && !(action?contains("#is"))>
-				<#if testCaseName??>
-					selenium
-				<#else>
-					liferaySelenium
-				</#if>
-
-				.saveScreenshot(commandScopeVariables.get("testCaseName"));
-			</#if>
 
 			<#include "action_element.ftl">
 
@@ -97,7 +107,13 @@
 			${selenium}.sendLogger(${lineId} + "${lineNumber}", "pass");
 		</#if>
 	<#elseif name == "fail">
+		<#assign variableContext = variableContextStack.peek()>
+
 		<#assign message = element.attributeValue("message")>
+
+		<#assign actionElement = element>
+
+		<#include "action_log_element.ftl">
 
 		${selenium}.fail(RuntimeVariables.evaluateVariable("${message}", commandScopeVariables));
 
@@ -105,9 +121,11 @@
 
 		${selenium}.sendLogger(${lineId} + "${lineNumber}", "pass");
 	<#elseif name == "for">
+		<#assign variableContext = variableContextStack.peek()>
+
 		executeScopeVariables = new HashMap<String, String>();
 
-		executeScopeVariables.putAll(commandScopeVariables);
+		executeScopeVariables.putAll(${variableContext});
 
 		<#assign forElement = element>
 
@@ -119,7 +137,7 @@
 	<#elseif name == "if">
 		executeScopeVariables = new HashMap<String, String>();
 
-		executeScopeVariables.putAll(commandScopeVariables);
+		executeScopeVariables.putAll(${variableContext});
 
 		<#assign ifElement = element>
 
@@ -154,10 +172,26 @@
 		<#assign lineNumber = element.attributeValue("line-number")>
 
 		${selenium}.sendLogger(${lineId} + "${lineNumber}", "pass");
-	<#elseif name == "var">
-		<#assign varElement = element>
+	<#elseif name == "property">
+		<#assign lineNumber = element.attributeValue("line-number")>
 
-		<#assign context = "commandScopeVariables">
+		${selenium}.sendLogger(${lineId} + "${lineNumber}", "pass");
+	<#elseif name == "take-screenshot">
+		<#assign variableContext = variableContextStack.peek()>
+
+		executeScopeVariables = new HashMap<String, String>();
+
+		executeScopeVariables.putAll(${variableContext});
+
+		${selenium}.saveScreenshot();
+
+		<#assign lineNumber = element.attributeValue("line-number")>
+
+		${selenium}.sendLogger(${lineId} + "${lineNumber}", "pass");
+	<#elseif name == "var">
+		<#assign variableContext = variableContextStack.peek()>
+
+		<#assign varElement = element>
 
 		<#include "var_element.ftl">
 
@@ -165,9 +199,13 @@
 
 		${selenium}.sendLogger(${lineId} + "${lineNumber}", "pass");
 	<#elseif name == "while">
+		<#assign variableContext = variableContextStack.peek()>
+
 		executeScopeVariables = new HashMap<String, String>();
 
-		executeScopeVariables.putAll(commandScopeVariables);
+		executeScopeVariables.putAll(${variableContext});
+
+		_whileCount = 0;
 
 		<#assign ifElement = element>
 

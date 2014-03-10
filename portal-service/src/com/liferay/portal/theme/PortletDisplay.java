@@ -14,6 +14,7 @@
 
 package com.liferay.portal.theme;
 
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -21,6 +22,8 @@ import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.settings.Settings;
+import com.liferay.portal.settings.SettingsFactoryUtil;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -127,6 +130,7 @@ public class PortletDisplay implements Serializable {
 		slave.setModeView(_modeView);
 		slave.setNamespace(_namespace);
 		slave.setPortletName(_portletName);
+		slave.setPortletResource(_portletResource);
 		slave.setPortletSetup(_portletSetup);
 		slave.setResourcePK(_resourcePK);
 		slave.setRestoreCurrentView(_restoreCurrentView);
@@ -209,6 +213,17 @@ public class PortletDisplay implements Serializable {
 
 	public String getNamespace() {
 		return _namespace;
+	}
+
+	public Settings getPortletInstanceSettings() throws SystemException {
+		String portletId = _id;
+
+		if (Validator.isNotNull(_portletResource)) {
+			portletId = _portletResource;
+		}
+
+		return SettingsFactoryUtil.getPortletInstanceSettings(
+			_themeDisplay.getLayout(), portletId);
 	}
 
 	public String getPortletName() {
@@ -310,8 +325,9 @@ public class PortletDisplay implements Serializable {
 	}
 
 	/**
-	 * @deprecated As of 6.2.0 with no direct replacement
+	 * @deprecated As of 6.2.0, with no direct replacement
 	 */
+	@Deprecated
 	public boolean isAccess() {
 		return true;
 	}
@@ -517,8 +533,9 @@ public class PortletDisplay implements Serializable {
 	}
 
 	/**
-	 * @deprecated As of 6.2.0 with no direct replacement
+	 * @deprecated As of 6.2.0, with no direct replacement
 	 */
+	@Deprecated
 	public void setAccess(boolean access) {
 	}
 
@@ -611,6 +628,10 @@ public class PortletDisplay implements Serializable {
 
 	public void setPortletName(String portletName) {
 		_portletName = portletName;
+	}
+
+	public void setPortletResource(String portletResource) {
+		_portletResource = portletResource;
 	}
 
 	public void setPortletSetup(PortletPreferences portletSetup) {
@@ -815,6 +836,7 @@ public class PortletDisplay implements Serializable {
 	private boolean _modeView;
 	private String _namespace = StringPool.BLANK;
 	private String _portletName = StringPool.BLANK;
+	private String _portletResource = StringPool.BLANK;
 	private PortletPreferences _portletSetup;
 	private String _resourcePK = StringPool.BLANK;
 	private boolean _restoreCurrentView;

@@ -79,7 +79,9 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		throws PortalException, SystemException {
 
 		try {
-			if (!hasFileEntryLock(fileEntryId)) {
+			if (!hasFileEntryLock(fileEntryId) &&
+				!_hasOverrideCheckoutPermission(fileEntryId)) {
+
 				throw new PrincipalException();
 			}
 		}
@@ -96,7 +98,9 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		throws PortalException, SystemException {
 
 		try {
-			if (!hasFileEntryLock(fileEntryId)) {
+			if (!hasFileEntryLock(fileEntryId) &&
+				!_hasOverrideCheckoutPermission(fileEntryId)) {
+
 				throw new PrincipalException();
 			}
 		}
@@ -111,6 +115,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
 	 *             String, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public void checkInFileEntry(long fileEntryId, String lockUuid)
 		throws PortalException, SystemException {
@@ -124,7 +129,9 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		throws PortalException, SystemException {
 
 		try {
-			if (!hasFileEntryLock(fileEntryId)) {
+			if (!hasFileEntryLock(fileEntryId) &&
+				!_hasOverrideCheckoutPermission(fileEntryId)) {
+
 				throw new PrincipalException();
 			}
 		}
@@ -139,6 +146,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public DLFileEntry checkOutFileEntry(long fileEntryId)
 		throws PortalException, SystemException {
@@ -160,6 +168,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	 *             String, long, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public DLFileEntry checkOutFileEntry(
 			long fileEntryId, String owner, long expirationTime)
@@ -341,7 +350,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		QueryDefinition queryDefinition = new QueryDefinition(
 			WorkflowConstants.STATUS_IN_TRASH, true, start, end, obc);
 
-		return dlFileEntryFinder.findByG_U_F_M(
+		return dlFileEntryFinder.filterFindByG_U_F_M(
 			groupId, 0, folderIds, mimeTypes, queryDefinition);
 	}
 
@@ -383,7 +392,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 
 		folderIds.add(folderId);
 
-		return dlFileEntryFinder.countByG_U_F_M(
+		return dlFileEntryFinder.filterCountByG_U_F_M(
 			groupId, 0, folderIds, mimeTypes,
 			new QueryDefinition(WorkflowConstants.STATUS_ANY));
 	}
@@ -495,7 +504,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 			status, start, end, obc);
 
 		if (rootFolderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			return dlFileEntryFinder.findByG_U_F_M(
+			return dlFileEntryFinder.filterFindByG_U_F_M(
 				groupId, userId, new ArrayList<Long>(), mimeTypes,
 				queryDefinition);
 		}
@@ -507,7 +516,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 			return Collections.emptyList();
 		}
 
-		return dlFileEntryFinder.findByG_U_F_M(
+		return dlFileEntryFinder.filterFindByG_U_F_M(
 			groupId, userId, folderIds, mimeTypes, queryDefinition);
 	}
 
@@ -539,7 +548,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		throws PortalException, SystemException {
 
 		if (rootFolderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			return dlFileEntryFinder.countByG_U_F_M(
+			return dlFileEntryFinder.filterCountByG_U_F_M(
 				groupId, userId, new ArrayList<Long>(), mimeTypes,
 				new QueryDefinition(status));
 		}
@@ -551,7 +560,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 			return 0;
 		}
 
-		return dlFileEntryFinder.countByG_U_F_M(
+		return dlFileEntryFinder.filterCountByG_U_F_M(
 			groupId, userId, folderIds, mimeTypes, new QueryDefinition(status));
 	}
 
@@ -571,13 +580,6 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 			(folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
 
 			hasLock = dlFolderService.hasInheritableLock(folderId);
-		}
-
-		if (DLFileEntryPermission.contains(
-				getPermissionChecker(), fileEntryId,
-				ActionKeys.OVERRIDE_CHECKOUT)) {
-
-			hasLock = true;
 		}
 
 		return hasLock;
@@ -680,6 +682,13 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 
 		return dlFileEntryLocalService.verifyFileEntryLock(
 			fileEntryId, lockUuid);
+	}
+
+	private boolean _hasOverrideCheckoutPermission(long fileEntryId)
+		throws PortalException, SystemException {
+
+		return DLFileEntryPermission.contains(
+			getPermissionChecker(), fileEntryId, ActionKeys.OVERRIDE_CHECKOUT);
 	}
 
 }

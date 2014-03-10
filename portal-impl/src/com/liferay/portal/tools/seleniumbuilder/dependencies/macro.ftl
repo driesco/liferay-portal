@@ -41,10 +41,18 @@ public class ${seleniumBuilderContext.getMacroSimpleClassName(macroName)}
 		<#if rootElement.element("var")??>
 			<#assign varElements = rootElement.elements("var")>
 
-			<#assign context = "definitionScopeVariables">
-
 			<#list varElements as varElement>
+				<#assign lineNumber = varElement.attributeValue("line-number")>
+
+				liferaySelenium.sendLogger("${macroName?uncap_first}Macro${lineNumber}", "pending");
+
+				<#assign void = variableContextStack.push("definitionScopeVariables")>
+
 				<#include "var_element.ftl">
+
+				<#assign void = variableContextStack.pop()>
+
+				liferaySelenium.sendLogger("${macroName?uncap_first}Macro${lineNumber}", "pass");
 			</#list>
 		</#if>
 	}
@@ -83,8 +91,14 @@ public class ${seleniumBuilderContext.getMacroSimpleClassName(macroName)}
 
 			<#assign blockLevel = "macro">
 
+			<#assign void = variableContextStack.push("commandScopeVariables")>
+
 			<#include "block_element.ftl">
+
+			<#assign void = variableContextStack.pop()>
 		}
 	</#list>
+
+	private int _whileCount;
 
 }

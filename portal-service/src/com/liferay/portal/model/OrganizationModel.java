@@ -40,7 +40,7 @@ import java.util.Date;
  * @generated
  */
 @ProviderType
-public interface OrganizationModel extends BaseModel<Organization>,
+public interface OrganizationModel extends BaseModel<Organization>, MVCCModel,
 	StagedAuditedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -61,6 +61,22 @@ public interface OrganizationModel extends BaseModel<Organization>,
 	 * @param primaryKey the primary key of this organization
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this organization.
+	 *
+	 * @return the mvcc version of this organization
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this organization.
+	 *
+	 * @param mvccVersion the mvcc version of this organization
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this organization.
@@ -326,6 +342,20 @@ public interface OrganizationModel extends BaseModel<Organization>,
 	 * @param comments the comments of this organization
 	 */
 	public void setComments(String comments);
+
+	/**
+	 * Returns the logo ID of this organization.
+	 *
+	 * @return the logo ID of this organization
+	 */
+	public long getLogoId();
+
+	/**
+	 * Sets the logo ID of this organization.
+	 *
+	 * @param logoId the logo ID of this organization
+	 */
+	public void setLogoId(long logoId);
 
 	@Override
 	public boolean isNew();

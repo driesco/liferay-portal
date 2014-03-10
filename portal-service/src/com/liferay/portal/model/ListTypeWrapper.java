@@ -50,6 +50,7 @@ public class ListTypeWrapper implements ListType, ModelWrapper<ListType> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("listTypeId", getListTypeId());
 		attributes.put("name", getName());
 		attributes.put("type", getType());
@@ -59,6 +60,12 @@ public class ListTypeWrapper implements ListType, ModelWrapper<ListType> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Integer listTypeId = (Integer)attributes.get("listTypeId");
 
 		if (listTypeId != null) {
@@ -96,6 +103,26 @@ public class ListTypeWrapper implements ListType, ModelWrapper<ListType> {
 	@Override
 	public void setPrimaryKey(int primaryKey) {
 		_listType.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this list type.
+	*
+	* @return the mvcc version of this list type
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _listType.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this list type.
+	*
+	* @param mvccVersion the mvcc version of this list type
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_listType.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -278,6 +305,7 @@ public class ListTypeWrapper implements ListType, ModelWrapper<ListType> {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ListType getWrappedListType() {
 		return _listType;
 	}
@@ -285,6 +313,16 @@ public class ListTypeWrapper implements ListType, ModelWrapper<ListType> {
 	@Override
 	public ListType getWrappedModel() {
 		return _listType;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _listType.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _listType.isFinderCacheEnabled();
 	}
 
 	@Override

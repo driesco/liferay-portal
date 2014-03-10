@@ -3054,38 +3054,46 @@ public class JournalArticleLocalServiceWrapper
 			displayDateLT, status, reviewDate, andOperator);
 	}
 
-	/**
-	* Subscribes the user to notifications for the web content article matching
-	* the group, notifying him the instant versions of the article are created,
-	* deleted, or modified.
-	*
-	* @param userId the primary key of the user to subscribe
-	* @param groupId the primary key of the group
-	* @throws PortalException if a matching user or group could not be found
-	* @throws SystemException if a system exception occurred
-	*/
 	@Override
-	public void subscribe(long userId, long groupId)
+	public com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portlet.journal.model.JournalArticle> searchJournalArticles(
+		long companyId, long groupId, java.util.List<java.lang.Long> folderIds,
+		long classNameId, java.lang.String ddmStructureKey,
+		java.lang.String ddmTemplateKey, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		int start, int end, com.liferay.portal.kernel.search.Sort sort)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_journalArticleLocalService.subscribe(userId, groupId);
+		return _journalArticleLocalService.searchJournalArticles(companyId,
+			groupId, folderIds, classNameId, ddmStructureKey, ddmTemplateKey,
+			keywords, params, start, end, sort);
 	}
 
-	/**
-	* Unsubscribes the user from notifications for the web content article
-	* matching the group.
-	*
-	* @param userId the primary key of the user to unsubscribe
-	* @param groupId the primary key of the group
-	* @throws PortalException if a matching user or subscription could not be
-	found
-	* @throws SystemException if a system exception occurred
-	*/
 	@Override
-	public void unsubscribe(long userId, long groupId)
+	public com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portlet.journal.model.JournalArticle> searchJournalArticles(
+		long companyId, long groupId, java.util.List<java.lang.Long> folderIds,
+		long classNameId, java.lang.String articleId, java.lang.String title,
+		java.lang.String description, java.lang.String content,
+		java.lang.String type, java.lang.String status,
+		java.lang.String ddmStructureKey, java.lang.String ddmTemplateKey,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andSearch, int start, int end,
+		com.liferay.portal.kernel.search.Sort sort)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_journalArticleLocalService.unsubscribe(userId, groupId);
+		return _journalArticleLocalService.searchJournalArticles(companyId,
+			groupId, folderIds, classNameId, articleId, title, description,
+			content, type, status, ddmStructureKey, ddmTemplateKey, params,
+			andSearch, start, end, sort);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portlet.journal.model.JournalArticle> searchJournalArticles(
+		long groupId, long userId, long creatorUserId, int status, int start,
+		int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleLocalService.searchJournalArticles(groupId,
+			userId, creatorUserId, status, start, end);
 	}
 
 	/**
@@ -3302,6 +3310,7 @@ public class JournalArticleLocalServiceWrapper
 	#updateArticleTranslation(long, String, double, Locale,
 	String, String, String, Map, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.journal.model.JournalArticle updateArticleTranslation(
 		long groupId, java.lang.String articleId, double version,
@@ -3527,6 +3536,7 @@ public class JournalArticleLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public JournalArticleLocalService getWrappedJournalArticleLocalService() {
 		return _journalArticleLocalService;
 	}
@@ -3534,6 +3544,7 @@ public class JournalArticleLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedJournalArticleLocalService(
 		JournalArticleLocalService journalArticleLocalService) {
 		_journalArticleLocalService = journalArticleLocalService;

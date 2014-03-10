@@ -28,15 +28,6 @@
 			.accordion-group .accordion-inner {
 				padding: 6px 0;
 			}
-
-			.nav-list {
-				padding-left: 0;
-				padding-right: 0;
-
-				.lfr-content-item {
-					padding-left: 15px;
-				}
-			}
 		}
 
 		.btn-toolbar {
@@ -105,11 +96,15 @@
 			margin-bottom: 25px;
 		}
 
+		.drag-content-item {
+			cursor: move;
+		}
+
 		.lfr-content-item {
+			padding-left: 15px;
 			position: relative;
 
 			.drag-content-item {
-				cursor: move;
 				display: inline-block;
 				width: 100%;
 			}
@@ -248,12 +243,7 @@
 		margin-bottom: 10px;
 	}
 
-	.asset-information {
-		margin-bottom: 20px;
-	}
-
 	.asset-image-preview {
-		margin-bottom: 5px;
 		text-align: center;
 
 		img {
@@ -261,22 +251,16 @@
 		}
 	}
 
-	.asset-metadata {
-		margin-bottom: 20px;
-
-		.categories {
-			margin-bottom: 5px;
-		}
-	}
-
-	.asset-summary {
+	.asset-information, .asset-metadata, .asset-summary {
 		margin-bottom: 20px;
 	}
 
-	.asset-title {
-		@include ellipsis;
-
+	.asset-image-preview, .asset-metadata .categories, .asset-title {
 		margin-bottom: 5px;
+	}
+
+	.asset-summary, .asset-title {
+		@include ellipsis;
 	}
 }
 
@@ -307,7 +291,7 @@
 			background-color: #FFF;
 		}
 
-		lfr-content-item {
+		.lfr-content-item {
 			color: #3EA9DB;
 
 			&:hover {

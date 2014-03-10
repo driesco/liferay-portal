@@ -52,6 +52,7 @@ public class ResourceBlockPermissionWrapper implements ResourceBlockPermission,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("resourceBlockPermissionId",
 			getResourceBlockPermissionId());
 		attributes.put("resourceBlockId", getResourceBlockId());
@@ -63,6 +64,12 @@ public class ResourceBlockPermissionWrapper implements ResourceBlockPermission,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long resourceBlockPermissionId = (Long)attributes.get(
 				"resourceBlockPermissionId");
 
@@ -107,6 +114,26 @@ public class ResourceBlockPermissionWrapper implements ResourceBlockPermission,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_resourceBlockPermission.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this resource block permission.
+	*
+	* @return the mvcc version of this resource block permission
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _resourceBlockPermission.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this resource block permission.
+	*
+	* @param mvccVersion the mvcc version of this resource block permission
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_resourceBlockPermission.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -317,6 +344,7 @@ public class ResourceBlockPermissionWrapper implements ResourceBlockPermission,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ResourceBlockPermission getWrappedResourceBlockPermission() {
 		return _resourceBlockPermission;
 	}
@@ -324,6 +352,16 @@ public class ResourceBlockPermissionWrapper implements ResourceBlockPermission,
 	@Override
 	public ResourceBlockPermission getWrappedModel() {
 		return _resourceBlockPermission;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _resourceBlockPermission.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _resourceBlockPermission.isFinderCacheEnabled();
 	}
 
 	@Override

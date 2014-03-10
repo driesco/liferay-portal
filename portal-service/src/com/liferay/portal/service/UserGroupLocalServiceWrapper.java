@@ -790,6 +790,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #addUserGroup(long, long,
 	String, String, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.UserGroup addUserGroup(long userId,
 		long companyId, java.lang.String name, java.lang.String description)
@@ -840,6 +841,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	* @throws SystemException if a system exception occurred
 	* @deprecated As of 6.2.0
 	*/
+	@Deprecated
 	@Override
 	public void copyUserGroupLayouts(long userGroupId, long userId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -858,6 +860,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	* @throws SystemException if a system exception occurred
 	* @deprecated As of 6.1.0
 	*/
+	@Deprecated
 	@Override
 	public void copyUserGroupLayouts(long userGroupId, long[] userIds)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -875,6 +878,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	* @throws SystemException if a system exception occurred
 	* @deprecated As of 6.1.0
 	*/
+	@Deprecated
 	@Override
 	public void copyUserGroupLayouts(long[] userGroupIds, long userId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -1154,6 +1158,29 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 			params, andOperator);
 	}
 
+	@Override
+	public com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portal.model.UserGroup> searchUserGroups(
+		long companyId, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		int start, int end, com.liferay.portal.kernel.search.Sort sort)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _userGroupLocalService.searchUserGroups(companyId, keywords,
+			params, start, end, sort);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portal.model.UserGroup> searchUserGroups(
+		long companyId, java.lang.String name, java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andSearch, int start, int end,
+		com.liferay.portal.kernel.search.Sort sort)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _userGroupLocalService.searchUserGroups(companyId, name,
+			description, params, andSearch, start, end, sort);
+	}
+
 	/**
 	* Removes the user groups from the group.
 	*
@@ -1194,6 +1221,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #updateUserGroup(long, long,
 	String, String, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.UserGroup updateUserGroup(long companyId,
 		long userGroupId, java.lang.String name, java.lang.String description)
@@ -1231,6 +1259,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public UserGroupLocalService getWrappedUserGroupLocalService() {
 		return _userGroupLocalService;
 	}
@@ -1238,6 +1267,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedUserGroupLocalService(
 		UserGroupLocalService userGroupLocalService) {
 		_userGroupLocalService = userGroupLocalService;

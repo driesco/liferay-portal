@@ -113,6 +113,8 @@ public class LayoutRevisionPersistenceTest {
 
 		LayoutRevision newLayoutRevision = _persistence.create(pk);
 
+		newLayoutRevision.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newLayoutRevision.setGroupId(ServiceTestUtil.nextLong());
 
 		newLayoutRevision.setCompanyId(ServiceTestUtil.nextLong());
@@ -151,8 +153,6 @@ public class LayoutRevisionPersistenceTest {
 
 		newLayoutRevision.setTypeSettings(ServiceTestUtil.randomString());
 
-		newLayoutRevision.setIconImage(ServiceTestUtil.randomBoolean());
-
 		newLayoutRevision.setIconImageId(ServiceTestUtil.nextLong());
 
 		newLayoutRevision.setThemeId(ServiceTestUtil.randomString());
@@ -177,6 +177,8 @@ public class LayoutRevisionPersistenceTest {
 
 		LayoutRevision existingLayoutRevision = _persistence.findByPrimaryKey(newLayoutRevision.getPrimaryKey());
 
+		Assert.assertEquals(existingLayoutRevision.getMvccVersion(),
+			newLayoutRevision.getMvccVersion());
 		Assert.assertEquals(existingLayoutRevision.getLayoutRevisionId(),
 			newLayoutRevision.getLayoutRevisionId());
 		Assert.assertEquals(existingLayoutRevision.getGroupId(),
@@ -219,8 +221,6 @@ public class LayoutRevisionPersistenceTest {
 			newLayoutRevision.getRobots());
 		Assert.assertEquals(existingLayoutRevision.getTypeSettings(),
 			newLayoutRevision.getTypeSettings());
-		Assert.assertEquals(existingLayoutRevision.getIconImage(),
-			newLayoutRevision.getIconImage());
 		Assert.assertEquals(existingLayoutRevision.getIconImageId(),
 			newLayoutRevision.getIconImageId());
 		Assert.assertEquals(existingLayoutRevision.getThemeId(),
@@ -242,6 +242,147 @@ public class LayoutRevisionPersistenceTest {
 		Assert.assertEquals(Time.getShortTimestamp(
 				existingLayoutRevision.getStatusDate()),
 			Time.getShortTimestamp(newLayoutRevision.getStatusDate()));
+	}
+
+	@Test
+	public void testCountByLayoutSetBranchId() {
+		try {
+			_persistence.countByLayoutSetBranchId(ServiceTestUtil.nextLong());
+
+			_persistence.countByLayoutSetBranchId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByPlid() {
+		try {
+			_persistence.countByPlid(ServiceTestUtil.nextLong());
+
+			_persistence.countByPlid(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByL_H() {
+		try {
+			_persistence.countByL_H(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomBoolean());
+
+			_persistence.countByL_H(0L, ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByL_P() {
+		try {
+			_persistence.countByL_P(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByL_P(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByL_S() {
+		try {
+			_persistence.countByL_S(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextInt());
+
+			_persistence.countByL_S(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByH_P() {
+		try {
+			_persistence.countByH_P(ServiceTestUtil.randomBoolean(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByH_P(ServiceTestUtil.randomBoolean(), 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByP_NotS() {
+		try {
+			_persistence.countByP_NotS(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextInt());
+
+			_persistence.countByP_NotS(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByL_L_P() {
+		try {
+			_persistence.countByL_L_P(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+
+			_persistence.countByL_L_P(0L, 0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByL_P_P() {
+		try {
+			_persistence.countByL_P_P(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+
+			_persistence.countByL_P_P(0L, 0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByL_H_P() {
+		try {
+			_persistence.countByL_H_P(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomBoolean(), ServiceTestUtil.nextLong());
+
+			_persistence.countByL_H_P(0L, ServiceTestUtil.randomBoolean(), 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByL_P_S() {
+		try {
+			_persistence.countByL_P_S(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextInt());
+
+			_persistence.countByL_P_S(0L, 0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -280,13 +421,13 @@ public class LayoutRevisionPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("LayoutRevision",
-			"layoutRevisionId", true, "groupId", true, "companyId", true,
-			"userId", true, "userName", true, "createDate", true,
-			"modifiedDate", true, "layoutSetBranchId", true, "layoutBranchId",
-			true, "parentLayoutRevisionId", true, "head", true, "major", true,
-			"plid", true, "privateLayout", true, "name", true, "title", true,
-			"description", true, "keywords", true, "robots", true,
-			"typeSettings", true, "iconImage", true, "iconImageId", true,
+			"mvccVersion", true, "layoutRevisionId", true, "groupId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "layoutSetBranchId", true,
+			"layoutBranchId", true, "parentLayoutRevisionId", true, "head",
+			true, "major", true, "plid", true, "privateLayout", true, "name",
+			true, "title", true, "description", true, "keywords", true,
+			"robots", true, "typeSettings", true, "iconImageId", true,
 			"themeId", true, "colorSchemeId", true, "wapThemeId", true,
 			"wapColorSchemeId", true, "css", true, "status", true,
 			"statusByUserId", true, "statusByUserName", true, "statusDate", true);
@@ -429,6 +570,8 @@ public class LayoutRevisionPersistenceTest {
 
 		LayoutRevision layoutRevision = _persistence.create(pk);
 
+		layoutRevision.setMvccVersion(ServiceTestUtil.nextLong());
+
 		layoutRevision.setGroupId(ServiceTestUtil.nextLong());
 
 		layoutRevision.setCompanyId(ServiceTestUtil.nextLong());
@@ -466,8 +609,6 @@ public class LayoutRevisionPersistenceTest {
 		layoutRevision.setRobots(ServiceTestUtil.randomString());
 
 		layoutRevision.setTypeSettings(ServiceTestUtil.randomString());
-
-		layoutRevision.setIconImage(ServiceTestUtil.randomBoolean());
 
 		layoutRevision.setIconImageId(ServiceTestUtil.nextLong());
 

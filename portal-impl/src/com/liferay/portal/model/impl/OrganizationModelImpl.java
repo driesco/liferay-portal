@@ -15,6 +15,7 @@
 package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.lar.StagedModelType;
@@ -26,7 +27,9 @@ import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.OrganizationModel;
 import com.liferay.portal.model.OrganizationSoap;
+import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -65,6 +68,7 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 	 */
 	public static final String TABLE_NAME = "Organization_";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "uuid_", Types.VARCHAR },
 			{ "organizationId", Types.BIGINT },
 			{ "companyId", Types.BIGINT },
@@ -80,9 +84,10 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 			{ "regionId", Types.BIGINT },
 			{ "countryId", Types.BIGINT },
 			{ "statusId", Types.INTEGER },
-			{ "comments", Types.VARCHAR }
+			{ "comments", Types.VARCHAR },
+			{ "logoId", Types.BIGINT }
 		};
-	public static final String TABLE_SQL_CREATE = "create table Organization_ (uuid_ VARCHAR(75) null,organizationId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentOrganizationId LONG,treePath STRING null,name VARCHAR(100) null,type_ VARCHAR(75) null,recursable BOOLEAN,regionId LONG,countryId LONG,statusId INTEGER,comments STRING null)";
+	public static final String TABLE_SQL_CREATE = "create table Organization_ (mvccVersion LONG default 0,uuid_ VARCHAR(75) null,organizationId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentOrganizationId LONG,treePath STRING null,name VARCHAR(100) null,type_ VARCHAR(75) null,recursable BOOLEAN,regionId LONG,countryId LONG,statusId INTEGER,comments STRING null,logoId LONG)";
 	public static final String TABLE_SQL_DROP = "drop table Organization_";
 	public static final String ORDER_BY_JPQL = " ORDER BY organization.name ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY Organization_.name ASC";
@@ -118,6 +123,7 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 
 		Organization model = new OrganizationImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setUuid(soapModel.getUuid());
 		model.setOrganizationId(soapModel.getOrganizationId());
 		model.setCompanyId(soapModel.getCompanyId());
@@ -134,6 +140,7 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 		model.setCountryId(soapModel.getCountryId());
 		model.setStatusId(soapModel.getStatusId());
 		model.setComments(soapModel.getComments());
+		model.setLogoId(soapModel.getLogoId());
 
 		return model;
 	}
@@ -214,6 +221,7 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("organizationId", getOrganizationId());
 		attributes.put("companyId", getCompanyId());
@@ -230,12 +238,22 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 		attributes.put("countryId", getCountryId());
 		attributes.put("statusId", getStatusId());
 		attributes.put("comments", getComments());
+		attributes.put("logoId", getLogoId());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -331,6 +349,23 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 		if (comments != null) {
 			setComments(comments);
 		}
+
+		Long logoId = (Long)attributes.get("logoId");
+
+		if (logoId != null) {
+			setLogoId(logoId);
+		}
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@JSON
@@ -416,12 +451,18 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 
 	@Override
 	public String getUserUuid() throws SystemException {
-		return PortalUtil.getUserValue(getUserId(), "uuid", _userUuid);
+		try {
+			User user = UserLocalServiceUtil.getUserById(getUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
+		}
 	}
 
 	@Override
 	public void setUserUuid(String userUuid) {
-		_userUuid = userUuid;
 	}
 
 	@JSON
@@ -618,6 +659,17 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 		_comments = comments;
 	}
 
+	@JSON
+	@Override
+	public long getLogoId() {
+		return _logoId;
+	}
+
+	@Override
+	public void setLogoId(long logoId) {
+		_logoId = logoId;
+	}
+
 	@Override
 	public StagedModelType getStagedModelType() {
 		return new StagedModelType(PortalUtil.getClassNameId(
@@ -655,6 +707,7 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 	public Object clone() {
 		OrganizationImpl organizationImpl = new OrganizationImpl();
 
+		organizationImpl.setMvccVersion(getMvccVersion());
 		organizationImpl.setUuid(getUuid());
 		organizationImpl.setOrganizationId(getOrganizationId());
 		organizationImpl.setCompanyId(getCompanyId());
@@ -671,6 +724,7 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 		organizationImpl.setCountryId(getCountryId());
 		organizationImpl.setStatusId(getStatusId());
 		organizationImpl.setComments(getComments());
+		organizationImpl.setLogoId(getLogoId());
 
 		organizationImpl.resetOriginalValues();
 
@@ -718,6 +772,16 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		OrganizationModelImpl organizationModelImpl = this;
 
@@ -745,6 +809,8 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 	@Override
 	public CacheModel<Organization> toCacheModel() {
 		OrganizationCacheModel organizationCacheModel = new OrganizationCacheModel();
+
+		organizationCacheModel.mvccVersion = getMvccVersion();
 
 		organizationCacheModel.uuid = getUuid();
 
@@ -828,14 +894,18 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 			organizationCacheModel.comments = null;
 		}
 
+		organizationCacheModel.logoId = getLogoId();
+
 		return organizationCacheModel;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(33);
+		StringBundler sb = new StringBundler(37);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", uuid=");
 		sb.append(getUuid());
 		sb.append(", organizationId=");
 		sb.append(getOrganizationId());
@@ -867,6 +937,8 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 		sb.append(getStatusId());
 		sb.append(", comments=");
 		sb.append(getComments());
+		sb.append(", logoId=");
+		sb.append(getLogoId());
 		sb.append("}");
 
 		return sb.toString();
@@ -874,12 +946,16 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(52);
+		StringBundler sb = new StringBundler(58);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.Organization");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>uuid</column-name><column-value><![CDATA[");
 		sb.append(getUuid());
@@ -944,6 +1020,10 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 			"<column><column-name>comments</column-name><column-value><![CDATA[");
 		sb.append(getComments());
 		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>logoId</column-name><column-value><![CDATA[");
+		sb.append(getLogoId());
+		sb.append("]]></column-value></column>");
 
 		sb.append("</model>");
 
@@ -954,6 +1034,7 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			Organization.class
 		};
+	private long _mvccVersion;
 	private String _uuid;
 	private String _originalUuid;
 	private long _organizationId;
@@ -963,7 +1044,6 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 	private long _originalCompanyId;
 	private boolean _setOriginalCompanyId;
 	private long _userId;
-	private String _userUuid;
 	private String _userName;
 	private Date _createDate;
 	private Date _modifiedDate;
@@ -980,6 +1060,7 @@ public class OrganizationModelImpl extends BaseModelImpl<Organization>
 	private long _countryId;
 	private int _statusId;
 	private String _comments;
+	private long _logoId;
 	private long _columnBitmask;
 	private Organization _escapedModel;
 }

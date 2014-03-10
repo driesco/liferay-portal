@@ -125,6 +125,7 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 		portletExtTaglibDTD = System.getProperty(
 			"deployer.portlet.ext.taglib.dtd");
 		securityTaglibDTD = System.getProperty("deployer.security.taglib.dtd");
+		stagingTaglibDTD = System.getProperty("deployer.staging.taglib.dtd");
 		themeTaglibDTD = System.getProperty("deployer.theme.taglib.dtd");
 		uiTaglibDTD = System.getProperty("deployer.ui.taglib.dtd");
 		utilTaglibDTD = System.getProperty("deployer.util.taglib.dtd");
@@ -275,6 +276,7 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 			deployer.setPortletExtTaglibDTD(portletExtTaglibDTD);
 			deployer.setPortletTaglibDTD(portletTaglibDTD);
 			deployer.setSecurityTaglibDTD(securityTaglibDTD);
+			deployer.setStagingTaglibDTD(stagingTaglibDTD);
 			deployer.setThemeTaglibDTD(themeTaglibDTD);
 			deployer.setTomcatLibDir(tomcatLibDir);
 			deployer.setUiTaglibDTD(uiTaglibDTD);
@@ -354,6 +356,10 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 
 			String jarName = jarFullName.substring(
 				jarFullName.lastIndexOf("/") + 1);
+
+			if (!FileUtil.exists(jarFullName)) {
+				DeployUtil.getResourcePath(jarName);
+			}
 
 			FileUtil.copyFile(
 				jarFullName, srcFile + "/WEB-INF/lib/" + jarName, false);
@@ -526,6 +532,12 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 			FileUtil.copyFile(
 				securityTaglibDTD,
 				srcFile + "/WEB-INF/tld/liferay-security.tld", true);
+		}
+
+		if (Validator.isNotNull(stagingTaglibDTD)) {
+			FileUtil.copyFile(
+				stagingTaglibDTD, srcFile + "/WEB-INF/tld/liferay-staging.tld",
+				true);
 		}
 
 		if (Validator.isNotNull(themeTaglibDTD)) {
@@ -800,7 +812,12 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 					WarTask.war(srcFile, deployDir, excludes, webXml);
 				}
 
-				DeleteTask.deleteDirectory(tempDir);
+				if (tempDir.isDirectory()) {
+					DeleteTask.deleteDirectory(tempDir);
+				}
+				else {
+					tempDir.delete();
+				}
 			}
 		}
 		else {
@@ -1188,11 +1205,13 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 			sb.append("</context-param>");
 		}
 
-		sb.append("<listener>");
-		sb.append("<listener-class>");
-		sb.append(SerializableSessionAttributeListener.class.getName());
-		sb.append("</listener-class>");
-		sb.append("</listener>");
+		if (PropsValues.SESSION_VERIFY_SERIALIZABLE_ATTRIBUTE) {
+			sb.append("<listener>");
+			sb.append("<listener-class>");
+			sb.append(SerializableSessionAttributeListener.class.getName());
+			sb.append("</listener-class>");
+			sb.append("</listener>");
+		}
 
 		sb.append(getDynamicResourceServletContent());
 
@@ -1218,6 +1237,7 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 			Validator.isNotNull(portletTaglibDTD) ||
 			Validator.isNotNull(portletExtTaglibDTD) ||
 			Validator.isNotNull(securityTaglibDTD) ||
+			Validator.isNotNull(stagingTaglibDTD) ||
 			Validator.isNotNull(themeTaglibDTD) ||
 			Validator.isNotNull(uiTaglibDTD) ||
 			Validator.isNotNull(utilTaglibDTD)) {
@@ -1266,6 +1286,17 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 			sb.append("</taglib-uri>");
 			sb.append("<taglib-location>");
 			sb.append("/WEB-INF/tld/liferay-security.tld");
+			sb.append("</taglib-location>");
+			sb.append("</taglib>");
+		}
+
+		if (Validator.isNotNull(stagingTaglibDTD)) {
+			sb.append("<taglib>");
+			sb.append("<taglib-uri>");
+			sb.append("http://liferay.com/tld/staging");
+			sb.append("</taglib-uri>");
+			sb.append("<taglib-location>");
+			sb.append("/WEB-INF/tld/liferay-staging.tld");
 			sb.append("</taglib-location>");
 			sb.append("</taglib>");
 		}
@@ -2028,7 +2059,8 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 			String listenerClass = GetterUtil.getString(
 				listenerElement.elementText("listener-class"));
 
-			if (listenerClass.equals(
+			if (listenerClass.equals(PluginContextListener.class.getName()) ||
+				listenerClass.equals(
 					SecurePluginContextListener.class.getName())) {
 
 				continue;
@@ -2126,6 +2158,11 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 	@Override
 	public void setSecurityTaglibDTD(String securityTaglibDTD) {
 		this.securityTaglibDTD = securityTaglibDTD;
+	}
+
+	@Override
+	public void setStagingTaglibDTD(String stagingTaglibDTD) {
+		this.stagingTaglibDTD = stagingTaglibDTD;
 	}
 
 	@Override
@@ -2317,7 +2354,8 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 			String listenerClass = GetterUtil.getString(
 				listenerElement.elementText("listener-class"));
 
-			if (listenerClass.equals(
+			if (listenerClass.equals(PluginContextListener.class.getName()) ||
+				listenerClass.equals(
 					SerializableSessionAttributeListener.class.getName()) ||
 				listenerClass.equals(
 					SecurePluginContextListener.class.getName())) {
@@ -2399,6 +2437,7 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 	protected String portletExtTaglibDTD;
 	protected String portletTaglibDTD;
 	protected String securityTaglibDTD;
+	protected String stagingTaglibDTD;
 	protected String themeTaglibDTD;
 	protected String tomcatLibDir;
 	protected String uiTaglibDTD;

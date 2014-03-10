@@ -170,6 +170,13 @@ public class DLUtil {
 		return getDL().getEmailFileEntryAddedSubjectMap(preferences);
 	}
 
+	public static boolean getEmailFileEntryAnyEventEnabled(
+		PortletPreferences preferences) {
+
+		return DLUtil.getEmailFileEntryAddedEnabled(preferences) ||
+			DLUtil.getEmailFileEntryUpdatedEnabled(preferences);
+	}
+
 	public static Map<Locale, String> getEmailFileEntryUpdatedBodyMap(
 		PortletPreferences preferences) {
 
@@ -260,6 +267,7 @@ public class DLUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link #getPreviewURL(FileEntry,
 	 *             FileVersion, ThemeDisplay, String, boolean, boolean)}
 	 */
+	@Deprecated
 	public static String getPreviewURL(
 		FileEntry fileEntry, FileVersion fileVersion, ThemeDisplay themeDisplay,
 		String queryString, boolean appendToken) {

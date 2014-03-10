@@ -112,7 +112,6 @@ if (folder != null) {
 				name="num-of-documents"
 				value="<%= String.valueOf(fileEntriesCount) %>"
 			/>
-
 		</liferay-ui:search-container-row>
 
 		<liferay-ui:search-iterator />
@@ -150,7 +149,7 @@ if (folder != null) {
 
 				<c:if test="<%= Validator.isNotNull(curFile.getDescription()) %>">
 					<br />
-					<%= curFile.getDescription() %>
+					<%= HtmlUtil.escape(curFile.getDescription()) %>
 				</c:if>
 			</liferay-ui:search-container-column-text>
 
@@ -189,17 +188,5 @@ if (folder != null) {
 </aui:form>
 
 <aui:script use="aui-base">
-	var Util = Liferay.Util;
-
-	A.one('#<portlet:namespace />selectFileEntryFm').delegate(
-		'click',
-		function(event) {
-			var result = Util.getAttributes(event.currentTarget, 'data-');
-
-			Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
-
-			Util.getWindow().hide();
-		},
-		'.selector-button'
-	);
+	Liferay.Util.selectEntityHandler('#<portlet:namespace />selectFileEntryFm', '<%= HtmlUtil.escapeJS(eventName) %>');
 </aui:script>

@@ -66,7 +66,7 @@ boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
 		<liferay-ui:header
 			backURL="<%= backURL %>"
 			localizeTitle="<%= (entry == null) %>"
-			title='<%= (entry == null) ? "add-bookmark" : LanguageUtil.format(pageContext, "edit-x", entry.getName()) %>'
+			title='<%= (entry == null) ? "add-bookmark" : LanguageUtil.format(pageContext, "edit-x", entry.getName(), false) %>'
 		/>
 	</c:if>
 
@@ -138,7 +138,7 @@ boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
 			</aui:field-wrapper>
 		</c:if>
 
-		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="name" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) || windowState.equals(LiferayWindowState.POP_UP) %>" name="name" />
 
 		<aui:input name="url" />
 

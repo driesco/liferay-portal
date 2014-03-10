@@ -17,6 +17,7 @@ package com.liferay.portlet.journal.util;
 import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
@@ -41,15 +42,16 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
-import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.util.UnmodifiableList;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.xml.Attribute;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.Node;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.XPath;
+import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutConstants;
@@ -58,6 +60,7 @@ import com.liferay.portal.model.ModelHintsUtil;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ImageLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
+import com.liferay.portal.service.SubscriptionLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.templateparser.Transformer;
 import com.liferay.portal.theme.ThemeDisplay;
@@ -73,7 +76,6 @@ import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
 import com.liferay.portlet.dynamicdatamapping.service.DDMTemplateLocalServiceUtil;
 import com.liferay.portlet.dynamicdatamapping.util.DDMXMLUtil;
-import com.liferay.portlet.journal.NoSuchArticleException;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalFolder;
 import com.liferay.portlet.journal.model.JournalFolderConstants;
@@ -108,6 +110,7 @@ import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletSession;
 import javax.portlet.PortletURL;
+import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
 import javax.servlet.http.HttpServletRequest;
@@ -122,6 +125,9 @@ import javax.servlet.http.HttpServletRequest;
 public class JournalUtil {
 
 	public static final int MAX_STACK_SIZE = 20;
+
+	public static final String[] SELECTED_FIELD_NAMES =
+		{Field.COMPANY_ID, Field.GROUP_ID, Field.UID, "articleId"};
 
 	public static void addAllReservedEls(
 		Element rootElement, Map<String, String> tokens, JournalArticle article,
@@ -489,12 +495,12 @@ public class JournalUtil {
 		sb.append(StringPool.SPACE);
 
 		for (JournalFolder curFolder : folders) {
-			sb.append(StringPool.RAQUO);
+			sb.append(StringPool.RAQUO_CHAR);
 			sb.append(StringPool.SPACE);
 			sb.append(curFolder.getName());
 		}
 
-		sb.append(StringPool.RAQUO);
+		sb.append(StringPool.RAQUO_CHAR);
 		sb.append(StringPool.SPACE);
 		sb.append(folder.getName());
 
@@ -537,28 +543,25 @@ public class JournalUtil {
 		return orderByComparator;
 	}
 
-	public static Tuple getArticles(Hits hits)
+	public static List<JournalArticle> getArticles(Hits hits)
 		throws PortalException, SystemException {
-
-		List<JournalArticle> articles = new ArrayList<JournalArticle>();
-		boolean corruptIndex = false;
 
 		List<com.liferay.portal.kernel.search.Document> documents =
 			hits.toList();
+
+		List<JournalArticle> articles = new ArrayList<JournalArticle>(
+			documents.size());
 
 		for (com.liferay.portal.kernel.search.Document document : documents) {
 			long groupId = GetterUtil.getLong(document.get(Field.GROUP_ID));
 			String articleId = document.get("articleId");
 
-			try {
-				JournalArticle article =
-					JournalArticleLocalServiceUtil.getArticle(
-						groupId, articleId);
+			JournalArticle article =
+				JournalArticleLocalServiceUtil.fetchLatestArticle(
+					groupId, articleId, WorkflowConstants.STATUS_APPROVED);
 
-				articles.add(article);
-			}
-			catch (NoSuchArticleException nsae) {
-				corruptIndex = true;
+			if (article == null) {
+				articles = null;
 
 				Indexer indexer = IndexerRegistryUtil.getIndexer(
 					JournalArticle.class);
@@ -568,9 +571,12 @@ public class JournalUtil {
 
 				indexer.delete(companyId, document.getUID());
 			}
+			else if (articles != null) {
+				articles.add(article);
+			}
 		}
 
-		return new Tuple(articles, corruptIndex);
+		return articles;
 	}
 
 	public static String getEmailArticleAddedBody(
@@ -616,6 +622,22 @@ public class JournalUtil {
 			return ContentUtil.get(
 				PropsUtil.get(PropsKeys.JOURNAL_EMAIL_ARTICLE_ADDED_SUBJECT));
 		}
+	}
+
+	public static boolean getEmailArticleAnyEventEnabled(
+		PortletPreferences preferences) {
+
+		if (JournalUtil.getEmailArticleAddedEnabled(preferences) ||
+			JournalUtil.getEmailArticleApprovalDeniedEnabled(preferences) ||
+			JournalUtil.getEmailArticleApprovalGrantedEnabled(preferences) ||
+			JournalUtil.getEmailArticleApprovalRequestedEnabled(preferences) ||
+			JournalUtil.getEmailArticleReviewEnabled(preferences) ||
+			JournalUtil.getEmailArticleUpdatedEnabled(preferences)) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	public static String getEmailArticleApprovalDeniedBody(
@@ -852,6 +874,51 @@ public class JournalUtil {
 			return ContentUtil.get(
 				PropsUtil.get(PropsKeys.JOURNAL_EMAIL_ARTICLE_UPDATED_SUBJECT));
 		}
+	}
+
+	public static Map<String, String> getEmailDefinitionTerms(
+		RenderRequest request, String emailFromAddress, String emailFromName) {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		Map<String, String> definitionTerms = new HashMap<String, String>();
+
+		definitionTerms.put(
+			"[$ARTICLE_ID$]",
+			LanguageUtil.get(themeDisplay.getLocale(), "the-web-content-id"));
+		definitionTerms.put(
+			"[$ARTICLE_TITLE$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(), "the-web-content-title"));
+		definitionTerms.put(
+			"[$ARTICLE_URL$]",
+			LanguageUtil.get(themeDisplay.getLocale(), "the-web-content-url"));
+		definitionTerms.put(
+			"[$ARTICLE_VERSION$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(), "the-web-content-version"));
+		definitionTerms.put(
+			"[$FROM_ADDRESS$]", HtmlUtil.escape(emailFromAddress));
+		definitionTerms.put("[$FROM_NAME$]", HtmlUtil.escape(emailFromName));
+
+		Company company = themeDisplay.getCompany();
+
+		definitionTerms.put("[$PORTAL_URL$]", company.getVirtualHostname());
+
+		definitionTerms.put(
+			"[$PORTLET_NAME$]", PortalUtil.getPortletTitle(request));
+		definitionTerms.put(
+			"[$TO_ADDRESS$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-address-of-the-email-recipient"));
+		definitionTerms.put(
+			"[$TO_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(), "the-name-of-the-email-recipient"));
+
+		return definitionTerms;
 	}
 
 	public static String getEmailFromAddress(
@@ -1106,6 +1173,41 @@ public class JournalUtil {
 
 		return ModelHintsUtil.trimString(
 			JournalArticle.class.getName(), "urlTitle", title);
+	}
+
+	public static boolean isSubscribedToFolder(
+			long companyId, long groupId, long userId, long folderId)
+		throws PortalException, SystemException {
+
+		return isSubscribedToFolder(companyId, groupId, userId, folderId, true);
+	}
+
+	public static boolean isSubscribedToFolder(
+			long companyId, long groupId, long userId, long folderId,
+			boolean recursive)
+		throws PortalException, SystemException {
+
+		List<Long> ancestorFolderIds = new ArrayList<Long>();
+
+		if (folderId != JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			JournalFolder folder = JournalFolderLocalServiceUtil.getFolder(
+				folderId);
+
+			ancestorFolderIds.add(folderId);
+
+			if (recursive) {
+				ancestorFolderIds.addAll(folder.getAncestorFolderIds());
+
+				ancestorFolderIds.add(groupId);
+			}
+		}
+		else {
+			ancestorFolderIds.add(groupId);
+		}
+
+		return SubscriptionLocalServiceUtil.isSubscribed(
+			companyId, userId, JournalFolder.class.getName(),
+			ArrayUtil.toLongArray(ancestorFolderIds));
 	}
 
 	public static String mergeArticleContent(
